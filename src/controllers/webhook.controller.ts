@@ -26,6 +26,7 @@ export const verifyWebhook = (req: Request, res: Response) => {
   console.log("✅ Webhook verificado con Meta!");
   res.status(200).send(challenge);
 };
+
 // Función para manejar eventos del webhook
 export const handleWebhookEvent: RequestHandler = (req, res) => {
   res.sendStatus(200);

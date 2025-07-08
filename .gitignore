@@ -7,4 +7,3 @@ dist
 
 # ignorar archivos de npm
 node_modules
-package-lock.json
