@@ -4,9 +4,6 @@ import { RequestHandler } from 'express-serve-static-core';
 import type { WhatsAppMessage, WhatsAppStatus, WhatsAppContact, WhatsAppMetadata, WhatsAppChange, WhatsAppEntry, WhatsAppWebhookBody } from '../interface/whatsapp.interface';
 
 
-
-
-
 // Función para verificar el webhook
 export const verifyWebhook = (req: Request, res: Response) => {
   const mode = req.query['hub.mode'] as string;
@@ -31,29 +28,39 @@ export const verifyWebhook = (req: Request, res: Response) => {
 export const handleWebhookEvent: RequestHandler = (req, res) => {
   res.sendStatus(200);
   process.nextTick(() => {
-    try {
-      console.log("🚀 Webhook recibido:");
-      console.log("📊 ESTRUCTURA COMPLETA:");
-      console.log(JSON.stringify(req.body, null, 2)); // ← Esto te mostrará todo
-      
-      const body = req.body as WhatsAppWebhookBody;
-      
-      // Agrega esto para debug
-      console.log("🔍 PROPIEDADES DEL BODY:");
-      console.log("body.object:", body.object);
-      console.log("body.entry:", body.entry);
-      console.log("Todas las keys:", Object.keys(body));
-      
-      if (body.object !== 'whatsapp_business_account') {
-        console.log("❓ Evento no reconocido:", body.object);
-        return;
-      }
-      
-      // resto del código...
-    } catch (error) {
-      console.error('🔥 Error al procesar webhook:', error);
+  try {
+    console.log("🚀 Webhook recibido:");
+    console.log("📊 ESTRUCTURA COMPLETA:");
+    console.log(JSON.stringify(req.body, null, 2));
+
+    const body = req.body;
+
+    if (body.object === 'whatsapp_business_account') {
+      body.entry?.forEach((entry: WhatsAppEntry) => {
+        entry.changes?.forEach((change: WhatsAppChange) => {
+          if (change.field === 'messages') {
+        const messages: WhatsAppMessage[] | undefined = change.value.messages;
+        const contacts: WhatsAppContact[] | undefined = change.value.contacts;
+
+        if (messages && contacts) {
+          messages.forEach((message: WhatsAppMessage) => {
+            const from: string = message.from;
+            const text: string | undefined = message.text?.body;
+
+            console.log(`✅ Mensaje recibido de ${from}: ${text}`);
+
+            // Aquí llamás a tu función para responder:
+            sendWhatsAppMessage(from, `👋 ¡Hola! Recibí tu mensaje: "${text}"`);
+          });
+        }
+          }
+        });
+      });
     }
-  });
+  } catch (error) {
+    console.error('🔥 Error al procesar webhook:', error);
+  }
+});
 };
 
 // Funciones auxiliares
