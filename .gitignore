@@ -1,0 +1,10 @@
+# ignorar el env
+.env
+
+# ignorar el build
+build
+dist
+
+# ignorar archivos de npm
+node_modules
+package-lock.json
