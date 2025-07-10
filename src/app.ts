@@ -1,6 +1,7 @@
 import express from 'express';
 import webhookRoutes from './routes/webhook.routes';
 import templatesRoutes from './routes/template.routes';
+import messageRoutes from './routes/message.routes';
 import { PORT } from './config/constants';
 
 const app = express();
@@ -18,6 +19,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/webhook', webhookRoutes);
 app.use('/templates', templatesRoutes);
+app.use('/message', messageRoutes);
 
 
 // Health check endpoint
