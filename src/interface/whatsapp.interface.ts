@@ -57,3 +57,29 @@ export interface WhatsAppWebhookBody {
   object: string;
   entry: WhatsAppEntry[];
 }
+
+// Templates
+export interface WhatsAppTemplate {
+  id: string;
+  name: string;
+  language: string;
+  status: string;
+  category: string;
+  header: string | null;
+  body: string | null;
+  footer: string | null;
+  buttons: WhatsAppButton[];
+}
+
+export interface WhatsAppButton {
+  type: string;
+  text: string;
+}
+
+export interface WhatsAppTemplateComponent {
+  type: string;
+  text?: string;
+  format?: string;
+  buttons?: WhatsAppButton[];
+  example?: any;
+}
