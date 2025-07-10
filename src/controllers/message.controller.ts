@@ -3,24 +3,28 @@ import { sendTemplateMessage } from '../services/SendTemplate.service';
 import { logInfo, logError } from '../utils/logger';
 
 export const sendTemplate = async (req: Request, res: Response) => {
-  const { to, templateName, language, parameters } = req.body;
+  const { messages, templateName, language } = req.body;
 
-  if (!to || !templateName || !language) {
+  if (!messages || !templateName || !language) {
     return res.status(400).json({
       success: false,
-      message: 'Missing required fields: to, templateName, language',
+      message: 'Missing required fields: messages, templateName, language',
     });
   }
-
-  const recipients = Array.isArray(to) ? to : [to];
 
   try {
     const results = [];
 
-    for (const phone of recipients) {
-      const result = await sendTemplateMessage(phone, templateName, language, parameters || []);
+    for (const msg of messages) {
+      const result = await sendTemplateMessage(
+        msg.to,
+        templateName,
+        language,
+        msg.parameters || []
+      );
+
       results.push({
-        to: phone,
+        to: msg.to,
         result,
       });
     }
@@ -29,6 +33,7 @@ export const sendTemplate = async (req: Request, res: Response) => {
       success: true,
       data: results,
     });
+
   } catch (error) {
     logError(`❌ Error in sendTemplate controller: ${error}`);
     return res.status(500).json({
