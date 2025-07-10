@@ -3,9 +3,9 @@ import {
   WhatsAppEntry,
   WhatsAppChange,
 } from "../interface/whatsapp.interface";
-
 import { processMessageChange } from "./messageProcessor.service";
 
+// Función para procesar el webhook de WhatsApp
 export function processWebhookEvent(body: WhatsAppWebhookBody) {
   if (body.object === "whatsapp_business_account") {
     body.entry?.forEach((entry: WhatsAppEntry) => {
