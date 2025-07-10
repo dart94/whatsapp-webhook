@@ -12,11 +12,22 @@ export const sendTemplate = async (req: Request, res: Response) => {
     });
   }
 
+  const recipients = Array.isArray(to) ? to : [to];
+
   try {
-    const result = await sendTemplateMessage(to, templateName, language, parameters || []);
+    const results = [];
+
+    for (const phone of recipients) {
+      const result = await sendTemplateMessage(phone, templateName, language, parameters || []);
+      results.push({
+        to: phone,
+        result,
+      });
+    }
+
     return res.status(200).json({
       success: true,
-      data: result,
+      data: results,
     });
   } catch (error) {
     logError(`❌ Error in sendTemplate controller: ${error}`);
