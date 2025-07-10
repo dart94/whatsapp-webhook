@@ -50,7 +50,7 @@ export const handleWebhookEvent: RequestHandler = (req, res) => {
             console.log(`✅ Mensaje recibido de ${from}: ${text}`);
 
             // Aquí llamás a tu función para responder:
-            sendWhatsAppMessage(from, `👋 ¡Hola! Recibí tu mensaje: "${text}"`);
+            sendWhatsAppMessage(from, generateAutoResponse(message));
           });
         }
           }
