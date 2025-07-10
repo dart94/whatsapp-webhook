@@ -3,6 +3,6 @@ import { getTemplates } from '../controllers/template.controller';
 
 const router = Router();
 
-router.get('/templates', getTemplates);
+router.get('/', getTemplates);
 
 export default router;
