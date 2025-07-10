@@ -19,7 +19,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/webhook', webhookRoutes);
 app.use('/templates', templatesRoutes);
-app.use('/message', messageRoutes);
+app.use('/', messageRoutes);
 
 
 // Health check endpoint
