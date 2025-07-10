@@ -6,7 +6,7 @@ import {
   WhatsAppMetadata
 } from '../interface/whatsapp.interface';
 
-import { sendWhatsAppMessage } from './SendWhatsApp.Service';
+import { sendWhatsAppMessage } from './sendWhatsApp.service';
 import { generateAutoResponse } from './generateResponse.service';
 import { logInfo, logError } from '../utils/logger';
 
