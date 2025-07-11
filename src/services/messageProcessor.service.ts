@@ -10,6 +10,8 @@ import { sendWhatsAppMessage } from "./sendwhatsapp.service";
 import { generateAutoResponse } from "./generateResponse.service";
 import { logInfo, logError } from "../utils/logger";
 
+
+// Función para procesar los cambios en un mensaje
 export function processMessageChange(value: WhatsAppChange["value"]) {
   if (value.messages) {
     value.messages.forEach(processIncomingMessage);
