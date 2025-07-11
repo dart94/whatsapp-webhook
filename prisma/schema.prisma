@@ -1,0 +1,22 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model WhatsappMessage {
+  id                 BigInt     @id @default(autoincrement())
+  wa_id              String
+  message_id         String
+  direction          String
+  type               String?
+  body_text          String?
+  context_message_id String?
+  timestamp          BigInt?
+  raw_json           Json?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}

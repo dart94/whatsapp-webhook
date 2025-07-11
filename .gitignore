@@ -7,3 +7,5 @@ dist
 
 # ignorar archivos de npm
 node_modules
+
+/src/generated/prisma
