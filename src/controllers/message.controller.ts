@@ -3,6 +3,7 @@ import { sendTemplateMessage } from "../services/SendTemplate.service";
 import { logInfo, logError } from "../utils/logger";
 import { sendWhatsAppMessage } from "../services/sendwhatsapp.service";
 import { prisma } from "../prisma";
+import { log } from "console";
 
 //Enviar mensajes por plantilla
 export const sendTemplate = async (req: Request, res: Response) => {
@@ -75,13 +76,28 @@ export const replyToMessage = async (req: Request, res: Response) => {
 
 //Obtener mensajes recientes
 export const getRecentMessages = async (req: Request, res: Response) => {
-  const messages = await prisma.whatsappMessage.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
+  try {
+    const messages = await prisma.whatsappMessage.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    });
 
-  res.json({
-    success: true,
-    data: messages,
-  });
+    const fixedMessages = messages.map((msg) => ({
+      ...msg,
+      id: Number(msg.id),
+      timestamp: msg.timestamp ? Number(msg.timestamp) : null,
+    }));
+    logInfo(`✅ Mensajes recientes obtenidos: ${fixedMessages.length}`);
+
+    res.json({
+      success: true,
+      data: fixedMessages,
+    });
+  } catch (error) {
+    logError(`❌ Error al obtener mensajes recientes: ${error}`);
+    return res.status(500).json({
+      success: false,
+      message: "Error getting recent messages.",
+    });
+  }
 };
