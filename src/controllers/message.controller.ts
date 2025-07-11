@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import { sendTemplateMessage } from '../services/SendTemplate.service';
 import { logInfo, logError } from '../utils/logger';
+import { sendWhatsAppMessage } from '../services/sendWhatsApp.service';
 
+//Enviar mensajes por plantilla
 export const sendTemplate = async (req: Request, res: Response) => {
   const { messages, templateName, language } = req.body;
 
@@ -39,6 +41,36 @@ export const sendTemplate = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Error sending template message.',
+    });
+  }
+};
+
+
+//Responder mensajes
+
+export const replyToMessage = async (req: Request, res: Response) => {
+  const { to, message, replyToMessageId } = req.body;
+
+  if (!to || !message || !replyToMessageId) {
+    return res.status(400).json({
+      success: false,
+      message: 'Missing required fields: to, message, replyToMessageId',
+    });
+  }
+
+  try {
+    const result = await sendWhatsAppMessage(to, message, replyToMessageId);
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+
+  } catch (error) {
+    logError(`❌ Error in replyToMessage controller: ${error}`);
+    return res.status(500).json({
+      success: false,
+      message: 'Error sending reply message.',
     });
   }
 };
