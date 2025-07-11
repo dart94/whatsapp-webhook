@@ -5,10 +5,10 @@ import {
   WhatsAppContact,
   WhatsAppMetadata,
 } from "../interface/whatsapp.interface";
-
 import { sendWhatsAppMessage } from "./sendwhatsapp.service";
 import { generateAutoResponse } from "./generateResponse.service";
 import { logInfo, logError } from "../utils/logger";
+import { prisma } from "../prisma";
 
 
 // Función para procesar los cambios en un mensaje
@@ -31,6 +31,22 @@ export function processMessageChange(value: WhatsAppChange["value"]) {
 // Función para procesar mensajes entrantes
 export async function processIncomingMessage(message: WhatsAppMessage) {
   logInfo(`📩 MENSAJE RECIBIDO de ${message.from}: ${message.text?.body}`);
+
+    // Guardar en DB
+  await prisma.whatsappMessage.create({
+    data: {
+      wa_id: message.from,
+      message_id: message.id,
+      direction: 'IN',
+      type: message.type,
+      body_text: message.text?.body,
+      context_message_id: message.context?.id || null,
+      timestamp: Number(message.timestamp),
+      raw_json: JSON.stringify(message),
+    }
+  });
+
+  logInfo(`✅ Mensaje guardado en la base de datos.`);
 
   // Respuesta automática para mensajes entrantes
   const AUTO_RESPONSE_ENABLED = false;
