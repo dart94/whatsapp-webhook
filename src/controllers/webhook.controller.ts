@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { VERIFY_TOKEN } from "../config/constants";
 import { logInfo, logError } from "../utils/logger";
-import { processWebhookEvent } from "../services/WhatsApp.service";
+import { processWebhookEvent } from "../services/whatsApp.service";
 
 // Función para verificar el webhook de WhatsApp
 export const verifyWebhook = (req: Request, res: Response) => {
