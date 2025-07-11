@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { sendTemplateMessage } from '../services/SendTemplate.service';
 import { logInfo, logError } from '../utils/logger';
-import { sendWhatsAppMessage } from '../services/sendWhatsApp.service';
+import { sendWhatsAppMessage } from '../services/sendwhatsapp.service';
 
 
 //Enviar mensajes por plantilla

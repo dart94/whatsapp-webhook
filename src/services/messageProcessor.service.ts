@@ -3,14 +3,14 @@ import {
   WhatsAppMessage,
   WhatsAppStatus,
   WhatsAppContact,
-  WhatsAppMetadata
-} from '../interface/whatsapp.interface';
+  WhatsAppMetadata,
+} from "../interface/whatsapp.interface";
 
-import { sendWhatsAppMessage } from './sendWhatsApp.service';
-import { generateAutoResponse } from './generateResponse.service';
-import { logInfo, logError } from '../utils/logger';
+import { sendWhatsAppMessage } from "./sendwhatsapp.service";
+import { generateAutoResponse } from "./generateResponse.service";
+import { logInfo, logError } from "../utils/logger";
 
-export function processMessageChange(value: WhatsAppChange['value']) {
+export function processMessageChange(value: WhatsAppChange["value"]) {
   if (value.messages) {
     value.messages.forEach(processIncomingMessage);
   }
@@ -25,16 +25,27 @@ export function processMessageChange(value: WhatsAppChange['value']) {
   }
 }
 
+
+// Función para procesar mensajes entrantes
 export async function processIncomingMessage(message: WhatsAppMessage) {
   logInfo(`📩 MENSAJE RECIBIDO de ${message.from}: ${message.text?.body}`);
 
-  const responseMessage = generateAutoResponse(message);
-  await sendWhatsAppMessage(message.from, responseMessage);
+  // Respuesta automática para mensajes entrantes
+  const AUTO_RESPONSE_ENABLED = false;
 
-  logInfo(`✅ Respuesta enviada a ${message.from}: "${responseMessage}"`);
+  if (AUTO_RESPONSE_ENABLED) {
+    const responseMessage = generateAutoResponse(message);
+    await sendWhatsAppMessage(message.from, responseMessage);
+
+    logInfo(`✅ Respuesta enviada a ${message.from}: "${responseMessage}"`);
+  } else {
+    logInfo("⚠️ Auto-respuesta desactivada. Mensaje solo registrado.");
+  }
 }
 
-export function processInteractiveMessage(interactive: WhatsAppMessage['interactive']) {
+export function processInteractiveMessage(
+  interactive: WhatsAppMessage["interactive"]
+) {
   if (!interactive) return;
 
   logInfo(`Interactivo: ${interactive.type}`);
@@ -56,7 +67,9 @@ export function processMessageStatus(status: WhatsAppStatus) {
 }
 
 export function processContact(contact: WhatsAppContact) {
-  logInfo(`👤 CONTACTO: ${contact.wa_id} - ${contact.profile?.name || 'Sin nombre'}`);
+  logInfo(
+    `👤 CONTACTO: ${contact.wa_id} - ${contact.profile?.name || "Sin nombre"}`
+  );
 }
 
 export function processMetadata(metadata: WhatsAppMetadata) {
