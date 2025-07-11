@@ -3,6 +3,7 @@ import { sendTemplateMessage } from '../services/SendTemplate.service';
 import { logInfo, logError } from '../utils/logger';
 import { sendWhatsAppMessage } from '../services/sendWhatsApp.service';
 
+
 //Enviar mensajes por plantilla
 export const sendTemplate = async (req: Request, res: Response) => {
   const { messages, templateName, language } = req.body;
@@ -47,7 +48,6 @@ export const sendTemplate = async (req: Request, res: Response) => {
 
 
 //Responder mensajes
-
 export const replyToMessage = async (req: Request, res: Response) => {
   const { to, message, replyToMessageId } = req.body;
 
