@@ -1,6 +1,6 @@
 "use client";
 
-import Message from "./message.page";
+import Message from "./home.page";
 
 
 export default function Home() {
