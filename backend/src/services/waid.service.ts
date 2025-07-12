@@ -11,7 +11,13 @@ export async function getUniqueWaids() {
       _count: {
         _all: true,
       },
+      orderBy: {
+        _max: {
+          createdAt: "desc", 
+        },
+      },
     });
+
 
     const uniqueWaids = waids.map((w) => w.wa_id);
 
