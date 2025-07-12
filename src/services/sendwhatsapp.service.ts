@@ -44,14 +44,14 @@ export async function sendWhatsAppMessage(
       await prisma.whatsappMessage.create({
         data: {
           wa_id: to,
-          message_id: data.id,
+          message_id: data.messages?.[0]?.id || 'unknown',
           direction: 'OUT',
-          type: body.type,
-          body_text: body.text?.body,
-          context_message_id: body.context?.message_id || null,
-          timestamp: Number(data.timestamp),
-          raw_json: JSON.stringify(data),
-        }
+          type: 'text',
+          body_text: message,
+          context_message_id: replyToMessageId || null,
+          timestamp: Date.now(),
+          raw_json: data,
+        },
       });
     } else {
       logError(`❌ Error en la respuesta de Meta: ${JSON.stringify(data)}`);
