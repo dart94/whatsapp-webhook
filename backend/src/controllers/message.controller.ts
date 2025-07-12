@@ -78,7 +78,7 @@ export const replyToMessage = async (req: Request, res: Response) => {
 export const getRecentMessages = async (req: Request, res: Response) => {
   try {
     const messages = await prisma.whatsappMessage.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "asc" },
       take: 20,
     });
 
