@@ -1,44 +1,67 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { fetchConversations } from "../lib/conversation.api";
+import { PageHeader } from "../components/PageHeader";
+import { ConversationList } from "../components/ConversationList";
+import { useConversations } from "../hooks/useConversations";
 import { Conversation } from "../types/whatsapp";
 
 export default function Home() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const { conversations, loading, error, refreshConversations } = useConversations();
 
-  useEffect(() => {
-    async function load() {
-      const data = await fetchConversations();
-      setConversations(data);
-    }
-    load();
-  }, []);
+  const handleConversationClick = (conversation: Conversation) => {
+    // Aquí puedes agregar analytics, logging, etc.
+    console.log('Conversation clicked:', conversation.wa_id);
+  };
+
+  const handleRefresh = () => {
+    refreshConversations();
+  };
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+              <span className="text-red-500 text-2xl">⚠️</span>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Error al cargar conversaciones
+            </h3>
+            <p className="text-gray-500 mb-4">{error}</p>
+            <button
+              onClick={handleRefresh}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Reintentar
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <main className="p-10">
-      <h1 className="text-3xl font-bold mb-6 text-green-600">
-        Chats
-      </h1>
-      <div className="space-y-4">
-        {conversations.map((conv) => (
-          <Link
-            href={`/chat/${conv.wa_id}`}
-            key={conv.wa_id}
-            className="block p-4 border border-gray-300 rounded hover:bg-green-50"
-          >
-            <div className="text-gray-800 font-semibold">
-              {conv.wa_id}
-            </div>
-            <div className="text-gray-600">
-              {conv.body_text || "Sin mensajes"}
-            </div>
-            <div className="text-gray-400 text-sm">
-              {new Date(conv.createdAt).toLocaleString()}
-            </div>
-          </Link>
-        ))}
+    <main className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        <PageHeader
+          title="Conversaciones"
+          subtitle={`${conversations.length} conversaciones activas`}
+          actions={
+            <button
+              onClick={handleRefresh}
+              disabled={loading}
+              className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Cargando...' : 'Actualizar'}
+            </button>
+          }
+        />
+        
+        <ConversationList
+          conversations={conversations}
+          loading={loading}
+          onConversationClick={handleConversationClick}
+        />
       </div>
     </main>
   );
