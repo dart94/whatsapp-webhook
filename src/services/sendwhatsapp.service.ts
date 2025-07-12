@@ -1,5 +1,6 @@
 import { PHONE_NUMBER_ID, ACCESS_TOKEN } from '../config/constants';
 import { logInfo, logError } from '../utils/logger';
+import { prisma } from '../prisma';
 
 export async function sendWhatsAppMessage(
   to: string,
@@ -38,6 +39,20 @@ export async function sendWhatsAppMessage(
 
     if (response.ok) {
       logInfo(`✅ Mensaje enviado: ${JSON.stringify(data)}`);
+
+      // Guardar en DB
+      await prisma.whatsappMessage.create({
+        data: {
+          wa_id: to,
+          message_id: data.id,
+          direction: 'OUT',
+          type: body.type,
+          body_text: body.text?.body,
+          context_message_id: body.context?.message_id || null,
+          timestamp: Number(data.timestamp),
+          raw_json: JSON.stringify(data),
+        }
+      });
     } else {
       logError(`❌ Error en la respuesta de Meta: ${JSON.stringify(data)}`);
     }
