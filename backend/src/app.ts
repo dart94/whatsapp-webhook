@@ -3,8 +3,12 @@ import webhookRoutes from './routes/webhook.routes';
 import templatesRoutes from './routes/template.routes';
 import messageRoutes from './routes/message.routes';
 import { PORT } from './config/constants';
+import cors from 'cors';
 
 const app = express();
+
+// CORS middleware
+app.use(cors());
 
 // Middlewares
 app.use(express.json());
