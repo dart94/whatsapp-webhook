@@ -1,12 +1,12 @@
 
 import { Request, Response } from "express";
-import { getUniqueWaids } from "../services/waid.service";
+import { getLatestMessagesPerWaid } from "../services/waid.service";
 import { logInfo } from "../utils/logger";
 
 //Obtener WAIDs únicos
 export const getUniqueWaidsController = async (req: Request, res: Response) => {
   try {
-    const waids = await getUniqueWaids();
+    const waids = await getLatestMessagesPerWaid();
 
     return res.status(200).json({
       success: true,

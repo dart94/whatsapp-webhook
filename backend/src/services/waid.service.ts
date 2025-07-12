@@ -4,28 +4,25 @@ import { logInfo } from "../utils/logger";
 const prisma = new PrismaClient();
 
 //Obtener los Waid unicos de la base de datos
-export async function getUniqueWaids() {
+export async function getLatestMessagesPerWaid() {
   try {
-    const waids = await prisma.whatsappMessage.groupBy({
-      by: ["wa_id"],
-      _count: {
-        _all: true,
-      },
+    const messages = await prisma.whatsappMessage.findMany({
+      distinct: ['wa_id'], // Obtiene 1 por wa_id
       orderBy: {
-        _max: {
-          createdAt: "desc", 
-        },
+        createdAt: 'desc', // Del más nuevo al más viejo
+      },
+      select: {
+        wa_id: true,
+        body_text: true,
+        direction: true,
+        createdAt: true,
       },
     });
 
-
-    const uniqueWaids = waids.map((w) => w.wa_id);
-
-    logInfo(`✅ WAIDs únicos obtenidos: ${uniqueWaids.length}`);
-
-    return uniqueWaids;
+    logInfo(`✅ Últimos mensajes por WAID obtenidos: ${messages.length}`);
+    return messages;
   } catch (error) {
-    logInfo(`❌ Error al obtener WAIDs únicos: ${error}`);
+    logInfo(`❌ Error al obtener últimos mensajes por WAID: ${error}`);
     return [];
   }
 }
