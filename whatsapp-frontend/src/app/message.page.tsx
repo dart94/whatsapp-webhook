@@ -1,58 +1,43 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchRecentMessages } from "../lib/api";
-import { WhatsappMessage } from "../types/whatsapp";
+import Link from "next/link";
+import { fetchConversations } from "../lib/conversation.api";
+import { Conversation } from "../types/whatsapp";
 
 export default function Home() {
-  const [messages, setMessages] = useState<WhatsappMessage[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
   useEffect(() => {
     async function load() {
-      const data = await fetchRecentMessages();
-      setMessages(data);
+      const data = await fetchConversations();
+      setConversations(data);
     }
     load();
   }, []);
-
-  // Agrupar por wa_id
-  const grouped = messages.reduce((acc, msg) => {
-    if (!acc[msg.wa_id]) {
-      acc[msg.wa_id] = [];
-    }
-    acc[msg.wa_id].push(msg);
-    return acc;
-  }, {} as Record<string, WhatsappMessage[]>);
 
   return (
     <main className="p-10">
       <h1 className="text-3xl font-bold mb-6 text-green-600">
         Chats
       </h1>
-      <div className="space-y-8">
-        {Object.entries(grouped).map(([wa_id, msgs]) => (
-          <div key={wa_id}>
-            <h2 className="text-xl font-bold mb-2 text-gray-800">
-              Chat con {wa_id}
-            </h2>
-            <div className="space-y-2">
-              {msgs.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`p-3 rounded ${
-                    msg.direction === "IN"
-                      ? "bg-green-50 border border-green-300"
-                      : "bg-blue-50 border border-blue-300 text-right"
-                  }`}
-                >
-                  <div>{msg.body_text}</div>
-                  <small className="text-gray-500">
-                    {msg.direction === "IN" ? "📥 IN" : "📤 OUT"} | {msg.message_id}
-                  </small>
-                </div>
-              ))}
+      <div className="space-y-4">
+        {conversations.map((conv) => (
+          <Link
+            href={`/chat/${conv.wa_id}`}
+            key={conv.wa_id}
+            className="block p-4 border border-gray-300 rounded hover:bg-green-50"
+          >
+            <div className="text-gray-800 font-semibold">
+              {conv.wa_id}
             </div>
-          </div>
+            <div className="text-gray-600">
+              {conv.body_text || "Sin mensajes"}
+            </div>
+            <div className="text-gray-400 text-sm">
+              {new Date(conv.createdAt).toLocaleString()}
+            </div>
+          </Link>
         ))}
       </div>
     </main>

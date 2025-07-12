@@ -11,3 +11,10 @@ export interface WhatsappMessage {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Conversation{
+  wa_id: string;
+  body_text: string;
+  direction: "IN" | "OUT";
+  createdAt: string;
+}
