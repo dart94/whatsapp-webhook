@@ -11,7 +11,7 @@ export async function getMessagesByWaid(wa_id: string) {
         wa_id,
       },
       orderBy: {
-        createdAt: 'desc', // Del más nuevo al más viejo
+        createdAt: 'asc', // Del más nuevo al más viejo
       },
       select: {
         wa_id: true,
