@@ -1,15 +1,13 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { useReply } from "../hooks/useReply";
 
 type ChatInputProps = {
   waId: string;
+  onSent?: () => void;
 };
 
-export default function ChatInput({ waId }: ChatInputProps) {
-
-
+export default function ChatInput({ waId, onSent }: ChatInputProps) {
   const {
     message,
     setMessage,
@@ -21,7 +19,14 @@ export default function ChatInput({ waId }: ChatInputProps) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      sendMessage();
+      handleSend();
+    }
+  };
+
+  const handleSend = async () => {
+    const sent = await sendMessage();
+    if (sent && onSent) {
+      onSent();
     }
   };
 
@@ -38,7 +43,7 @@ export default function ChatInput({ waId }: ChatInputProps) {
           disabled={loading}
         />
         <button
-          onClick={sendMessage}
+          onClick={handleSend}
           disabled={loading}
           className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 disabled:opacity-50"
         >

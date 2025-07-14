@@ -12,7 +12,16 @@ export default function ChatPage() {
   const waId = params.wa_id;
   const { messages, loading, error, refreshMessages } = useMessages(waId);
 
-  useSocket(() => refreshMessages());
+  useSocket((payload) => {
+    console.log("➡️ Socket payload in ChatPage:", payload);
+
+    if (payload.wa_id === waId) {
+      console.log("✅ Refreshing chat because of new message from same wa_id:", waId);
+      refreshMessages();
+    } else {
+      console.log("ℹ️ Ignoring message from different wa_id:", payload.wa_id);
+    }
+  });
 
   if (error) {
     return (
@@ -60,7 +69,7 @@ export default function ChatPage() {
         loading={loading}
       />
       
-      <TextBox waId={waId} />
+      <TextBox waId={waId} onSent={refreshMessages} />
     </div>
   );
 }
