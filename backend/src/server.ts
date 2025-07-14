@@ -1,11 +1,11 @@
 import app from './app';
 import { PORT } from './config/constants';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import { initSocket } from "./socket";
 
-const server = app.listen(Number(PORT), '0.0.0.0', () => {
-  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
-  console.log(`🔗 Webhook URL: http://localhost:${PORT}/webhook`);
-  console.log(`✋ Presiona Ctrl+C para detener el servidor`);
-});
+const server = createServer(app);
+initSocket(server);
 
 
 // Manejo de cierre adecuado
