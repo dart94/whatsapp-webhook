@@ -48,17 +48,17 @@ export const sendTemplate = async (req: Request, res: Response) => {
 
 //Responder mensajes
 export const replyToMessage = async (req: Request, res: Response) => {
-  const { to, message, replyToMessageId } = req.body;
+  const { to, message } = req.body;
 
-  if (!to || !message || !replyToMessageId) {
+  if (!to || !message  ) {
     return res.status(400).json({
       success: false,
-      message: "Missing required fields: to, message, replyToMessageId",
+      message: "Missing required fields: to, message",
     });
   }
 
   try {
-    const result = await sendWhatsAppMessage(to, message, replyToMessageId);
+    const result = await sendWhatsAppMessage(to, message );
 
     return res.status(200).json({
       success: true,
