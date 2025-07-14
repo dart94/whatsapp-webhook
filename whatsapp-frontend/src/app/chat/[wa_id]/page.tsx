@@ -3,6 +3,7 @@ import { useParams } from "next/navigation";
 import { ChatHeader } from "../../../components/ChatHeader";
 import { MessageList } from "../../../components/MessageList";
 import { useMessages } from "../../../hooks/useMessages";
+import TextBox from "../../../components/TextBox";
 
 export default function ChatPage() {
   const params = useParams<{ wa_id: string }>();
@@ -56,21 +57,8 @@ export default function ChatPage() {
       />
       
       {/* Área para futuro input de mensajes */}
-      <div className="bg-white border-t border-gray-200 p-4">
-        <div className="flex items-center space-x-2">
-          <div className="flex-1 bg-gray-100 rounded-full px-4 py-2">
-            <span className="text-gray-500">Próximamente: enviar mensajes</span>
-          </div>
-          <button 
-            disabled 
-            className="bg-gray-300 text-gray-500 p-2 rounded-full"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
-            </svg>
-          </button>
-        </div>
-      </div>
+      <TextBox />
+
     </div>
   );
 }
