@@ -1,12 +1,14 @@
 import app from './app';
 import { PORT } from './config/constants';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
-import { initSocket } from "./socket";
+import { initSocket } from './socket';
 
 const server = createServer(app);
 initSocket(server);
 
+server.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
+});
 
 // Manejo de cierre adecuado
 process.on('SIGINT', () => {
