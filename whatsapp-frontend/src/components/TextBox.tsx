@@ -3,9 +3,12 @@
 import { useParams } from "next/navigation";
 import { useReply } from "../hooks/useReply";
 
-export default function ChatInput() {
-  const params = useParams<{ wa_id: string }>();
-  const waId = params.wa_id;
+type ChatInputProps = {
+  waId: string;
+};
+
+export default function ChatInput({ waId }: ChatInputProps) {
+
 
   const {
     message,

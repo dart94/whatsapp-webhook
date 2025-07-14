@@ -3,6 +3,7 @@ import { PageHeader } from "../components/PageHeader";
 import { ConversationList } from "../components/ConversationList";
 import { useConversations } from "../hooks/useConversations";
 import { Conversation } from "../types/whatsapp";
+import { useSocket } from "../hooks/UseSocket";
 
 export default function Home() {
   const { conversations, loading, error, refreshConversations } = useConversations();
@@ -15,6 +16,8 @@ export default function Home() {
   const handleRefresh = () => {
     refreshConversations();
   };
+
+  useSocket(() => refreshConversations());
 
   if (error) {
     return (

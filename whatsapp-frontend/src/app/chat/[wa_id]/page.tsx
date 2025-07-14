@@ -1,14 +1,18 @@
 "use client";
+
 import { useParams } from "next/navigation";
 import { ChatHeader } from "../../../components/ChatHeader";
 import { MessageList } from "../../../components/MessageList";
 import { useMessages } from "../../../hooks/useMessages";
 import TextBox from "../../../components/TextBox";
+import { useSocket } from "../../../hooks/UseSocket";
 
 export default function ChatPage() {
   const params = useParams<{ wa_id: string }>();
   const waId = params.wa_id;
   const { messages, loading, error, refreshMessages } = useMessages(waId);
+
+  useSocket(() => refreshMessages());
 
   if (error) {
     return (
@@ -56,9 +60,7 @@ export default function ChatPage() {
         loading={loading}
       />
       
-      {/* Área para futuro input de mensajes */}
-      <TextBox />
-
+      <TextBox waId={waId} />
     </div>
   );
 }
