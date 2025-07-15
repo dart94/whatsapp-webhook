@@ -15,10 +15,8 @@ export const sendTemplate = async (req: Request, res: Response) => {
       message: "Missing required fields: messages, templateName, language",
     });
   }
-
   try {
     const results = [];
-
     for (const msg of messages) {
       const result = await sendTemplateMessage(
         msg.to,
@@ -26,13 +24,11 @@ export const sendTemplate = async (req: Request, res: Response) => {
         language,
         msg.parameters || []
       );
-
       results.push({
         to: msg.to,
         result,
       });
     }
-
     return res.status(200).json({
       success: true,
       data: results,
