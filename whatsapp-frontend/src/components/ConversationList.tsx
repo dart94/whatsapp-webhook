@@ -7,16 +7,19 @@ interface ConversationListProps {
   onConversationClick?: (conversation: Conversation) => void;
 }
 
-export function ConversationList({ 
-  conversations, 
-  loading = false, 
-  onConversationClick 
+export function ConversationList({
+  conversations,
+  loading = false,
+  onConversationClick,
 }: ConversationListProps) {
   if (loading) {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white border border-gray-200 rounded-lg p-4 animate-pulse">
+          <div
+            key={i}
+            className="bg-white border border-gray-200 rounded-lg p-4 animate-pulse"
+          >
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
               <div className="flex-1 space-y-2">
@@ -52,7 +55,10 @@ export function ConversationList({
         <ConversationCard
           key={conversation.wa_id}
           conversation={conversation}
-          onClick={onConversationClick}
+          onClick={() => {
+            console.log("✅ Conversation clicked:", conversation.wa_id);
+            onConversationClick?.(conversation);
+          }}
         />
       ))}
     </div>

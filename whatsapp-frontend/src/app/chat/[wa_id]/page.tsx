@@ -1,74 +1,37 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { ChatHeader } from "../../../components/ChatHeader";
 import { MessageList } from "../../../components/MessageList";
 import { useMessages } from "../../../hooks/useMessages";
 import TextBox from "../../../components/TextBox";
 import { useSocket } from "../../../hooks/UseSocket";
 
-export default function ChatPage() {
-  const params = useParams<{ wa_id: string }>();
-  const waId = params.wa_id;
+type ChatPageProps = {
+  waId: string;
+  onBack: () => void;
+};
+
+export default function ChatPage({ waId, onBack }: ChatPageProps) {
   const { messages, loading, error, refreshMessages } = useMessages(waId);
 
   useSocket((payload) => {
-    console.log("➡️ Socket payload in ChatPage:", payload);
-
     if (payload.wa_id === waId) {
-      console.log("✅ Refreshing chat because of new message from same wa_id:", waId);
       refreshMessages();
-    } else {
-      console.log("ℹ️ Ignoring message from different wa_id:", payload.wa_id);
     }
   });
 
   if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-            <span className="text-red-500 text-2xl">⚠️</span>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Error al cargar mensajes
-          </h3>
-          <p className="text-gray-500 mb-4">{error}</p>
-          <button
-            onClick={refreshMessages}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!waId) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-900">
-            ID de conversación no válido
-          </h3>
-        </div>
-      </div>
-    );
+    return <div className="p-4 text-red-500">Error: {error}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-full flex flex-col">
       <ChatHeader 
         waId={waId} 
-        messageCount={messages.length}
+        messageCount={messages.length} 
+        onBack={onBack} 
       />
-      
-      <MessageList 
-        messages={messages} 
-        loading={loading}
-      />
-      
+      <MessageList messages={messages} loading={loading} />
       <TextBox waId={waId} onSent={refreshMessages} />
     </div>
   );

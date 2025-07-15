@@ -1,16 +1,21 @@
 "use client";
+
 import { PageHeader } from "../components/PageHeader";
 import { ConversationList } from "../components/ConversationList";
 import { useConversations } from "../hooks/useConversations";
 import { Conversation } from "../types/whatsapp";
 import { useSocket } from "../hooks/UseSocket";
 
-export default function Home() {
+type HomeProps = {
+  onSelectChat: (waId: string) => void;
+};
+
+export default function Message({ onSelectChat }: HomeProps) {
   const { conversations, loading, error, refreshConversations } = useConversations();
 
   const handleConversationClick = (conversation: Conversation) => {
-    // Aquí puedes agregar analytics, logging, etc.
     console.log('Conversation clicked:', conversation.wa_id);
+    onSelectChat(conversation.wa_id);
   };
 
   const handleRefresh = () => {
@@ -59,7 +64,7 @@ export default function Home() {
             </button>
           }
         />
-        
+
         <ConversationList
           conversations={conversations}
           loading={loading}

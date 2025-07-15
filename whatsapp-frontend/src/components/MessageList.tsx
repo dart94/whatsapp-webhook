@@ -1,13 +1,15 @@
 import { WhatsappMessage } from "../types/whatsapp";
 import { MessageBubble } from "./MessageBubble";
+import type { Conversation } from "../types/whatsapp";
 
 interface MessageListProps {
   messages: WhatsappMessage[];
   loading?: boolean;
   compact?: boolean;
+  onConversationClick?: (conversation: Conversation) => void;
 }
 
-export function MessageList({ messages, loading = false, compact = false }: MessageListProps) {
+export function MessageList({ messages, loading = false, compact = false, onConversationClick }: MessageListProps) {
   if (loading) {
     return (
       <div className="space-y-4 p-4">
