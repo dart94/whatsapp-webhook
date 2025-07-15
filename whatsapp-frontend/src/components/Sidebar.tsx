@@ -7,6 +7,8 @@ import {
   Squares2X2Icon,
   ChartBarIcon,
   ChevronDownIcon,
+  PencilSquareIcon,
+  EyeIcon
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
@@ -57,11 +59,13 @@ export default function Sidebar() {
                 href="/templates"
                 label="Ver Plantillas"
                 active={pathname === "/templates"}
+                Icon={EyeIcon}
               />
               <NavLink
                 href="/templates/new"
                 label="Crear Plantilla"
                 active={pathname === "/templates/new"}
+                Icon={PencilSquareIcon}
               />
             </div>
           )}
