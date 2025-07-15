@@ -28,3 +28,4 @@ export function useTemplates() {
 
   return { templates, loading, error };
 }
+
