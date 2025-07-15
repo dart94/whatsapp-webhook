@@ -20,7 +20,7 @@ export interface Conversation{
 }
 
 export interface Template {
-  id: number;
+  id: string;
   name: string;
   language: string;
   status: string;

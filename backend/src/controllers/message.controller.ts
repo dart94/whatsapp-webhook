@@ -4,31 +4,58 @@ import { logInfo, logError } from "../utils/logger";
 import { sendWhatsAppMessage } from "../services/sendwhatsapp.service";
 import { prisma } from "../prisma";
 import { log } from "console";
+import { renderTemplate } from "../utils/renderTemplate";
 
 //Enviar mensajes por plantilla
 export const sendTemplate = async (req: Request, res: Response) => {
-  const { messages, templateName, language } = req.body;
+  const { messages, templateName, language, body } = req.body;
 
-  if (!messages || !templateName || !language) {
+  if (!messages || !templateName || !language || !body) {
     return res.status(400).json({
       success: false,
-      message: "Missing required fields: messages, templateName, language",
+      message: "Missing required fields: messages, templateName, language, body",
     });
   }
+
   try {
+    const templateBody = body;
     const results = [];
+
     for (const msg of messages) {
+      // ✅ Renderizar body
+      const renderedBody = renderTemplate(templateBody, msg.parameters || []);
+
+      // ✅ Enviar a Meta
       const result = await sendTemplateMessage(
         msg.to,
         templateName,
         language,
         msg.parameters || []
       );
+
+      const message_id = result?.messages?.[0]?.id || "";
+
+      // ✅ Guardar en WhatsAppMessage
+      await prisma.whatsappMessage.create({
+        data: {
+          wa_id: msg.to,
+          message_id,
+          direction: "OUT",
+          type: "template",
+          body_text: renderedBody,
+          context_message_id: null,
+          timestamp: BigInt(Math.floor(Date.now() / 1000)),
+          raw_json: JSON.stringify(result),
+        },
+      });
+      console.log("✅ WhatsAppMessage guardado");
+
       results.push({
         to: msg.to,
         result,
       });
     }
+
     return res.status(200).json({
       success: true,
       data: results,

@@ -9,19 +9,22 @@ export async function fetchTemplates(): Promise<Template[]> {
 }
 
 //Enviar mensajes por plantilla
-export async function sendTemplateMessage(to: string, templateName: string, language: string, parameters: any[]): Promise<any> {
+export async function sendTemplateMessage(payload: {
+  templateName: string;
+  language: string;
+  messages: {
+    to: string;
+    parameters: any[];
+  }[];
+}): Promise<any> {
   const res = await fetch(`${API_BASE_URL}/message/template`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      to,
-      templateName,
-      language,
-      parameters,
-    }),
+    body: JSON.stringify(payload),
   });
+
   const json = await res.json();
   console.log(json);
   return json.data;

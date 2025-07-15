@@ -52,14 +52,13 @@ export default function TemplatesPage() {
                     )}
                   </td>
                   <td className="px-4 py-2">
-<Link
-  href={`/enviarplantilla?id=${template.id}`}
-  className="flex items-center space-x-1 text-blue-600 hover:underline text-xs"
->
-  <ChatBubbleLeftIcon className="w-4 h-4" />
-  <span>Enviar</span>
-</Link>
-
+                    <Link
+                      href={`/templates/enviarplantilla?id=${template.id}`}
+                      className="flex items-center space-x-1 text-blue-600 hover:underline text-xs"
+                    >
+                      <ChatBubbleLeftIcon className="w-4 h-4" />
+                      <span>Enviar</span>
+                    </Link>
                   </td>
                 </tr>
               ))}
