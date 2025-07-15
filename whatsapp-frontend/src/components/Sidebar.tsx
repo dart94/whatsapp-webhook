@@ -8,7 +8,7 @@ import {
   ChartBarIcon,
   ChevronDownIcon,
   PencilSquareIcon,
-  EyeIcon
+  EyeIcon,
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
@@ -23,7 +23,6 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 p-4 space-y-2">
-
         {/* Conversaciones */}
         <NavLink
           href="/"
@@ -37,9 +36,7 @@ export default function Sidebar() {
           <button
             onClick={() => setOpenTemplates(!openTemplates)}
             className={`flex items-center justify-between w-full px-4 py-2 rounded-md hover:bg-gray-700 transition-colors ${
-              pathname.startsWith("/templates")
-                ? "bg-green-600"
-                : ""
+              pathname.startsWith("/templates") ? "bg-green-600" : ""
             }`}
           >
             <span className="flex items-center space-x-2">

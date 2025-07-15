@@ -18,3 +18,16 @@ export interface Conversation{
   direction: "IN" | "OUT";
   createdAt: string;
 }
+
+export interface Template {
+  id: number;
+  name: string;
+  language: string;
+  status: string;
+  category: string;
+  header: string;
+  body: string;
+  footer: string;
+  buttons: [];
+  components: [];
+}
