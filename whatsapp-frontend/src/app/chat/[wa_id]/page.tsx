@@ -33,6 +33,7 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
   }
 
   return (
+    
     <div className="h-full flex flex-col">
       <ChatHeader 
         waId={waId} 

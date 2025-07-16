@@ -73,7 +73,7 @@ export const MessageBubble = memo(function MessageBubble({
       {isIncoming && showAvatar && isConsecutive && (
         <div className="w-8 h-8 flex-shrink-0" />
       )}
-      
+
       {/* Burbuja del mensaje */}
       <div className="flex flex-col">
         <div className={bubbleClasses}>

@@ -30,18 +30,9 @@ export function MessageList({
     }
   }, []);
 
-  useEffect(() => {
-    // Verificar si el usuario está cerca del bottom antes de hacer scroll
-    const container = containerRef.current;
-    if (container) {
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-      
-      if (isNearBottom) {
-        scrollToBottom();
-      }
-    }
-  }, [messages, scrollToBottom]);
+useEffect(() => {
+  scrollToBottom();
+}, [messages, scrollToBottom]);
 
   // Agrupar mensajes consecutivos para mejor UX
   const groupedMessages = useMemo(() => {

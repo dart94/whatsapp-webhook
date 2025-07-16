@@ -2,6 +2,7 @@ import { PHONE_NUMBER_ID, ACCESS_TOKEN } from '../config/constants';
 import { logInfo, logError } from '../utils/logger';
 import { prisma } from '../prisma';
 
+// Función para enviar un mensaje de texto
 export async function sendWhatsAppMessage(
   to: string,
   message: string,
@@ -51,7 +52,7 @@ export async function sendWhatsAppMessage(
           context_message_id: replyToMessageId || null,
           timestamp: Date.now(),
           raw_json: data,
-          read: false,
+          read: true,
         },
       });
     } else {

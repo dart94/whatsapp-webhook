@@ -1,6 +1,8 @@
 import { PHONE_NUMBER_ID, ACCESS_TOKEN } from "../config/constants";
 import { logInfo, logError } from "../utils/logger";
 
+
+// Función para enviar un mensaje de template
 export async function sendTemplateMessage(
   to: string,
   templateName: string,

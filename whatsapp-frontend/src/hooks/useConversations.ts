@@ -12,21 +12,23 @@ export function useConversations() {
     try {
       setLoading(true);
 
-      const [convRes, unreadRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/waid`).then(res => res.json()),
-        fetch(`${API_BASE_URL}/unread-counts`).then(res => res.json())
-      ]);
+const [convResRaw, unreadResRaw] = await Promise.all([
+  fetch(`${API_BASE_URL}/waid`).then(res => res.json()),
+  fetch(`${API_BASE_URL}/unread-counts`).then(res => res.json())
+]);
 
-      // Combinar las respuestas
-      const conversationsWithUnread = convRes.map((conv: any) => {
-        const unread = unreadRes.find(
-          (u: any) => u.wa_id === conv.wa_id
-        );
-        return {
-          ...conv,
-          unreadCount: unread ? unread.unreadCount : 0
-        };
-      });
+const convRes = convResRaw.data;
+const unreadRes = unreadResRaw.data;
+
+const conversationsWithUnread = convRes.map((conv: any) => {
+  const unread = unreadRes.find(
+    (u: any) => u.wa_id === conv.wa_id
+  );
+  return {
+    ...conv,
+    unreadCount: unread ? unread._count.id : 0
+  };
+});
 
       setConversations(conversationsWithUnread);
     } catch (err) {
