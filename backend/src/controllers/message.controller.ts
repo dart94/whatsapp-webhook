@@ -170,5 +170,6 @@ export const getUnreadCounts = async (req: Request, res: Response) => {
       success: false,
       message: 'Error obteniendo conteo de no leídos',
     });
+    console.log(error);
   }
 };
