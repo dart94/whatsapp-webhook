@@ -46,6 +46,8 @@ export const sendTemplate = async (req: Request, res: Response) => {
           context_message_id: null,
           timestamp: BigInt(Math.floor(Date.now() / 1000)),
           raw_json: JSON.stringify(result),
+          read: false,
+          
         },
       });
       console.log("✅ WhatsAppMessage guardado");
@@ -121,6 +123,38 @@ export const getRecentMessages = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: "Error getting recent messages.",
+    });
+  }
+};
+
+
+//Marcar mensaje como leído
+export const markMessagesAsRead = async (req: Request, res: Response) => {
+  const waId = req.params.waId;
+
+  try {
+    const result = await prisma.whatsappMessage.updateMany({
+      where: {
+        wa_id: waId,
+        direction: 'IN',
+        read: false,
+      },
+      data: {
+        read: true,
+      },
+    });
+
+    logInfo(`✅ Mensajes marcados como leídos para ${waId}: ${result.count}`);
+
+    return res.json({
+      success: true,
+      updatedCount: result.count,
+    });
+  } catch (error) {
+    logError(`❌ Error marcando mensajes como leídos: ${error}`);
+    return res.status(500).json({
+      success: false,
+      message: 'Error al marcar mensajes como leídos',
     });
   }
 };

@@ -51,6 +51,7 @@ export async function sendWhatsAppMessage(
           context_message_id: replyToMessageId || null,
           timestamp: Date.now(),
           raw_json: data,
+          read: false,
         },
       });
     } else {

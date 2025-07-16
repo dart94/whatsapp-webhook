@@ -43,6 +43,7 @@ export async function processIncomingMessage(message: WhatsAppMessage) {
       context_message_id: message.context?.id || null,
       timestamp: Number(message.timestamp),
       raw_json: JSON.stringify(message),
+      read: false,
     }
   });
 
