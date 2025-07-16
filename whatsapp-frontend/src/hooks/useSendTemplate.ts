@@ -10,7 +10,10 @@ export function useSendTemplate() {
     async (
       to: string,
       templateName: string,
-      language: string,
+      body: string,
+      language:{
+        code: string;
+      },
       parameters: any[]
     ) => {
       try {
@@ -19,7 +22,10 @@ export function useSendTemplate() {
 
         const payload = {
           templateName,
-          language,
+          body,
+          language:{
+            code: language.code,
+          },
           messages: [
             {
               to,
@@ -28,9 +34,10 @@ export function useSendTemplate() {
           ],
         };
 
+        console.log("✅ Payload enviado:", payload);
+
         const data = await sendTemplateMessage(payload);
         setResult(data);
-        console.log("✅ Payload enviado:", payload);
         console.log("✅ Respuesta:", data);
       } catch (err) {
         setError(

@@ -31,3 +31,15 @@ export interface Template {
   buttons: [];
   components: [];
 }
+
+export interface SendTemplatePayload {
+  templateName: string;
+  body: string;
+  language: {
+    code: string;
+  };
+  messages: {
+    to: string;
+    parameters: any[];
+  }[];
+}

@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "../config/api";
 import { Template } from "../types/whatsapp";
+import { SendTemplatePayload } from "../types/whatsapp";
 
 //Obtener las plantillas
 export async function fetchTemplates(): Promise<Template[]> {
@@ -12,16 +13,7 @@ export async function fetchTemplates(): Promise<Template[]> {
 
 
 //Enviar mensajes por plantilla
-export async function sendTemplateMessage(payload: {
-
-  templateName: string;
-  language: string;
-  body: string;
-  messages: {
-    to: string;
-    parameters: any[];
-  }[];
-}): Promise<any> {
+export async function sendTemplateMessage(payload: SendTemplatePayload) {
   const res = await fetch(`${API_BASE_URL}/message/template`, {
     method: 'POST',
     headers: {

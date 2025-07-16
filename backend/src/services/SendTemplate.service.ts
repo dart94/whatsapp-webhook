@@ -4,7 +4,7 @@ import { logInfo, logError } from '../utils/logger';
 export async function sendTemplateMessage(
   to: string,
   templateName: string,
-  language: string,
+  language: { code: string },
   parameters: string[]
 ) {
   const body = {
@@ -14,7 +14,7 @@ export async function sendTemplateMessage(
     template: {
       name: templateName,
       language: {
-        code: language,
+        code: language.code,
       },
       components: [
         {
