@@ -32,3 +32,14 @@ export async function replyToMessage(wa_id: string, message: string): Promise<Wh
   console.log(json);
   return json.data;
 }
+
+export async function markMessagesAsRead(wa_id: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/mark-as-read/${wa_id}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  const json = await res.json();
+  console.log(json);
+}

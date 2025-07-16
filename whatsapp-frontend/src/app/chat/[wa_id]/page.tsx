@@ -5,6 +5,8 @@ import { MessageList } from "../../../components/MessageList";
 import { useMessages } from "../../../hooks/useMessages";
 import TextBox from "../../../components/TextBox";
 import { useSocket } from "../../../hooks/UseSocket";
+import { markMessagesAsRead } from "@/lib/conversation.api";
+import { useEffect } from "react";
 
 type ChatPageProps = {
   waId: string;
@@ -19,6 +21,12 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
       refreshMessages();
     }
   });
+
+  useEffect(() => {
+  if (waId) {
+    markMessagesAsRead(waId);
+  }
+}, [waId]);
 
   if (error) {
     return <div className="p-4 text-red-500">Error: {error}</div>;
