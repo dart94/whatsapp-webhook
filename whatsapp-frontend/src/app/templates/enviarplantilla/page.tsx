@@ -7,8 +7,6 @@ import { useSendTemplate } from "../../../hooks/useSendTemplate";
 import { Template } from "../../../types/whatsapp";
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 
-
-
 export default function EnviarPlantillaPage() {
   const searchParams = useSearchParams();
   const templateId = searchParams.get("id") ?? "";
@@ -29,7 +27,6 @@ export default function EnviarPlantillaPage() {
   const [parameters, setParameters] = useState<string[]>([]);
 
   const template = templates.find((t: Template) => t.id === templateId);
-  
 
   const variableCount = template?.body?.match(/{{\d+}}/g)?.length || 0;
 
@@ -41,13 +38,24 @@ export default function EnviarPlantillaPage() {
 
   const handleSubmit = async () => {
     if (!template) return;
-    await sendTemplate(to, template.name,template.body, template.language, parameters);
+    await sendTemplate(
+      to,
+      template.name,
+      template.body,
+      template.language,
+      parameters
+    );
   };
 
   if (loadingTemplates) {
     return (
-      <div className="flex justify-center items-center h-60">
-        <span className="text-gray-500 text-sm">Cargando plantilla...</span>
+      <div className="space-y-4 p-4">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="h-10 w-full bg-gray-200 rounded animate-pulse"
+          ></div>
+        ))}
       </div>
     );
   }
@@ -67,8 +75,6 @@ export default function EnviarPlantillaPage() {
       </div>
     );
   }
-
-
 
   return (
     <div className="max-w-2xl mx-auto py-10 px-4">
