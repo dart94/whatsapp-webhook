@@ -1,5 +1,5 @@
-import { PHONE_NUMBER_ID, ACCESS_TOKEN } from '../config/constants';
-import { logInfo, logError } from '../utils/logger';
+import { PHONE_NUMBER_ID, ACCESS_TOKEN } from "../config/constants";
+import { logInfo, logError } from "../utils/logger";
 
 export async function sendTemplateMessage(
   to: string,
@@ -7,6 +7,12 @@ export async function sendTemplateMessage(
   language: { code: string },
   parameters: string[]
 ) {
+  const languageCode = typeof language === "string" ? language : language?.code;
+
+  if (!languageCode) {
+    throw new Error("Language code is missing!");
+  }
+
   const body = {
     messaging_product: "whatsapp",
     to,
@@ -14,12 +20,12 @@ export async function sendTemplateMessage(
     template: {
       name: templateName,
       language: {
-        code: language.code,
+        code: languageCode,
       },
       components: [
         {
           type: "body",
-          parameters: parameters.map(param => ({
+          parameters: parameters.map((param) => ({
             type: "text",
             text: param,
           })),
@@ -32,10 +38,10 @@ export async function sendTemplateMessage(
     const response = await fetch(
       `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
           Authorization: `Bearer ${ACCESS_TOKEN}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
       }
@@ -50,7 +56,6 @@ export async function sendTemplateMessage(
     }
 
     return data;
-
   } catch (error) {
     logError(`❌ Network error sending template: ${error}`);
     throw error;
