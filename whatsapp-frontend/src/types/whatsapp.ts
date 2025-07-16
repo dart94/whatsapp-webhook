@@ -17,6 +17,7 @@ export interface Conversation{
   body_text: string;
   direction: "IN" | "OUT";
   createdAt: string;
+  unreadCount: number;
   
 }
 

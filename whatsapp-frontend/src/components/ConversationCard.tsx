@@ -20,11 +20,14 @@ export function ConversationCard({
             {conversation.wa_id.slice(-2).toUpperCase()}
           </span>
         </div>
-        <div className="flex-1">
-          <p className="text-gray-900 font-medium">{conversation.wa_id}</p>
-          <p className="text-gray-500 text-sm truncate">
-            {conversation.body_text || "Sin mensaje"}
-          </p>
+        <div className="flex justify-between items-center">
+          <span className="text-gray-800">{conversation.wa_id}</span>
+
+          {conversation.unreadCount > 0 && (
+            <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
+              {conversation.unreadCount}
+            </span>
+          )}
         </div>
       </div>
     </div>

@@ -33,6 +33,7 @@ export async function replyToMessage(wa_id: string, message: string): Promise<Wh
   return json.data;
 }
 
+//Marcar mensajes como leídos
 export async function markMessagesAsRead(wa_id: string): Promise<void> {
   const res = await fetch(`${API_BASE_URL}/mark-as-read/${wa_id}`, {
     method: 'POST',
@@ -42,4 +43,11 @@ export async function markMessagesAsRead(wa_id: string): Promise<void> {
   });
   const json = await res.json();
   console.log(json);
+}
+
+//Obtener conteo de mensajes sin leer
+export async function getUnreadCounts(): Promise<any> {
+  const res = await fetch(`${API_BASE_URL}/unread-counts`);
+  const json = await res.json();
+  return json.data;
 }

@@ -28,3 +28,20 @@ export async function getMessagesByWaid(wa_id: string) {
     return [];
   }
 }
+
+
+//Contar los mensajes sin leer por WAID
+export async function getUnreadCountsPerConversation() {
+  const counts = await prisma.whatsappMessage.groupBy({
+    by: ['wa_id'],
+    _count: {
+      id: true,
+    },
+    where: {
+      read: false,
+      direction: 'IN',
+    },
+  });
+
+  return counts;
+}

@@ -5,6 +5,7 @@ import { sendWhatsAppMessage } from "../services/sendwhatsapp.service";
 import { prisma } from "../prisma";
 import { log } from "console";
 import { renderTemplate } from "../utils/renderTemplate";
+import { getUnreadCountsPerConversation } from "../services/messagesby.service";
 
 //Enviar mensajes por plantilla
 export const sendTemplate = async (req: Request, res: Response) => {
@@ -155,6 +156,19 @@ export const markMessagesAsRead = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Error al marcar mensajes como leídos',
+    });
+  }
+};
+
+//Contar mensajes sin leer por WAID
+export const getUnreadCounts = async (req: Request, res: Response) => {
+  try {
+    const data = await getUnreadCountsPerConversation();
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error obteniendo conteo de no leídos',
     });
   }
 };
