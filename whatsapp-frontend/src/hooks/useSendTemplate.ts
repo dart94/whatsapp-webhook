@@ -11,9 +11,7 @@ export function useSendTemplate() {
       to: string,
       templateName: string,
       body: string,
-      language:{
-        code: string;
-      },
+      language: string,
       parameters: any[]
     ) => {
       try {
@@ -23,9 +21,7 @@ export function useSendTemplate() {
         const payload = {
           templateName,
           body,
-          language:{
-            code: language.code,
-          },
+          language,
           messages: [
             {
               to,

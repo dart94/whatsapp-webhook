@@ -35,9 +35,7 @@ export interface Template {
 export interface SendTemplatePayload {
   templateName: string;
   body: string;
-  language: {
-    code: string;
-  };
+  language: string;
   messages: {
     to: string;
     parameters: any[];

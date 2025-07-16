@@ -41,7 +41,7 @@ export default function EnviarPlantillaPage() {
 
   const handleSubmit = async () => {
     if (!template) return;
-    await sendTemplate(to, template.name, template.language, parameters);
+    await sendTemplate(to, template.name,template.body, template.language, parameters);
   };
 
   if (loadingTemplates) {
