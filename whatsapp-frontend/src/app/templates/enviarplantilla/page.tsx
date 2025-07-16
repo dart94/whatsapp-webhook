@@ -29,6 +29,7 @@ export default function EnviarPlantillaPage() {
   const [parameters, setParameters] = useState<string[]>([]);
 
   const template = templates.find((t: Template) => t.id === templateId);
+  
 
   const variableCount = template?.body?.match(/{{\d+}}/g)?.length || 0;
 

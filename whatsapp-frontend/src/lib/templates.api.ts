@@ -8,10 +8,15 @@ export async function fetchTemplates(): Promise<Template[]> {
   return json.data;
 }
 
+
+
+
 //Enviar mensajes por plantilla
 export async function sendTemplateMessage(payload: {
+
   templateName: string;
   language: string;
+  body: string;
   messages: {
     to: string;
     parameters: any[];
