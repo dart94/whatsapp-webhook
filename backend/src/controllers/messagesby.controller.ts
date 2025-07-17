@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getMessagesByWaid } from "../services/messagesby.service";
+import { getMessagesByWaid, fetchConversations } from "../services/messagesby.service";
 import { logInfo } from "../utils/logger";
 
 //Obtener mensajes por WAID
@@ -17,5 +17,15 @@ export const getMessagesByWaidController = async (req: Request, res: Response) =
   return res.json({
     success: true,
     data: messages,
+  });
+};
+
+
+//Obtener conversaciones
+export const fetchConversationsController = async (req: Request, res: Response) => {
+  const conversations = await fetchConversations();
+  return res.json({
+    success: true,
+    data: conversations,
   });
 };
