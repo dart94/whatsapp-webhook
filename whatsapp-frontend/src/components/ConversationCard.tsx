@@ -1,3 +1,5 @@
+
+// Tarjeta de conversación con avatar y mensajes recibidos y enviados
 import { Conversation } from "../types/whatsapp";
 
 interface ConversationCardProps {

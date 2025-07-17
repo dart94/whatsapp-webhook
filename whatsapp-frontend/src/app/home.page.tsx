@@ -1,3 +1,5 @@
+
+//Vista principal de las conversaiones por numero de telefono
 "use client";
 
 import { PageHeader } from "../components/PageHeader";
@@ -59,6 +61,7 @@ export default function Message({ onSelectChat }: HomeProps) {
     );
   }
 
+  // Si no hay conversaciones, muestra un mensaje de bienvenida
   return (
     <main className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">

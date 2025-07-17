@@ -1,3 +1,5 @@
+
+// Lista de conversaciones
 import { Conversation } from "../types/whatsapp";
 import { ConversationCard } from "./ConversationCard";
 

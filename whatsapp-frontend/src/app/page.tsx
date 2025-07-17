@@ -1,3 +1,5 @@
+
+//Vista principal de las conversaiones panel izquiedo de la izquierda y la conversacion activa en la derecha
 "use client";
 
 import { useState } from "react";
