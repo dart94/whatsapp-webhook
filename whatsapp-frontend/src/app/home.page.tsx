@@ -2,19 +2,23 @@
 
 import { PageHeader } from "../components/PageHeader";
 import { ConversationList } from "../components/ConversationList";
-import { useConversations } from "../hooks/useConversations";
 import { Conversation } from "../types/whatsapp";
 import { useSocket } from "../hooks/UseSocket";
+import { useConversationStore } from "../stores/UseConversationStore";
 
 type HomeProps = {
   onSelectChat: (waId: string) => void;
 };
 
 export default function Message({ onSelectChat }: HomeProps) {
-  const { conversations, loading, error, refreshConversations } = useConversations();
+  const {
+    conversations,
+    loading,
+    error,
+    refreshConversations,
+  } = useConversationStore();
 
   const handleConversationClick = (conversation: Conversation) => {
-    console.log('Conversation clicked:', conversation.wa_id);
     onSelectChat(conversation.wa_id);
   };
 
@@ -22,7 +26,9 @@ export default function Message({ onSelectChat }: HomeProps) {
     refreshConversations();
   };
 
-  useSocket(() => refreshConversations());
+  useSocket(() => {
+    refreshConversations();
+  });
 
   if (error) {
     return (
@@ -60,7 +66,7 @@ export default function Message({ onSelectChat }: HomeProps) {
               disabled={loading}
               className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Cargando...' : 'Actualizar'}
+              {loading ? "Cargando..." : "Actualizar"}
             </button>
           }
         />
