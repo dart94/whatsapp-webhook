@@ -15,7 +15,9 @@ export async function getLatestMessagesPerWaid() {
         wa_id: true,
         body_text: true,
         direction: true,
+        read: true,
         createdAt: true,
+
       },
     });
 

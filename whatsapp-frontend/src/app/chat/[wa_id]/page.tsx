@@ -46,7 +46,7 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
         waId={waId}
         onSent={() => {
           refreshMessages();
-          refreshConversations(); // <- aquí
+          refreshConversations(); 
         }}
       />
     </div>

@@ -56,8 +56,8 @@ export default function TemplatesPage() {
                       href={`/templates/enviarplantilla?id=${template.id}`}
                       className="flex items-center space-x-1 text-blue-600 hover:underline text-xs"
                     >
-                      <ChatBubbleLeftIcon className="w-4 h-4" />
                       <span>Enviar</span>
+                      <ChatBubbleLeftIcon className="w-4 h-4" />
                     </Link>
                   </td>
                 </tr>

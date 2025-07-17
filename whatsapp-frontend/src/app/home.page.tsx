@@ -5,7 +5,6 @@ import { ConversationList } from "../components/ConversationList";
 import { useConversations } from "../hooks/useConversations";
 import { Conversation } from "../types/whatsapp";
 import { useSocket } from "../hooks/UseSocket";
-import { useConversationStore } from "../stores/UseConversationStore";
 
 type HomeProps = {
   onSelectChat: (waId: string) => void;
@@ -13,7 +12,6 @@ type HomeProps = {
 
 export default function Message({ onSelectChat }: HomeProps) {
   const { conversations, loading, error, refreshConversations } = useConversations();
-  const { refreshConversations: refreshConvStore } = useConversationStore();
 
   const handleConversationClick = (conversation: Conversation) => {
     console.log('Conversation clicked:', conversation.wa_id);
@@ -22,7 +20,6 @@ export default function Message({ onSelectChat }: HomeProps) {
 
   const handleRefresh = () => {
     refreshConversations();
-    
   };
 
   useSocket(() => refreshConversations());
