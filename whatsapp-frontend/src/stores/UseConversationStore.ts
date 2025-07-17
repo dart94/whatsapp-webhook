@@ -1,6 +1,8 @@
+// stores/useConversationStore.ts
+
 import { create } from "zustand";
 import { Conversation } from "@/types/whatsapp";
-import { API_BASE_URL } from "../config/api"; 
+import { fetchConversations } from "@/lib/conversation.api";
 
 interface ConversationState {
   conversations: Conversation[];
@@ -16,19 +18,11 @@ export const useConversationStore = create<ConversationState>((set) => ({
   refreshConversations: async () => {
     try {
       set({ loading: true, error: null });
-      const res = await fetch(`${API_BASE_URL}/messages/waid`);
-      if (!res.ok) {
-        throw new Error("Error al consultar el API");
-      }
-      const json = await res.json();
-      console.log("✅ Conversations from API:", json.data);
-      set({ conversations: json.data, loading: false });
-    } catch (e: any) {
+      const data = await fetchConversations();
+      set({ conversations: data, loading: false });
+    } catch (e) {
       console.error(e);
-      set({
-        loading: false,
-        error: e.message || "Error al cargar conversaciones.",
-      });
+      set({ loading: false, error: "Ocurrió un error al cargar conversaciones." });
     }
   },
 }));
