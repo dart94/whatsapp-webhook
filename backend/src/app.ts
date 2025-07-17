@@ -4,6 +4,7 @@ import templatesRoutes from './routes/template.routes';
 import messageRoutes from './routes/message.routes';
 import sheets from './routes/sheets.routes';
 import waid from './routes/waid.routes';
+import sheetIntegration from './routes/sheetIntegration.routes';
 import { PORT } from './config/constants';
 import cors from 'cors';
 
@@ -29,6 +30,7 @@ app.use('/templates', templatesRoutes);
 app.use('/', messageRoutes);
 app.use('/waid', waid);
 app.use('/', sheets);
+app.use('/sheetIntegration', sheetIntegration);
 
 
 // Health check endpoint
