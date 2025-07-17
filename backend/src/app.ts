@@ -28,7 +28,7 @@ app.use('/webhook', webhookRoutes);
 app.use('/templates', templatesRoutes);
 app.use('/', messageRoutes);
 app.use('/waid', waid);
-app.use('/sheets', sheets);
+app.use('/', sheets);
 
 
 // Health check endpoint

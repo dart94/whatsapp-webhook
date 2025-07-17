@@ -3,8 +3,13 @@ import { getHeaders, getData } from '../services/sheets.service';
 
 // Controlador para obtener encabezados y datos dinámicamente
 export const leerDatosDesdeSheet = async (req: Request, res: Response) => {
-  const { spreadsheetId, sheetName, range } = req.query;
+  const { spreadsheetId, sheetName, range } = req.query as {
+    spreadsheetId?: string;
+    sheetName?: string;
+    range?: string;
+  };
 
+  // Validación de parámetros requeridos
   if (!spreadsheetId || !sheetName) {
     return res.status(400).json({
       success: false,
@@ -16,8 +21,7 @@ export const leerDatosDesdeSheet = async (req: Request, res: Response) => {
     // Si se proporciona un rango específico, usamos getData
     if (range) {
       const fullRange = `${sheetName}!${range}`;
-      const values = await getData(spreadsheetId as string, fullRange);
-
+      const values = await getData(spreadsheetId, fullRange);
       return res.status(200).json({
         success: true,
         data: values,
@@ -25,10 +29,20 @@ export const leerDatosDesdeSheet = async (req: Request, res: Response) => {
     }
 
     // Si no se proporciona rango, obtenemos headers y luego todos los datos
-    const headers = await getHeaders(spreadsheetId as string, sheetName as string);
-    const fullRange = `${sheetName}!A2:ZZ`; // Datos debajo del header
-    const values = await getData(spreadsheetId as string, fullRange);
+    const headers = await getHeaders(spreadsheetId, sheetName);
+    
+    // Verificar que headers no esté vacío
+    if (!headers || headers.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No se encontraron encabezados en la hoja especificada',
+      });
+    }
 
+    const fullRange = `${sheetName}!A2:ZZ`; // Datos debajo del header
+    const values = await getData(spreadsheetId, fullRange);
+    
+    // Convertir datos a objetos usando los headers
     const dataAsObjects = values.map((row) => {
       const obj: Record<string, string> = {};
       headers.forEach((header, i) => {
@@ -41,7 +55,9 @@ export const leerDatosDesdeSheet = async (req: Request, res: Response) => {
       success: true,
       headers,
       data: dataAsObjects,
+      totalRows: dataAsObjects.length,
     });
+
   } catch (error: any) {
     console.error("❌ Error al leer Google Sheets:", error.message);
     return res.status(500).json({
