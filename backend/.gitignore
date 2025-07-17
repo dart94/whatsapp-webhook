@@ -9,3 +9,6 @@ dist
 node_modules
 
 /src/generated/prisma
+
+#ignorar credenciales .json
+\credencialesAI.json

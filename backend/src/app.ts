@@ -2,9 +2,11 @@ import express from 'express';
 import webhookRoutes from './routes/webhook.routes';
 import templatesRoutes from './routes/template.routes';
 import messageRoutes from './routes/message.routes';
+import sheets from './routes/sheets.routes';
 import waid from './routes/waid.routes';
 import { PORT } from './config/constants';
 import cors from 'cors';
+
 
 const app = express();
 
@@ -26,6 +28,7 @@ app.use('/webhook', webhookRoutes);
 app.use('/templates', templatesRoutes);
 app.use('/', messageRoutes);
 app.use('/waid', waid);
+app.use('/sheets', sheets);
 
 
 // Health check endpoint
