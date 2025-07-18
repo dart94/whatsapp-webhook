@@ -29,7 +29,6 @@ export async function replyToMessage(wa_id: string, message: string): Promise<Wh
     }),
   });
   const json = await res.json();
-  console.log(json);
   return json.data;
 }
 
@@ -42,7 +41,6 @@ export async function markMessagesAsRead(wa_id: string): Promise<void> {
     },
   });
   const json = await res.json();
-  console.log(json);
 }
 
 //Obtener conteo de mensajes sin leer

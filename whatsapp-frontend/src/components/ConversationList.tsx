@@ -50,7 +50,6 @@ if (loading) {
           key={conversation.wa_id}
           conversation={conversation}
           onClick={() => {
-            console.log("✅ Conversation clicked:", conversation.wa_id);
             onConversationClick?.(conversation);
           }}
         />

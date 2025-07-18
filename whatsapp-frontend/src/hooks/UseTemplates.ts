@@ -12,7 +12,6 @@ export function useTemplates() {
       setLoading(true);
       const data = await fetchTemplates();
       setTemplates(data);
-      console.log(data);
       setLoading(false);
     } catch (err) {
       setError(

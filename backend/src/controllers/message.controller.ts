@@ -51,7 +51,8 @@ export const sendTemplate = async (req: Request, res: Response) => {
           
         },
       });
-      console.log("✅ WhatsAppMessage guardado");
+
+      
 
       results.push({
         to: msg.to,

@@ -8,11 +8,9 @@ export function useSocket(onNewMessage: (payload: any) => void) {
     });
 
     socket.on("connect", () => {
-      console.log("✅ Conectado a WebSocket!");
     });
 
     socket.on("new_message", (payload) => {
-      console.log("🔥 Nuevo mensaje recibido vía socket:", payload);
       onNewMessage(payload);
     });
 

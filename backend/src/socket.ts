@@ -11,10 +11,8 @@ export function initSocket(server: HTTPServer) {
   });
 
   io.on("connection", (socket) => {
-    console.log("🔥 Cliente conectado vía Socket.io");
 
     socket.on("disconnect", () => {
-      console.log("👋 Cliente desconectado");
     });
   });
 }

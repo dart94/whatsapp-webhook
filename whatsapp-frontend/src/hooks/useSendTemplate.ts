@@ -29,17 +29,12 @@ export function useSendTemplate() {
             },
           ],
         };
-
-        console.log("✅ Payload enviado:", payload);
-
         const data = await sendTemplateMessage(payload);
         setResult(data);
-        console.log("✅ Respuesta:", data);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Error al enviar la plantilla"
         );
-        console.log(err);
       } finally {
         setLoading(false);
       }

@@ -8,7 +8,6 @@ import ChatPage from "./chat/[wa_id]/page";
 
 export default function Home() {
   const [selectedWaId, setSelectedWaId] = useState<string | null>(null);
-  console.log("🔥 selectedWaId:", selectedWaId);
 
 
   return (
@@ -24,7 +23,6 @@ export default function Home() {
           <ChatPage
             waId={selectedWaId}
             onBack={() => {
-              console.log("VOLVIENDO A HOME!");
               setSelectedWaId(null);
             }}
           />

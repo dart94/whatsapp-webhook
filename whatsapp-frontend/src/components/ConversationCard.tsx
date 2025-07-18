@@ -18,8 +18,6 @@ export function ConversationCard({
     return text.slice(-2).toUpperCase();
   };
 
-  console.log("ConversationCard", conversation.wa_id, conversation.unreadCount);
-
 
   return (
     <div
