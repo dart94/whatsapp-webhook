@@ -226,7 +226,7 @@ export default function EnviarPlantillaPage() {
           template.language,
           parametersToUse
         );
-        
+        console.log(parametersToUse)
         // Actualizar estado a enviado
         setRecipients(prev => 
           prev.map(r => 
