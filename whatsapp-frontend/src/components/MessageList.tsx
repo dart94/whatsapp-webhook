@@ -100,44 +100,48 @@ useEffect(() => {
     );
   }
 
-  return (
+return (
+  <div
+    ref={containerRef}
+    className="
+      flex-1 overflow-y-auto scroll-smooth
+      px-2 py-4 sm:px-4 md:px-6
+      max-h-full
+    "
+    role="log"
+    aria-label="Lista de mensajes"
+  >
+    <AnimatePresence mode="popLayout">
+      {groupedMessages.map((message, index) => (
+        <motion.div
+          key={message.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20, scale: 0.95 }}
+          transition={{ 
+            duration: 0.3,
+            delay: index * 0.02,
+            ease: "easeOut"
+          }}
+          layout
+        >
+          <MessageBubble
+            message={message}
+            compact={compact}
+            isConsecutive={message.isConsecutive}
+            isLastInGroup={message.isLastInGroup}
+            showTimestamp={message.isLastInGroup}
+          />
+        </motion.div>
+      ))}
+    </AnimatePresence>
+
+    {/* Indicador de scroll al final */}
     <div 
-      ref={containerRef}
-      className="flex-1 overflow-y-auto p-4 scroll-smooth"
-      role="log"
-      aria-label="Lista de mensajes"
-    >
-      <AnimatePresence mode="popLayout">
-        {groupedMessages.map((message, index) => (
-          <motion.div
-            key={message.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ 
-              duration: 0.3,
-              delay: index * 0.02, // Animación escalonada
-              ease: "easeOut"
-            }}
-            layout
-          >
-            <MessageBubble
-              message={message}
-              compact={compact}
-              isConsecutive={message.isConsecutive}
-              isLastInGroup={message.isLastInGroup}
-              showTimestamp={message.isLastInGroup}
-            />
-          </motion.div>
-        ))}
-      </AnimatePresence>
-      
-      {/* Indicador de scroll al final */}
-      <div 
-        ref={bottomRef} 
-        className="h-4"
-        aria-hidden="true"
-      />
-    </div>
-  );
+      ref={bottomRef} 
+      className="h-4"
+      aria-hidden="true"
+    />
+  </div>
+);
 }

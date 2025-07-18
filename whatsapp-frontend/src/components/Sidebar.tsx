@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,106 +8,233 @@ import {
   ChevronDownIcon,
   PencilSquareIcon,
   EyeIcon,
-  DocumentCheckIcon
+  DocumentCheckIcon,
+  XMarkIcon
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function Sidebar() {
+interface NavLinkProps {
+  href: string;
+  label: string;
+  Icon?: React.ComponentType<{ className?: string }>;
+  active: boolean;
+  onClick?: () => void;
+}
+
+interface SubNavLinkProps extends Omit<NavLinkProps, 'active'> {
+  active: boolean;
+}
+
+interface SidebarProps {
+  isOpen?: boolean;
+  onToggle?: () => void;
+}
+
+export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [openTemplates, setOpenTemplates] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detectar si es mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Cerrar submenús cuando cambie la ruta
+  useEffect(() => {
+    if (!pathname.startsWith("/templates")) {
+      setOpenTemplates(false);
+    }
+  }, [pathname]);
+
+  const navigationItems = [
+    {
+      href: "/",
+      label: "Conversaciones",
+      Icon: ChatBubbleLeftRightIcon,
+      active: pathname === "/"
+    },
+    {
+      href: "/sheets",
+      label: "Sheets",
+      Icon: DocumentCheckIcon,
+      active: pathname === "/sheets"
+    },
+    // {
+    //   href: "/crm",
+    //   label: "CRM",
+    //   Icon: ChartBarIcon,
+    //   active: pathname === "/crm"
+    // }
+  ];
+
+  const templateItems = [
+    {
+      href: "/templates",
+      label: "Ver Plantillas",
+      Icon: EyeIcon,
+      active: pathname === "/templates"
+    },
+    {
+      href: "/templates/new",
+      label: "Crear Plantilla",
+      Icon: PencilSquareIcon,
+      active: pathname === "/templates/new"
+    }
+  ];
+
+  const isTemplatesActive = pathname.startsWith("/templates");
 
   return (
-    <aside className="w-64 h-screen bg-gray-800 text-white flex flex-col">
-      <div className="p-6 text-2xl font-bold border-b border-gray-700">
-        WhatsApp Web
-      </div>
-
-      <nav className="flex-1 p-4 space-y-2">
-        {/* Conversaciones */}
-        <NavLink
-          href="/"
-          label="Conversaciones"
-          Icon={ChatBubbleLeftRightIcon}
-          active={pathname === "/"}
+    <>
+      {/* Overlay para mobile */}
+      {isMobile && isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={onToggle}
         />
-
-        {/* Plantillas - con submenú */}
-        <div>
-          <button
-            onClick={() => setOpenTemplates(!openTemplates)}
-            className={`flex items-center justify-between w-full px-4 py-2 rounded-md hover:bg-gray-700 transition-colors ${
-              pathname.startsWith("/templates") ? "bg-green-600" : ""
-            }`}
-          >
-            <span className="flex items-center space-x-2">
-              <Squares2X2Icon className="w-5 h-5" />
-              <span>Plantillas</span>
-            </span>
-            <ChevronDownIcon
-              className={`w-5 h-5 transform transition-transform ${
-                openTemplates ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-
-          {openTemplates && (
-            <div className="ml-8 mt-2 space-y-1">
-              <NavLink
-                href="/templates"
-                label="Ver Plantillas"
-                active={pathname === "/templates"}
-                Icon={EyeIcon}
-              />
-              <NavLink
-                href="/templates/new"
-                label="Crear Plantilla"
-                active={pathname === "/templates/new"}
-                Icon={PencilSquareIcon}
-              />
-            </div>
+      )}
+      
+      {/* Sidebar */}
+      <aside 
+        className={`
+          ${isMobile ? 'fixed' : 'fixed md:relative'}
+          top-0 left-0 z-50
+          w-64 h-screen bg-gray-800 text-white flex flex-col
+          transition-transform duration-300 ease-in-out
+          ${!isOpen ? '-translate-x-full' : 'translate-x-0'}
+          ${isMobile ? 'shadow-2xl' : ''}
+        `}
+        style={{ minHeight: '100vh', height: '100vh' }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-700 flex-shrink-0">
+          <h1 className="text-xl font-bold truncate">WhatsApp Web</h1>
+          {isMobile && (
+            <button
+              onClick={onToggle}
+              className="p-1 hover:bg-gray-700 rounded transition-colors"
+              aria-label="Cerrar sidebar"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
           )}
         </div>
 
-        {/* Hojas */}
-        <NavLink
-          href="/sheets"
-          label="Sheets"
-          Icon={DocumentCheckIcon}
-          active={pathname === "/sheets"}
-        />
-        {/* CRM */}
-        <NavLink
-          href="/crm"
-          label="CRM"
-          Icon={ChartBarIcon}
-          active={pathname === "/crm"}
-        />
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {/* Items principales */}
+          {navigationItems.map((item) => (
+            <NavLink
+              key={item.href}
+              {...item}
+              onClick={isMobile ? onToggle : undefined}
+            />
+          ))}
 
-      </nav>
-    </aside>
+          {/* Plantillas con submenú */}
+          <div className="space-y-1">
+            <button
+              onClick={() => setOpenTemplates(!openTemplates)}
+              className={`
+                flex items-center justify-between w-full px-4 py-2 rounded-md 
+                transition-colors duration-200 group
+                ${isTemplatesActive 
+                  ? "bg-green-600 text-white" 
+                  : "hover:bg-gray-700 text-gray-300"
+                }
+              `}
+              aria-expanded={openTemplates}
+            >
+              <span className="flex items-center space-x-3">
+                <Squares2X2Icon className="w-5 h-5" />
+                <span className="font-medium">Plantillas</span>
+              </span>
+              <ChevronDownIcon
+                className={`
+                  w-4 h-4 transition-transform duration-200
+                  ${openTemplates ? "rotate-180" : ""}
+                `}
+              />
+            </button>
+
+            {/* Submenú animado */}
+            <div
+              className={`
+                overflow-hidden transition-all duration-200 ease-in-out
+                ${openTemplates ? "max-h-24 opacity-100" : "max-h-0 opacity-0"}
+              `}
+            >
+              <div className="ml-6 space-y-1 pt-1">
+                {templateItems.map((item) => (
+                  <SubNavLink
+                    key={item.href}
+                    {...item}
+                    onClick={isMobile ? onToggle : undefined}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-700 flex-shrink-0">
+          <div className="text-xs text-gray-400 text-center">
+            v1.0.0
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }
 
-function NavLink({
-  href,
-  label,
-  Icon,
-  active,
-}: {
-  href: string;
-  label: string;
-  Icon?: any;
-  active: boolean;
-}) {
+function NavLink({ href, label, Icon, active, onClick }: NavLinkProps) {
   return (
     <Link
       href={href}
-      className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-        active ? "bg-green-600" : "hover:bg-gray-700"
-      }`}
+      onClick={onClick}
+      className={`
+        flex items-center space-x-3 px-4 py-2 rounded-md 
+        transition-colors duration-200 group
+        ${active 
+          ? "bg-green-600 text-white" 
+          : "text-gray-300 hover:bg-gray-700 hover:text-white"
+        }
+      `}
     >
-      {Icon && <Icon className="w-5 h-5" />}
-      <span>{label}</span>
+      {Icon && (
+        <Icon className="w-5 h-5 flex-shrink-0" />
+      )}
+      <span className="font-medium truncate">{label}</span>
+    </Link>
+  );
+}
+
+function SubNavLink({ href, label, Icon, active, onClick }: SubNavLinkProps) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={`
+        flex items-center space-x-3 px-3 py-2 rounded-md text-sm
+        transition-colors duration-200
+        ${active 
+          ? "bg-green-500 text-white" 
+          : "text-gray-400 hover:bg-gray-700 hover:text-white"
+        }
+      `}
+    >
+      {Icon && (
+        <Icon className="w-4 h-4 flex-shrink-0" />
+      )}
+      <span className="truncate">{label}</span>
     </Link>
   );
 }
