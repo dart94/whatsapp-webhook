@@ -16,7 +16,7 @@ export async function registerSheet(name: string, spreadsheetId: string, sheetNa
   return response.json();
 }
 
-//Listar integraciones de hoja
+//Listar integraciones de hoja registradas en la base de datos
 export async function listSheets() {
   const response = await fetch(`${API_BASE_URL}/sheetIntegration/list`, {
     method: 'GET',
@@ -41,20 +41,41 @@ export async function getSheetById(id: string) {
 //Obtener encabezados de la hoja
 export async function getHeaders(spreadsheetId: string, sheetName: string) {
   const url = new URL(`${API_BASE_URL}/sheets/read`);
-  url.searchParams.append('spreadsheetId', spreadsheetId);
-  url.searchParams.append('sheetName', sheetName);
+  url.searchParams.append("spreadsheetId", spreadsheetId);
+  url.searchParams.append("sheetName", sheetName);
 
-  const response = await fetch(url.toString(), {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  console.log(response);
+  try {
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(`Error al obtener encabezados: ${response.status}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error al obtener encabezados: ${response.status} - ${errorText}`);
+    }
+
+    const json = await response.json();
+
+    if (!json.success || !json.headers) {
+      throw new Error(`Respuesta inválida del servidor: ${JSON.stringify(json)}`);
+    }
+
+    return json.headers; // <- solo retornas los headers directamente
+  } catch (error) {
+    console.error("❌ getHeaders error:", error);
+    throw error;
   }
+}
 
-  return response.json();
+export async function fetchSheetData(spreadsheetId: string, sheetName: string) {
+  const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL}/sheets/read`);
+  url.searchParams.append("spreadsheetId", spreadsheetId);
+  url.searchParams.append("sheetName", sheetName);
+
+  const res = await fetch(url.toString());
+  const json = await res.json();
+  return json.data;
 }
