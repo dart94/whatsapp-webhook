@@ -1,8 +1,6 @@
-export function renderTemplate(body: string, parameters: string[]): string {
-  let result = body;
-  parameters.forEach((param, i) => {
-    const regex = new RegExp(`{{${i + 1}}}`, "g");
-    result = result.replace(regex, param);
+export function renderTemplate(template: string, parameters: string[]): string {
+  return template.replace(/{{(\d+)}}/g, (_, index) => {
+    const i = parseInt(index, 10) - 1;
+    return parameters[i] !== undefined ? parameters[i] : "";
   });
-  return result;
 }

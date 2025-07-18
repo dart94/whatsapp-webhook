@@ -318,37 +318,6 @@ export default function EnviarPlantillaPage() {
         </div>
       </div>
       
-      {/* Plantilla Card
-      <div className="bg-white shadow-lg rounded-xl p-6 mb-8 border border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-800">{template.name}</h2>
-          <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-            template.status === 'APPROVED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-          }`}>
-            {template.status}
-          </span>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="text-sm">
-            <span className="font-medium text-gray-700">Idioma:</span>
-            <span className="ml-2 text-gray-900">{template.language}</span>
-          </div>
-          <div className="text-sm">
-            <span className="font-medium text-gray-700">Categoría:</span>
-            <span className="ml-2 text-gray-900">{template.category}</span>
-          </div>
-          <div className="text-sm">
-            <span className="font-medium text-gray-700">Variables:</span>
-            <span className="ml-2 text-gray-900">{variableCount}</span>
-          </div>
-        </div>
-        
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm font-medium text-gray-700 mb-2">Contenido del mensaje:</div>
-          <p className="text-gray-900 whitespace-pre-wrap">{template.body}</p>
-        </div>
-      </div> */}
       
       {/* Selección de Hoja */}
       <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
