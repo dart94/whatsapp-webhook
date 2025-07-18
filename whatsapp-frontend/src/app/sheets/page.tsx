@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { getHeaders } from "@/lib/sheet.api";
 import { registerSheet } from "@/lib/sheet.api";
 import { Input } from "../../components/ui/Inputs";
@@ -19,6 +19,7 @@ export default function RegisterSheetForm() {
   const [sheetName, setSheetName] = useState("");
   const [headers, setHeaders] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
 
@@ -56,6 +57,17 @@ export default function RegisterSheetForm() {
     try {
       await registerSheet(name, spreadsheetId, sheetName);
       showToast({ type: "success", message: "Hoja registrada correctamente" });
+
+      // Actualizar la lista después de registrar
+      setName("");
+      setSpreadsheetId("");
+      setSheetName("");
+      setHeaders([]);
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      //Enfoque al nombre de la hoja
+      nameInputRef.current?.focus();
     } catch (err) {
       showToast({ message: "Error al registrar la hoja", type: "error" });
       console.error(err);
@@ -73,6 +85,7 @@ export default function RegisterSheetForm() {
           <Label htmlFor="name">Nombre personalizado</Label>
           <Input
             id="name"
+            ref={nameInputRef}
             placeholder="Ej. Clientes julio"
             value={name}
             onChange={(e) => setName(e.target.value)}

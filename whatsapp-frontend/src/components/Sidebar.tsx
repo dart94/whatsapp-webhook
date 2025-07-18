@@ -69,6 +69,13 @@ export default function Sidebar() {
           )}
         </div>
 
+        {/* Hojas */}
+        <NavLink
+          href="/sheets"
+          label="Sheets"
+          Icon={DocumentCheckIcon}
+          active={pathname === "/sheets"}
+        />
         {/* CRM */}
         <NavLink
           href="/crm"
@@ -77,13 +84,6 @@ export default function Sidebar() {
           active={pathname === "/crm"}
         />
 
-        {/* Hojas */}
-        <NavLink
-          href="/sheets"
-          label="Sheets"
-          Icon={DocumentCheckIcon}
-          active={pathname === "/sheets"}
-        />
       </nav>
     </aside>
   );
