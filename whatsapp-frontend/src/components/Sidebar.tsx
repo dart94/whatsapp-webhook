@@ -9,6 +9,7 @@ import {
   ChevronDownIcon,
   PencilSquareIcon,
   EyeIcon,
+  DocumentCheckIcon
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
@@ -74,6 +75,14 @@ export default function Sidebar() {
           label="CRM"
           Icon={ChartBarIcon}
           active={pathname === "/crm"}
+        />
+
+        {/* Hojas */}
+        <NavLink
+          href="/sheets"
+          label="Sheets"
+          Icon={DocumentCheckIcon}
+          active={pathname === "/sheets"}
         />
       </nav>
     </aside>
