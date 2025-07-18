@@ -3,6 +3,7 @@ import { getWhatsAppTemplates } from '../services/template.service';
 import { logInfo, logError } from '../utils/logger';
 import { WhatsAppTemplate, WhatsAppButton } from '../interface/whatsapp.interface';
 
+//Obtener plantillas de WhatsApp
 export const getTemplates = async (req: Request, res: Response) => {
   try {
     const templates = await getWhatsAppTemplates();
