@@ -7,17 +7,20 @@ export function useReply(waId: string | undefined) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const sendMessage = useCallback(async () => {
-    if (!waId || !message.trim()) return;
+  const sendMessage = useCallback(async (): Promise<WhatsappMessage | null> => {
+    if (!waId || !message.trim()) return null;
 
     try {
       setLoading(true);
       setError(null);
-      const data = await replyToMessage(waId, message);
+
+      const newMessage = await replyToMessage(waId, message);
       setMessage('');
-      return data;
+
+      return newMessage; // ✅ devolver el mensaje enviado
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al enviar mensaje');
+      return null;
     } finally {
       setLoading(false);
     }
@@ -31,3 +34,4 @@ export function useReply(waId: string | undefined) {
     setMessage,
   };
 }
+

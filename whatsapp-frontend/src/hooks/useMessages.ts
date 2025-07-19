@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { fetchMessagesByWaId } from "../lib/conversation.api";
 import { WhatsappMessage } from "../types/whatsapp";
+import { useChatStore } from "@/stores/useChatStore";
 
 export function useMessages(waId: string | undefined) {
   const [messages, setMessages] = useState<WhatsappMessage[]>([]);
@@ -14,6 +15,7 @@ export function useMessages(waId: string | undefined) {
       setLoading(true);
       setError(null);
       const data = await fetchMessagesByWaId(waId);
+      
       setMessages(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar mensajes');

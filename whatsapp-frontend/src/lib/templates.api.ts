@@ -11,7 +11,6 @@ export async function fetchTemplates(): Promise<Template[]> {
 
 
 
-
 //Enviar mensajes por plantilla
 export async function sendTemplateMessage(payload: SendTemplatePayload) {
   const res = await fetch(`${API_BASE_URL}/message/template`, {

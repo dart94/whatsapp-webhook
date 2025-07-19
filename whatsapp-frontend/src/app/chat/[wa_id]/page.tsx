@@ -1,13 +1,11 @@
 "use client";
-
+import { useEffect, useCallback, useState } from "react";
 import { ChatHeader } from "../../../components/ChatHeader";
 import { MessageList } from "../../../components/MessageList";
-import { useMessages } from "../../../hooks/useMessages";
-import { useConversations } from "@/hooks/useConversations";
-import TextBox from "../../../components/TextBox";
+import TextBox from "../../../components/ChatInput";
 import { useSocket } from "../../../hooks/UseSocket";
-import { markMessagesAsRead } from "@/lib/conversation.api";
-import { useEffect } from "react";
+import { markMessagesAsRead, fetchMessagesByWaId } from "@/lib/conversation.api";
+import { useChatStore } from "@/stores/useChatStore";
 import { useConversationStore } from "@/stores/UseConversationStore";
 
 type ChatPageProps = {
@@ -16,23 +14,40 @@ type ChatPageProps = {
 };
 
 export default function ChatPage({ waId, onBack }: ChatPageProps) {
-  const { messages, loading, error, refreshMessages } = useMessages(waId);
+  const { messagesByWaId, setMessages } = useChatStore();
   const { refreshConversations } = useConversationStore();
-  
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useSocket((payload) => {
-    if (payload.wa_id === waId) {
-      refreshMessages();
-      refreshConversations();
-      
-    }
-  });
-
+  // Cargar mensajes iniciales desde la BD
   useEffect(() => {
-    if (waId) {
-      markMessagesAsRead(waId);
+    const loadInitialMessages = async () => {
+      try {
+        setIsLoading(true);
+        const messagesFromDb = await fetchMessagesByWaId(waId);
+        setMessages(waId, messagesFromDb);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error al cargar mensajes');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInitialMessages();
+    markMessagesAsRead(waId);
+  }, [waId, setMessages]);
+
+  // Manejo de mensajes entrantes via socket
+  const handleSocketMessage = useCallback((payload: any) => {
+    if (payload.wa_id === waId) {
+      refreshConversations();
     }
-  }, [waId]);
+  }, [waId, refreshConversations]);
+
+  useSocket(handleSocketMessage);
+
+  // Mensajes combinados: BD + optimistas
+  const currentMessages = messagesByWaId[waId] || [];
 
   if (error) {
     return <div className="p-4 text-red-500">Error: {error}</div>;
@@ -40,15 +55,9 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
 
   return (
     <div className="h-full flex flex-col">
-      <ChatHeader waId={waId} messageCount={messages.length} onBack={onBack} />
-      <MessageList messages={messages} loading={loading} />
-      <TextBox
-        waId={waId}
-        onSent={() => {
-          refreshMessages();
-          refreshConversations(); 
-        }}
-      />
+      <ChatHeader waId={waId} messageCount={currentMessages.length} onBack={onBack} />
+      <MessageList messages={currentMessages} loading={isLoading} />
+      <TextBox waId={waId} />
     </div>
   );
 }

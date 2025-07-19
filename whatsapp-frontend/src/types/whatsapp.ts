@@ -10,6 +10,7 @@ export interface WhatsappMessage {
   raw_json?: any;
   createdAt: string;
   updatedAt: string;
+  status?: "sending" | "sent" | "delivered" | "read" | "failed";
 }
 
 export interface Conversation{
