@@ -28,15 +28,20 @@ export default function RegisterSheetForm() {
       showToast({ message: "Falta el ID o el nombre de la hoja" });
       return;
     }
-
     setLoading(true);
     try {
       const data = await getHeaders(spreadsheetId, sheetName);
-      if (!data.success) {
-        showToast({ message: "No se pudieron obtener los encabezados" });
+
+      if (!Array.isArray(data)) {
+        showToast({
+          type: "error",
+          message: "No se pudieron obtener los encabezados",
+        });
+        console.error("❌ Respuesta inválida:", data);
         return;
       }
-      setHeaders(data.headers);
+
+      setHeaders(data);
       showToast({ message: "Encabezados obtenidos correctamente" });
     } catch (err) {
       showToast({ type: "error", message: "Error al obtener encabezados" });
