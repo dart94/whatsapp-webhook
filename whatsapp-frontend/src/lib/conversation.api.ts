@@ -12,8 +12,14 @@ export async function fetchConversations(): Promise<Conversation[]> {
 //Muestra los mensajes recientes de una conversación por cliente
 export async function fetchMessagesByWaId(wa_id: string): Promise<WhatsappMessage[]> {
   const res = await fetch(`${API_BASE_URL}/messages/${wa_id}`);
-  const json = await res.json();
-  return json.data;
+
+if (!res.ok) {
+  const text = await res.text();
+  throw new Error(`Error HTTP ${res.status}: ${text}`);
+}
+
+const json = await res.json();
+return json.data;
 }
 
 //Enviar un mensaje a una conversación

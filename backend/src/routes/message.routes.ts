@@ -7,13 +7,18 @@ import {
   getUnreadCounts,
 } from '../controllers/message.controller';
 
+import {
+  getMessagesByWaidController,
+  fetchConversationsController,
+} from '../controllers/messagesby.controller';
+
 const router = Router();
 
 /**
  * @swagger
  * /message/template:
  *   post:
- *     summary: Enviar mensaje por plantilla
+ *     summary: Envía una plantilla de mensaje
  *     tags:
  *       - Mensajes
  *     requestBody:
@@ -22,36 +27,14 @@ const router = Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - messages
- *               - templateName
- *               - language
- *               - body
  *             properties:
- *               messages:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     to:
- *                       type: string
- *                     parameters:
- *                       type: array
- *                       items:
- *                         type: string
- *               templateName:
+ *               templateId:
  *                 type: string
- *               language:
- *                 type: string
- *               body:
+ *               to:
  *                 type: string
  *     responses:
  *       200:
- *         description: Plantillas enviadas exitosamente
- *       400:
- *         description: Campos requeridos faltantes
- *       500:
- *         description: Error en el envío de plantilla
+ *         description: Plantilla enviada exitosamente
  */
 router.post('/message/template', sendTemplate);
 
@@ -59,7 +42,7 @@ router.post('/message/template', sendTemplate);
  * @swagger
  * /message/reply:
  *   post:
- *     summary: Responder a un mensaje recibido
+ *     summary: Responde a un mensaje específico
  *     tags:
  *       - Mensajes
  *     requestBody:
@@ -68,21 +51,14 @@ router.post('/message/template', sendTemplate);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - to
- *               - message
  *             properties:
- *               to:
- *                 type: string
  *               message:
+ *                 type: string
+ *               replyTo:
  *                 type: string
  *     responses:
  *       200:
  *         description: Respuesta enviada
- *       400:
- *         description: Campos requeridos faltantes
- *       500:
- *         description: Error al enviar respuesta
  */
 router.post('/message/reply', replyToMessage);
 
@@ -90,22 +66,40 @@ router.post('/message/reply', replyToMessage);
  * @swagger
  * /message/recent:
  *   get:
- *     summary: Obtener los últimos 20 mensajes recientes
+ *     summary: Obtiene los mensajes recientes
  *     tags:
  *       - Mensajes
  *     responses:
  *       200:
  *         description: Lista de mensajes recientes
- *       500:
- *         description: Error al obtener mensajes
  */
 router.get('/message/recent', getRecentMessages);
 
 /**
  * @swagger
+ * /messages/{wa_id}:
+ *   get:
+ *     summary: Obtener mensajes por wa_id
+ *     tags:
+ *       - Mensajes
+ *     parameters:
+ *       - in: path
+ *         name: wa_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: WhatsApp ID del contacto
+ *     responses:
+ *       200:
+ *         description: Mensajes encontrados
+ */
+router.get('/messages/:wa_id', getMessagesByWaidController);
+
+/**
+ * @swagger
  * /mark-as-read/{waId}:
  *   post:
- *     summary: Marcar como leídos los mensajes entrantes de un contacto
+ *     summary: Marcar mensajes como leídos para un número
  *     tags:
  *       - Mensajes
  *     parameters:
@@ -114,12 +108,10 @@ router.get('/message/recent', getRecentMessages);
  *         required: true
  *         schema:
  *           type: string
- *         description: ID de WhatsApp del contacto
+ *         description: ID de WhatsApp
  *     responses:
  *       200:
  *         description: Mensajes marcados como leídos
- *       500:
- *         description: Error al marcar mensajes
  */
 router.post('/mark-as-read/:waId', markMessagesAsRead);
 
@@ -127,15 +119,26 @@ router.post('/mark-as-read/:waId', markMessagesAsRead);
  * @swagger
  * /unread-counts:
  *   get:
- *     summary: Obtener conteo de mensajes no leídos por conversación
+ *     summary: Obtiene conteo de mensajes no leídos por usuario
  *     tags:
  *       - Mensajes
  *     responses:
  *       200:
- *         description: Conteo de no leídos por contacto
- *       500:
- *         description: Error al obtener conteos
+ *         description: Conteos por contacto
  */
 router.get('/unread-counts', getUnreadCounts);
+
+/**
+ * @swagger
+ * /messages/waid:
+ *   get:
+ *     summary: Obtiene conversaciones activas
+ *     tags:
+ *       - Mensajes
+ *     responses:
+ *       200:
+ *         description: Conversaciones activas
+ */
+router.get('/messages/waid', fetchConversationsController);
 
 export default router;
