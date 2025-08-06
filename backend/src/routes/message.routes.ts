@@ -18,7 +18,7 @@ const router = Router();
  * @swagger
  * /message/template:
  *   post:
- *     summary: Envía una plantilla de mensaje
+ *     summary: Envía una plantilla de mensaje de WhatsApp
  *     tags:
  *       - Mensajes
  *     requestBody:
@@ -28,13 +28,30 @@ const router = Router();
  *           schema:
  *             type: object
  *             properties:
- *               templateId:
+ *               messages:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     to:
+ *                       type: string
+ *                     parameters:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *               templateName:
  *                 type: string
- *               to:
+ *               language:
+ *                 type: string
+ *               body:
  *                 type: string
  *     responses:
  *       200:
  *         description: Plantilla enviada exitosamente
+ *       400:
+ *         description: Campos faltantes
+ *       500:
+ *         description: Error interno del servidor
  */
 router.post('/message/template', sendTemplate);
 
@@ -42,7 +59,7 @@ router.post('/message/template', sendTemplate);
  * @swagger
  * /message/reply:
  *   post:
- *     summary: Responde a un mensaje específico
+ *     summary: Responde a un mensaje específico de WhatsApp
  *     tags:
  *       - Mensajes
  *     requestBody:
@@ -52,13 +69,17 @@ router.post('/message/template', sendTemplate);
  *           schema:
  *             type: object
  *             properties:
- *               message:
+ *               to:
  *                 type: string
- *               replyTo:
+ *               message:
  *                 type: string
  *     responses:
  *       200:
- *         description: Respuesta enviada
+ *         description: Respuesta enviada correctamente
+ *       400:
+ *         description: Campos faltantes
+ *       500:
+ *         description: Error al enviar la respuesta
  */
 router.post('/message/reply', replyToMessage);
 
@@ -66,12 +87,14 @@ router.post('/message/reply', replyToMessage);
  * @swagger
  * /message/recent:
  *   get:
- *     summary: Obtiene los mensajes recientes
+ *     summary: Obtiene los 20 mensajes más recientes
  *     tags:
  *       - Mensajes
  *     responses:
  *       200:
  *         description: Lista de mensajes recientes
+ *       500:
+ *         description: Error al obtener los mensajes
  */
 router.get('/message/recent', getRecentMessages);
 
@@ -79,7 +102,7 @@ router.get('/message/recent', getRecentMessages);
  * @swagger
  * /messages/{wa_id}:
  *   get:
- *     summary: Obtener mensajes por wa_id
+ *     summary: Obtiene todos los mensajes asociados a un número de WhatsApp
  *     tags:
  *       - Mensajes
  *     parameters:
@@ -88,10 +111,12 @@ router.get('/message/recent', getRecentMessages);
  *         required: true
  *         schema:
  *           type: string
- *         description: WhatsApp ID del contacto
+ *         description: Número de WhatsApp del contacto
  *     responses:
  *       200:
- *         description: Mensajes encontrados
+ *         description: Mensajes encontrados exitosamente
+ *       400:
+ *         description: wa_id faltante
  */
 router.get('/messages/:wa_id', getMessagesByWaidController);
 
@@ -99,7 +124,7 @@ router.get('/messages/:wa_id', getMessagesByWaidController);
  * @swagger
  * /mark-as-read/{waId}:
  *   post:
- *     summary: Marcar mensajes como leídos para un número
+ *     summary: Marca todos los mensajes entrantes como leídos para un número dado
  *     tags:
  *       - Mensajes
  *     parameters:
@@ -108,10 +133,12 @@ router.get('/messages/:wa_id', getMessagesByWaidController);
  *         required: true
  *         schema:
  *           type: string
- *         description: ID de WhatsApp
+ *         description: Número de WhatsApp (wa_id)
  *     responses:
  *       200:
  *         description: Mensajes marcados como leídos
+ *       500:
+ *         description: Error al actualizar los mensajes
  */
 router.post('/mark-as-read/:waId', markMessagesAsRead);
 
@@ -119,12 +146,14 @@ router.post('/mark-as-read/:waId', markMessagesAsRead);
  * @swagger
  * /unread-counts:
  *   get:
- *     summary: Obtiene conteo de mensajes no leídos por usuario
+ *     summary: Obtiene el conteo de mensajes no leídos por cada número
  *     tags:
  *       - Mensajes
  *     responses:
  *       200:
- *         description: Conteos por contacto
+ *         description: Conteo de mensajes no leídos por wa_id
+ *       500:
+ *         description: Error al obtener los conteos
  */
 router.get('/unread-counts', getUnreadCounts);
 
@@ -132,12 +161,14 @@ router.get('/unread-counts', getUnreadCounts);
  * @swagger
  * /messages/waid:
  *   get:
- *     summary: Obtiene conversaciones activas
+ *     summary: Obtiene una lista de conversaciones activas (último mensaje por contacto)
  *     tags:
  *       - Mensajes
  *     responses:
  *       200:
- *         description: Conversaciones activas
+ *         description: Lista de conversaciones activas
+ *       500:
+ *         description: Error al obtener las conversaciones
  */
 router.get('/messages/waid', fetchConversationsController);
 
