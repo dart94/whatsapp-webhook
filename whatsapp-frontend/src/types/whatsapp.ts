@@ -20,6 +20,7 @@ export interface Conversation{
   createdAt: string;
   unreadCount: number;
   timestamp: string;
+  last_message: WhatsappMessage;
   
 }
 

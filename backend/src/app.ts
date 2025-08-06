@@ -7,6 +7,8 @@ import waid from './routes/waid.routes';
 import sheetIntegration from './routes/sheetIntegration.routes';
 import { PORT } from './config/constants';
 import cors from 'cors';
+import swaggerSpec from './config/swagger';
+import swaggerUi from 'swagger-ui-express';
 
 
 const app = express();
@@ -23,6 +25,9 @@ app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
+
+//Documentacion de la API
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/webhook', webhookRoutes);
