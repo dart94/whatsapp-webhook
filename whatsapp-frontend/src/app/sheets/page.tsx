@@ -59,23 +59,20 @@ export default function RegisterSheetForm() {
       });
       return;
     }
+
     try {
       await registerSheet(name, spreadsheetId, sheetName);
       showToast({ type: "success", message: "Hoja registrada correctamente" });
 
-      // Actualizar la lista después de registrar
+      // Reset
       setName("");
       setSpreadsheetId("");
       setSheetName("");
       setHeaders([]);
-      // Scroll to top
       window.scrollTo({ top: 0, behavior: "smooth" });
-
-      //Enfoque al nombre de la hoja
       nameInputRef.current?.focus();
     } catch (err) {
-      showToast({ message: "Error al registrar la hoja", type: "error" });
-      console.error(err);
+      showToast({ type: "error", message: "Error al registrar la hoja" });
     }
   };
 

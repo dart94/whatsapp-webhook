@@ -7,13 +7,17 @@ export async function registerSheet(name: string, spreadsheetId: string, sheetNa
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      name,
-      spreadsheetId,
-      sheetName,
-    }),
+    body: JSON.stringify({ name, spreadsheetId, sheetName }),
   });
-  return response.json();
+
+  const data = await response.json();
+
+
+  if (!response.ok || !data.success) {
+    throw new Error(data.message || "Error al registrar hoja");
+  }
+
+  return data;
 }
 
 //Listar integraciones de hoja registradas en la base de datos
