@@ -22,7 +22,7 @@ export async function registerSheet({
       spreadsheetId,
       sheetName,
       headers,
-      userId:1,
+      userId,
     },
   });
 }

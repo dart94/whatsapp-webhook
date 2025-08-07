@@ -1,13 +1,13 @@
 import { API_BASE_URL } from "../config/api";
 
 //Registrar integración de hoja
-export async function registerSheet(name: string, spreadsheetId: string, sheetName: string) {
+export async function registerSheet(name: string, spreadsheetId: string, sheetName: string, userId: number) {
   const response = await fetch(`${API_BASE_URL}/sheetIntegration/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ name, spreadsheetId, sheetName }),
+    body: JSON.stringify({ name, spreadsheetId, sheetName, userId }),
   });
 
   const data = await response.json();

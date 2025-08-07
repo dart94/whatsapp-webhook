@@ -27,7 +27,7 @@ model SheetIntegration {
   name          String
   spreadsheetId String
   sheetName     String
-  headers       Json
+  headers       Json?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

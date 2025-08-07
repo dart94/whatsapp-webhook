@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, use } from "react";
 import { getHeaders } from "@/lib/sheet.api";
 import { registerSheet } from "@/lib/sheet.api";
 import { Input } from "../../components/ui/Inputs";
@@ -61,7 +61,8 @@ export default function RegisterSheetForm() {
     }
 
     try {
-      await registerSheet(name, spreadsheetId, sheetName);
+      console.log("Registrando hoja:", { name, spreadsheetId, sheetName, userId: 1 });
+      await registerSheet(name, spreadsheetId, sheetName, 1);
       showToast({ type: "success", message: "Hoja registrada correctamente" });
 
       // Reset
