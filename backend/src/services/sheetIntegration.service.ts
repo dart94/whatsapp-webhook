@@ -13,7 +13,7 @@ export async function registerSheet({
   name: string;
   spreadsheetId: string;
   sheetName: string;
-  userId: string;
+  userId: number;
 }) {
   const headers = await getHeaders(spreadsheetId, sheetName);
   return prisma.sheetIntegration.create({ 
