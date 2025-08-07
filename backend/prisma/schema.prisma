@@ -23,7 +23,7 @@ model WhatsappMessage {
 }
 
 model SheetIntegration {
-  id            String   @id @default(uuid())
+  id            Int      @id @default(autoincrement())
   name          String
   spreadsheetId String
   sheetName     String
@@ -31,12 +31,12 @@ model SheetIntegration {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  userId        String?                    
+  userId        Int?                    
   user          User?      @relation(fields: [userId], references: [id]) 
 }
 
 model User {
-  id            String   @id @default(uuid())
+  id            Int      @id @default(autoincrement())
   name          String
   email         String   @unique
   password      String
