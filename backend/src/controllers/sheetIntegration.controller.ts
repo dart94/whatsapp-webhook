@@ -41,7 +41,11 @@ export async function handleListSheets(req: Request, res: Response) {
 // Obtener integración de hoja
 export async function handleGetSheet(req: Request, res: Response) {
   const { id } = req.params;
-  const sheet = await getSheetById(id);
+  const numericId = Number(id);
+  if (isNaN(numericId)) {
+    return res.status(400).json({ success: false, message: "ID inválido" });
+  }
+  const sheet = await getSheetById(numericId);
   if (!sheet) {
     return res.status(404).json({ success: false, message: "Hoja no encontrada" });
   }

@@ -34,6 +34,6 @@ export async function listSheets() {
 }
 
 // Obtener integración de hoja
-export async function getSheetById(id: string) {
+export async function getSheetById(id: number) {
   return prisma.sheetIntegration.findUnique({ where: { id } });  // 
 }

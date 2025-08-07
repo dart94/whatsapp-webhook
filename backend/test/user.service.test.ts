@@ -8,7 +8,7 @@ test('crear usuario', async () => {
     email: 'diego@gmail.com',
     password: '12345678',
     isAdmin: true,
-    IsActive: true,
+    isActive: true,
   })
 
   expect(user).toBeDefined()
