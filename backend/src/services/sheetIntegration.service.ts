@@ -3,14 +3,17 @@ import { getHeaders } from "./sheets.service";
 
 const prisma = new PrismaClient();
 
+//Guardar integración de hoja
 export async function registerSheet({
   name,
   spreadsheetId,
   sheetName,
+  userId,
 }: {
   name: string;
   spreadsheetId: string;
   sheetName: string;
+  userId: string;
 }) {
   const headers = await getHeaders(spreadsheetId, sheetName);
   return prisma.sheetIntegration.create({ 
@@ -19,6 +22,7 @@ export async function registerSheet({
       spreadsheetId,
       sheetName,
       headers,
+      userId,
     },
   });
 }
@@ -29,6 +33,7 @@ export async function listSheets() {
   });
 }
 
+// Obtener integración de hoja
 export async function getSheetById(id: string) {
   return prisma.sheetIntegration.findUnique({ where: { id } });  // 
 }

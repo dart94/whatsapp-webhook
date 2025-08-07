@@ -5,6 +5,7 @@ import messageRoutes from './routes/message.routes';
 import sheets from './routes/sheets.routes';
 import waid from './routes/waid.routes';
 import sheetIntegration from './routes/sheetIntegration.routes';
+import user from './routes/user.routes';
 import { PORT } from './config/constants';
 import cors from 'cors';
 import swaggerSpec from './config/swagger';
@@ -36,6 +37,7 @@ app.use('/', messageRoutes);
 app.use('/waid', waid);
 app.use('/', sheets);
 app.use('/sheetIntegration', sheetIntegration);
+app.use('/users', user);
 
 
 // Health check endpoint
