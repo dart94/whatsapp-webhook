@@ -86,7 +86,7 @@ export async function updateUser(id: number, userData: { // Cambiado: string -> 
   email?: string;
   password?: string;
   isAdmin?: boolean;
-  isActive?: boolean;
+  IsActive?: boolean;
 }) {
   try {
     // Si se proporciona password, hashearlo
