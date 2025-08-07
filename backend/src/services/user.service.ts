@@ -71,7 +71,7 @@ export async function createUser(userData: {
         email: userData.email,
         password: hashedPassword,
         isAdmin: userData.isAdmin ?? false,
-        isActive: userData.IsActive ?? true, // Corregido: era IsActive
+        IsActive: userData.IsActive ?? true, // Corregido: era IsActive
       },
     });
     return newUser;
