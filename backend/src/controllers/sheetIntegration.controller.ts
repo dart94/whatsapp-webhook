@@ -10,7 +10,20 @@ export async function handleRegisterSheet(req: Request, res: Response) {
   }
 
   try {
-    const sheet = await registerSheet({ name, spreadsheetId, sheetName });
+
+    const userId = (req as any).user?.id || req.body.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Usuario no autenticado." });
+    }
+
+    const sheet = await registerSheet({ 
+      name, 
+      spreadsheetId, 
+      sheetName, 
+      userId 
+    });
+    
     res.status(200).json({ success: true, data: sheet });
   } catch (error) {
     console.error("❌ Error registrando hoja:", error);
