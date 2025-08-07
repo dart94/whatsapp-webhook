@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { logInfo } from "../utils/logger";
+import { hashPassword } from "../utils/hashPassword";
 
 const prisma = new PrismaClient();
 
@@ -49,23 +50,38 @@ export async function getUserById(id: string) {
 }
 
 // Crear nuevo usuario
-export async function createUser(user: any) {
+export async function createUser(userData: {
+  name: string;
+  email: string;
+  password: string;
+  isAdmin?: boolean;
+  IsActive?: boolean;
+}) {
   try {
+    // Verificar si el usuario ya existe
+    const existingUser = await prisma.user.findUnique({
+      where: { email: userData.email },
+    });
+
+    if (existingUser) {
+      throw new Error("El correo ya está registrado.");
+    }
+
+    const hashedPassword = await hashPassword(userData.password);
+
     const newUser = await prisma.user.create({
       data: {
-        name: user.name,
-        email: user.email,
-        password: user.password,
-        isAdmin: user.isAdmin,
-        IsActive: user.IsActive,
+        name: userData.name,
+        email: userData.email,
+        password: hashedPassword,
+        isAdmin: userData.isAdmin ?? false,
+        IsActive: userData.IsActive ?? true,
       },
     });
 
-    logInfo(`✅ Usuario creado: ${newUser.name}`);
     return newUser;
   } catch (error) {
-    logInfo(`❌ Error al crear usuario: ${error}`);
-    return null;
+    throw error;
   }
 }
 

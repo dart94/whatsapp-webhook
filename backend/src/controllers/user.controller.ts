@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { getUsers, getUserById, createUser, updateUser, deleteUser } from "../services/user.service";
+import { validateUserInputFull } from "../validators/userInput.validator";
 import { logInfo } from "../utils/logger";
 
 //Obtener usuarios
@@ -34,16 +35,17 @@ export const getUserByIdController = async (req: Request, res: Response) => {
 export const createUserController = async (req: Request, res: Response) => {
   const { name, email, password, isAdmin, IsActive } = req.body;
 
-  if (!name || !email || !password) {
-    return res.status(400).json({ success: false, message: "Faltan campos requeridos." });
-  }
+  const validationErrors = validateUserInputFull({ name, email, password });
+if (validationErrors.length > 0) {
+  return res.status(400).json({ success: false, errors: validationErrors });
+}
 
   try {
     const user = await createUser({ name, email, password, isAdmin, IsActive });
-    res.status(200).json({ success: true, data: user });
-  } catch (error) {
-    logInfo(`❌ Error al crear usuario: ${error}`);
-    res.status(500).json({ success: false, message: "Error al crear usuario." });
+    res.status(201).json({ success: true, data: user });
+  } catch (error: any) {
+    logInfo(`❌ Error al crear usuario: ${error.message}`);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
