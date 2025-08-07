@@ -33,7 +33,7 @@ export const getUserByIdController = async (req: Request, res: Response) => {
 
 //Crear nuevo usuario
 export const createUserController = async (req: Request, res: Response) => {
-  const { name, email, password, isAdmin, isActive } = req.body;
+  const { name, email, password, isAdmin, IsActive } = req.body;
 
   const validationErrors = validateUserInputFull({ name, email, password });
 if (validationErrors.length > 0) {
@@ -41,7 +41,7 @@ if (validationErrors.length > 0) {
 }
 
   try {
-    const user = await createUser({ name, email, password, isAdmin, isActive });
+    const user = await createUser({ name, email, password, isAdmin, IsActive });
     res.status(201).json({ success: true, data: user });
   } catch (error: any) {
     logInfo(`❌ Error al crear usuario: ${error.message}`);
