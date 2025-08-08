@@ -6,8 +6,8 @@ import bcrypt from "bcryptjs";
 
 const jwtSecret = process.env.JWT_SECRET || "defaultSecretKey";
 
-
-export async function login(email: string, password: string) {
+//Login
+export async function login(email: string, password: string, rememberMe: boolean) {
   try {
     const user = await getUserByEmail(email);
     if (!user) {
@@ -21,6 +21,17 @@ export async function login(email: string, password: string) {
     return { token, user };
   } catch (error) {
     logInfo(`❌ Error al iniciar sesión: ${error}`);
+    return null;
+  }
+}
+
+//Validar token
+export async function validateToken(token: string) {
+  try {
+    const decoded = jwt.verify(token, jwtSecret);
+    return decoded;
+  } catch (error) {
+    logInfo(`❌ Error al validar token: ${error}`);
     return null;
   }
 }

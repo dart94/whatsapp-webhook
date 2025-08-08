@@ -1,22 +1,78 @@
 import { Request, Response } from "express";
-import { login } from "../services/auth.service";
+import { login, validateToken } from "../services/auth.service";
 
-//Login
+interface LoginResult {
+  token: string;
+  user: any; // Puedes tipar mejor según tu modelo de usuario
+}
+
 export const loginController = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password, rememberMe } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ success: false, message: "Faltan parámetros o campos requeridos." });
+    return res.status(400).json({
+      success: false,
+      message: "Faltan parámetros o campos requeridos."
+    });
   }
 
   try {
-    const result = await login(email, password);
+    const result: LoginResult | null = await login(email, password, rememberMe);
+
     if (!result) {
-      return res.status(401).json({ success: false, message: "Credenciales inválidas." });
+      return res.status(401).json({
+        success: false,
+        message: "Credenciales inválidas."
+      });
     }
+
     const { token, user } = result;
-    res.status(200).json({ success: true, data: { token, user } });
+
+    res.status(200).json({
+      success: true,
+      data: { token, user }
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error al iniciar sesión." });
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error interno al iniciar sesión."
+    });
+  }
+};
+
+//Validar token
+export const validateTokenController = async (req: Request, res: Response) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({
+      success: false,
+      message: "Falta el token."
+    });
+  }
+
+  try {
+    const decoded = await validateToken(token);
+
+    if (!decoded) {
+      return res.status(401).json({
+        success: false,
+        message: "Token inválido."
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: decoded
+    });
+
+  } catch (error) {
+    console.error("Validate token error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error interno al validar token."
+    });
   }
 };
