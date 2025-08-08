@@ -74,6 +74,7 @@ export async function getHeaders(spreadsheetId: string, sheetName: string) {
   }
 }
 
+// Obtener datos de la hoja
 export async function fetchSheetData(spreadsheetId: string, sheetName: string) {
   const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL}/sheets/read`);
   url.searchParams.append("spreadsheetId", spreadsheetId);

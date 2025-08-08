@@ -51,6 +51,8 @@ export const sendTemplate = async (req: Request, res: Response) => {
           
         },
       });
+      //Console para saber si se guarda correctamente
+      console.log(result);
 
       
 
@@ -64,6 +66,7 @@ export const sendTemplate = async (req: Request, res: Response) => {
       success: true,
       data: results,
     });
+    
   } catch (error) {
     logError(`❌ Error in sendTemplate controller: ${error}`);
     return res.status(500).json({
