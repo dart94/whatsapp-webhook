@@ -3,15 +3,15 @@
 import { useState, useRef, use } from "react";
 import { getHeaders } from "@/lib/sheet.api";
 import { registerSheet } from "@/lib/sheet.api";
-import { Input } from "../../components/ui/Inputs";
-import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
-import { CardContent } from "../../components/ui/CardContent";
-import { showToast } from "../../components/common/Toast";
+import { Input } from "../../../components/ui/Inputs";
+import { Button } from "../../../components/ui/Button";
+import { Card } from "../../../components/ui/Card";
+import { CardContent } from "../../../components/ui/CardContent";
+import { showToast } from "../../../components/common/Toast";
 import { error } from "console";
 import { useRouter } from "next/navigation";
-import { Badge } from "../../components/ui/Badge";
-import { Label } from "../../components/ui/Label";
+import { Badge } from "../../../components/ui/Badge";
+import { Label } from "../../../components/ui/Label";
 
 export default function RegisterSheetForm() {
   const [name, setName] = useState("");

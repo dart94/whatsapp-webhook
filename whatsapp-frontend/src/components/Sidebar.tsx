@@ -9,9 +9,11 @@ import {
   PencilSquareIcon,
   EyeIcon,
   DocumentCheckIcon,
-  XMarkIcon
+  XMarkIcon,
+  ArrowLeftCircleIcon,
 } from "@heroicons/react/24/outline";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NavLinkProps {
   href: string;
@@ -21,7 +23,7 @@ interface NavLinkProps {
   onClick?: () => void;
 }
 
-interface SubNavLinkProps extends Omit<NavLinkProps, 'active'> {
+interface SubNavLinkProps extends Omit<NavLinkProps, "active"> {
   active: boolean;
 }
 
@@ -34,16 +36,17 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [openTemplates, setOpenTemplates] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { logout } = useAuth(); // Asegúrate de importar tu función de logout
 
   // Detectar si es mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Cerrar submenús cuando cambie la ruta
@@ -55,23 +58,17 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
 
   const navigationItems = [
     {
-      href: "/",
+      href: "/dashboard",
       label: "Conversaciones",
       Icon: ChatBubbleLeftRightIcon,
-      active: pathname === "/"
+      active: pathname === "/dashboard",
     },
     {
       href: "/sheets",
       label: "Sheets",
       Icon: DocumentCheckIcon,
-      active: pathname === "/sheets"
+      active: pathname === "/sheets",
     },
-    // {
-    //   href: "/crm",
-    //   label: "CRM",
-    //   Icon: ChartBarIcon,
-    //   active: pathname === "/crm"
-    // }
   ];
 
   const templateItems = [
@@ -79,14 +76,14 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
       href: "/templates",
       label: "Ver Plantillas",
       Icon: EyeIcon,
-      active: pathname === "/templates"
+      active: pathname === "/templates",
     },
     {
       href: "/templates/new",
       label: "Crear Plantilla",
       Icon: PencilSquareIcon,
-      active: pathname === "/templates/new"
-    }
+      active: pathname === "/templates/new",
+    },
   ];
 
   const isTemplatesActive = pathname.startsWith("/templates");
@@ -95,23 +92,23 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
     <>
       {/* Overlay para mobile */}
       {isMobile && isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={onToggle}
         />
       )}
-      
+
       {/* Sidebar */}
-      <aside 
+      <aside
         className={`
-          ${isMobile ? 'fixed' : 'fixed md:relative'}
+          ${isMobile ? "fixed" : "fixed md:relative"}
           top-0 left-0 z-50
           w-64 h-screen bg-gray-800 text-white flex flex-col
           transition-transform duration-300 ease-in-out
-          ${!isOpen ? '-translate-x-full' : 'translate-x-0'}
-          ${isMobile ? 'shadow-2xl' : ''}
+          ${!isOpen ? "-translate-x-full" : "translate-x-0"}
+          ${isMobile ? "shadow-2xl" : ""}
         `}
-        style={{ minHeight: '100vh', height: '100vh' }}
+        style={{ minHeight: "100vh", height: "100vh" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700 flex-shrink-0">
@@ -145,9 +142,10 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
               className={`
                 flex items-center justify-between w-full px-4 py-2 rounded-md 
                 transition-colors duration-200 group
-                ${isTemplatesActive 
-                  ? "bg-green-600 text-white" 
-                  : "hover:bg-gray-700 text-gray-300"
+                ${
+                  isTemplatesActive
+                    ? "bg-green-600 text-white"
+                    : "hover:bg-gray-700 text-gray-300"
                 }
               `}
               aria-expanded={openTemplates}
@@ -185,10 +183,23 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-700 flex-shrink-0">
-          <div className="text-xs text-gray-400 text-center">
-            v1.0.0
-          </div>
+        <div className="p-4 border-t border-gray-700 flex-shrink-0 space-y-3">
+          <button
+            onClick={() => {
+              if (
+                window.confirm("¿Estás seguro de que deseas cerrar sesión?")
+              ) {
+                logout();
+                if (isMobile && onToggle) onToggle();
+              }
+            }}
+            className="flex items-center justify-center space-x-2 px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-all duration-200 w-full group shadow-md hover:shadow-lg"
+          >
+            <ArrowLeftCircleIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
+            <span className="font-medium">Cerrar sesión</span>
+          </button>
+
+          <div className="text-xs text-gray-400 text-center">v1.0.0</div>
         </div>
       </aside>
     </>
@@ -203,15 +214,14 @@ function NavLink({ href, label, Icon, active, onClick }: NavLinkProps) {
       className={`
         flex items-center space-x-3 px-4 py-2 rounded-md 
         transition-colors duration-200 group
-        ${active 
-          ? "bg-green-600 text-white" 
-          : "text-gray-300 hover:bg-gray-700 hover:text-white"
+        ${
+          active
+            ? "bg-green-600 text-white"
+            : "text-gray-300 hover:bg-gray-700 hover:text-white"
         }
       `}
     >
-      {Icon && (
-        <Icon className="w-5 h-5 flex-shrink-0" />
-      )}
+      {Icon && <Icon className="w-5 h-5 flex-shrink-0" />}
       <span className="font-medium truncate">{label}</span>
     </Link>
   );
@@ -225,15 +235,14 @@ function SubNavLink({ href, label, Icon, active, onClick }: SubNavLinkProps) {
       className={`
         flex items-center space-x-3 px-3 py-2 rounded-md text-sm
         transition-colors duration-200
-        ${active 
-          ? "bg-green-500 text-white" 
-          : "text-gray-400 hover:bg-gray-700 hover:text-white"
+        ${
+          active
+            ? "bg-green-500 text-white"
+            : "text-gray-400 hover:bg-gray-700 hover:text-white"
         }
       `}
     >
-      {Icon && (
-        <Icon className="w-4 h-4 flex-shrink-0" />
-      )}
+      {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
       <span className="truncate">{label}</span>
     </Link>
   );

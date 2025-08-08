@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import Message from "../home.page";
+import Message from "../../home.page";
 import ChatPage from "../chat/[wa_id]/page";
 
 export default function Home() {

@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useCallback, useState } from "react";
-import { ChatHeader } from "../../../components/ChatHeader";
-import { MessageList } from "../../../components/MessageList";
-import TextBox from "../../../components/ChatInput";
-import { useSocket } from "../../../hooks/UseSocket";
+import { ChatHeader } from "../../../../components/ChatHeader";
+import { MessageList } from "../../../../components/MessageList";
+import TextBox from "../../../../components/ChatInput";
+import { useSocket } from "../../../../hooks/UseSocket";
 import { markMessagesAsRead, fetchMessagesByWaId } from "@/lib/conversation.api";
 import { useChatStore } from "@/stores/useChatStore";
 import { useConversationStore } from "@/stores/UseConversationStore";

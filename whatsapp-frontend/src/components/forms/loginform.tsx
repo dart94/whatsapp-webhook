@@ -24,6 +24,7 @@ export default function LoginForm() {
     setLoading(true);
     try {
       await login(email, password, rememberMe);
+      
       router.push("/dashboard");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Error al iniciar sesión";

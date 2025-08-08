@@ -1,5 +1,6 @@
+"use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import { validateToken } from "@/lib/auth";
+import { login as loginService, validateToken } from "@/lib/auth";
 
 // Definimos el tipo de usuario esperado
 interface User {
@@ -10,7 +11,11 @@ interface User {
 
 // Tipos del contexto
 interface AuthContextType {
-  login: (email: string, password: string, rememberMe: boolean) => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    rememberMe: boolean
+  ) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   user: User | null;
@@ -50,48 +55,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Iniciar sesión
-  const login = async (email: string, password: string, rememberMe: boolean) => {
+  const login = async (
+    email: string,
+    password: string,
+    rememberMe: boolean
+  ) => {
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, rememberMe }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || "Error al iniciar sesión");
-      }
-
-      const token = data.data?.token;
-      if (token) {
-        if (rememberMe) {
-          localStorage.setItem("token", token);
-        } else {
-          sessionStorage.setItem("token", token);
-        }
-      }
+      const response = await loginService(email, password, rememberMe); // <- USANDO loginService
 
       setIsAuthenticated(true);
-      setUser(data.data.user);
+      setUser(response.data?.user || null);
     } catch (error) {
       throw error instanceof Error ? error : new Error("Error desconocido");
     }
   };
 
   // Cerrar sesión
-  const logout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch {
-      // Ignoramos si no hay conexión o el endpoint no existe
+const logout = async () => {
+  try {
+    // 1. Actualizar estado inmediatamente para mejor UX
+    setIsAuthenticated(false);
+    setUser(null);
+    
+    // 2. Limpiar almacenamiento
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+    
+    // 3. Redirigir (usar router de Next.js si está disponible)
+    if (typeof window !== 'undefined') {
+      window.location.href = "/";
     }
+    
+  } catch (error) {
+    console.error('Error durante el logout:', error);
+    
+    // Asegurar limpieza en caso de error
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
     setIsAuthenticated(false);
     setUser(null);
-  };
+    
+    if (typeof window !== 'undefined') {
+      window.location.href = "/";
+    }
+  }
+};
+
 
   return (
     <AuthContext.Provider value={{ login, logout, isAuthenticated, user }}>

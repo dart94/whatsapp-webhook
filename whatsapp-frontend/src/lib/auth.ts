@@ -21,19 +21,31 @@ export async function login(
   password: string,
   rememberMe: boolean
 ): Promise<LoginResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  const response = await fetch(`${API_BASE_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password, rememberMe }),
   });
 
+  const contentType = response.headers.get("Content-Type");
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Error ${response.status}: ${errorText}`);
+  }
+
+  if (!contentType?.includes("application/json")) {
+    const text = await response.text();
+    throw new Error(`Respuesta no JSON:\n${text}`);
+  }
+
   const data: LoginResponse = await response.json();
 
-  if (!response.ok || !data.success) {
+  if (!data.success) {
     throw new Error(data.message || "Error al iniciar sesión");
   }
 
-  // Guardar token según rememberMe
+  // Guardar token
   if (data.data?.token) {
     if (rememberMe) {
       localStorage.setItem("token", data.data.token);
@@ -67,4 +79,22 @@ export async function validateToken(): Promise<any> {
   }
 
   return data.data;
+}
+
+
+//Logout
+export async function logout() {
+  try {
+    // Solo limpiar tokens y redirigir
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+    
+    // Opcional: llamar API si necesitas invalidar tokens en el servidor
+    // await fetch('/api/auth/logout', { method: 'POST' });
+    
+    window.location.href = "/";
+  } catch (error) {
+    console.error('Error en logout:', error);
+    window.location.href = "/"; // Redirigir de todos modos
+  }
 }
