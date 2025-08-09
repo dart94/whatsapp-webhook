@@ -13,7 +13,7 @@ model WhatsappMessage {
   message_id         String
   direction          String
   type               String?
-  body_text          String?
+  body_text          String?    @db.Text
   context_message_id String?
   timestamp          BigInt?
   raw_json           Json?
