@@ -11,6 +11,7 @@ import { getUnreadCountsPerConversation } from "../services/messagesby.service";
 export const sendTemplate = async (req: Request, res: Response) => {
   const { messages, templateName, language, body } = req.body;
 
+  // ✅ Validación de campos requeridos
   if (!messages || !templateName || !language || !body) {
     return res.status(400).json({
       success: false,
@@ -23,57 +24,77 @@ export const sendTemplate = async (req: Request, res: Response) => {
     const results = [];
 
     for (const msg of messages) {
-      // ✅ Renderizar body
-      const renderedBody = renderTemplate(templateBody, msg.parameters || []);
+      try {
+        console.log("----------------------------------------------------");
+        console.log(`📤 Enviando plantilla: ${templateName}`);
+        console.log(`➡️ Destinatario: ${msg.to}`);
+        console.log(`🌐 Idioma: ${language}`);
+        console.log(`📄 Parámetros recibidos:`, msg.parameters || []);
 
-      // ✅ Enviar a Meta
-      const result = await sendTemplateMessage(
-        msg.to,
-        templateName,
-        language,
-        msg.parameters || []
-      );
+        // ✅ Renderizar body
+        const renderedBody = renderTemplate(templateBody, msg.parameters || []);
+        console.log(`📝 Body renderizado: ${renderedBody}`);
 
-      const message_id = result?.messages?.[0]?.id || "";
+        // ✅ Enviar a Meta
+        const result = await sendTemplateMessage(
+          msg.to,
+          templateName,
+          language,
+          msg.parameters || []
+        );
+        console.log(`📡 Respuesta de Meta:`, JSON.stringify(result, null, 2));
 
-      // ✅ Guardar en WhatsAppMessage
-      await prisma.whatsappMessage.create({
-        data: {
-          wa_id: msg.to,
-          message_id,
-          direction: "OUT",
-          type: "template",
-          body_text: renderedBody,
-          context_message_id: null,
-          timestamp: BigInt(Math.floor(Date.now() / 1000)),
-          raw_json: JSON.stringify(result),
-          read: false,
-          
-        },
-      });
-      //Console para saber si se guarda correctamente
-      console.log(result);
+        // Verificar si la API devolvió mensajes
+        if (!result?.messages || result.messages.length === 0) {
+          console.warn(`⚠️ No se recibió message_id para ${msg.to}`);
+        }
 
-      
+        const message_id = result?.messages?.[0]?.id || "NO_ID";
 
-      results.push({
-        to: msg.to,
-        result,
-      });
+        // ✅ Guardar en BD
+        const saved = await prisma.whatsappMessage.create({
+          data: {
+            wa_id: msg.to,
+            message_id,
+            direction: "OUT",
+            type: "template",
+            body_text: renderedBody,
+            context_message_id: null,
+            timestamp: BigInt(Math.floor(Date.now() / 1000)),
+            raw_json: JSON.stringify(result),
+            read: false,
+          },
+        });
+        console.log(`💾 Guardado en BD con ID interno: ${saved.id}`);
+
+        results.push({
+          to: msg.to,
+          result,
+        });
+
+      } catch (msgError) {
+        console.error(`❌ Error procesando ${msg.to}:`, msgError);
+        results.push({
+          to: msg.to,
+          error: String(msgError),
+        });
+      }
     }
 
+    console.log("✅ Proceso completado para todas las plantillas");
     return res.status(200).json({
       success: true,
       data: results,
     });
-    
+
   } catch (error) {
-    logError(`❌ Error in sendTemplate controller: ${error}`);
+    console.error(`❌ Error general en sendTemplate:`, error);
     return res.status(500).json({
       success: false,
       message: "Error sending template message.",
+      error: String(error),
     });
-  }//
+  }
 };
 
 //Responder mensajes
