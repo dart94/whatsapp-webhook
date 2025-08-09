@@ -73,7 +73,7 @@ export const sendTemplate = async (req: Request, res: Response) => {
       success: false,
       message: "Error sending template message.",
     });
-  }
+  }//
 };
 
 //Responder mensajes
