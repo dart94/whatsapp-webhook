@@ -238,7 +238,6 @@ export default function EnviarPlantillaPage() {
           r.id === recipient.id ? { ...r, status: "sending" } : r
         )
       );
-
       try {
         const parametersToUse = useGlobalVars
           ? globalParameters
@@ -257,6 +256,7 @@ export default function EnviarPlantillaPage() {
             r.id === recipient.id ? { ...r, status: "sent" } : r
           )
         );
+        console.log("Resultado de la llamada a sendTemplateMessage:", result);
       } catch (error) {
         // Actualizar estado a error
         setRecipients((prev) =>

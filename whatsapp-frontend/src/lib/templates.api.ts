@@ -20,7 +20,7 @@ export async function sendTemplateMessage(payload: SendTemplatePayload) {
     },
     body: JSON.stringify(payload),
   });
-
+  console.log("Enviando plantilla con payload:", payload);
   const json = await res.json();
   return json.data;
 }

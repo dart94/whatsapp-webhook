@@ -31,6 +31,7 @@ export function useSendTemplate() {
         };
         const data = await sendTemplateMessage(payload);
         setResult(data);
+        console.log("Resultado de la llamada a sendTemplateMessage:", data);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Error al enviar la plantilla"
