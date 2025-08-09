@@ -17,6 +17,7 @@ import {
 import { useRegisteredSheets } from "@/hooks/useRegisteredSheets";
 import { fetchSheetData } from "@/lib/sheet.api";
 import { RegisteredSheet } from "@/types/sheet";
+import { showToast } from "@/components/common/Toast";
 
 interface RecipientData {
   id: string;
@@ -256,7 +257,7 @@ export default function EnviarPlantillaPage() {
             r.id === recipient.id ? { ...r, status: "sent" } : r
           )
         );
-        console.log("Resultado de la llamada a sendTemplateMessage:", result);
+
       } catch (error) {
         // Actualizar estado a error
         setRecipients((prev) =>

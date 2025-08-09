@@ -14,6 +14,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useState, useEffect, use } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { showSweetAlert } from "./common/Sweet";
 
 interface NavLinkProps {
   href: string;
@@ -36,14 +37,13 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [openTemplates, setOpenTemplates] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { logout } = useAuth(); // Asegúrate de importar tu función de logout
+  const { logout } = useAuth();
 
   // Detectar si es mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -101,7 +101,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={`
-          ${isMobile ? "fixed" : "fixed md:relative"}
+          ${isMobile ? "fixed" : "fixed"}
           top-0 left-0 z-50
           w-64 h-screen bg-gray-800 text-white flex flex-col
           transition-transform duration-300 ease-in-out
@@ -186,19 +186,32 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
         <div className="p-4 border-t border-gray-700 flex-shrink-0 space-y-3">
           <button
             onClick={() => {
-              if (
-                window.confirm("¿Estás seguro de que deseas cerrar sesión?")
-              ) {
-                logout();
-                if (isMobile && onToggle) onToggle();
-              }
+              showSweetAlert({
+                title: "¿Estás seguro de que deseas cerrar sesión?",
+                text: "Esta acción no se puede deshacer",
+                icon: "warning",
+                confirmButtonText: "Sí, cerrar sesión",
+                cancelButtonText: "Cancelar",
+                showCancelButton: true,
+                customClass: {
+                  container: "w-full",
+                  confirmButton:
+                    "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded",
+                  cancelButton:
+                    "bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded",
+                },
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  logout();
+                  if (isMobile && onToggle) onToggle();
+                }
+              });
             }}
             className="flex items-center justify-center space-x-2 px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-all duration-200 w-full group shadow-md hover:shadow-lg"
           >
             <ArrowLeftCircleIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
             <span className="font-medium">Cerrar sesión</span>
           </button>
-
           <div className="text-xs text-gray-400 text-center">v1.0.0</div>
         </div>
       </aside>
