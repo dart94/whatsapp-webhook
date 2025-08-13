@@ -48,9 +48,8 @@ return (
         </header>
 
 
-        {/* Main neutral: sin scroll propio, relativo para el absolute del hijo */}
+
         <main className="flex-1 min-h-0 relative overflow-hidden">
-          {/* ESTE wrapper ocupa TODO el main */}
           <div className="absolute inset-0">
             {children}
           </div>

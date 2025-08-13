@@ -54,14 +54,12 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
   }
 
   return (
-    // Grid con 3 filas: header (auto), contenido (1fr), textbox (auto)
     <div className="h-full grid grid-rows-[auto,1fr,auto]">
-      {/* Header fijo (fuera del scroller) */}
+      {/* Header fijo (fuera del scroll) */}
       <div className="bg-white border-b">
         <ChatHeader waId={waId} messageCount={currentMessages.length} onBack={onBack} />
       </div>
 
-      {/* Centro: NO scroll aquí; lo maneja MessageList */}
       <div className="min-h-0">
         <MessageList messages={currentMessages} loading={isLoading} />
       </div>

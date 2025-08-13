@@ -332,7 +332,8 @@ export default function EnviarPlantillaPage() {
   const errorCount = recipients.filter((r) => r.status === "error").length;
 
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4">
+    <div className="max-w-6xl mx-auto py-6 px-4 overflow-y-auto h-full">
+    <div className="max-w-6xl mx-auto py-6 px-4 overflow-y-auto">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
           Envío Masivo de WhatsApp
@@ -346,6 +347,7 @@ export default function EnviarPlantillaPage() {
       </div>
 
       {/* Selección de Hoja */}
+      
       <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
           Seleccionar Datos de Origen
@@ -411,7 +413,7 @@ export default function EnviarPlantillaPage() {
               </div>
 
               {/* Configuración de columnas principales */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Columna de teléfono/WhatsApp
@@ -795,6 +797,7 @@ export default function EnviarPlantillaPage() {
           )}
         </div>
       )}
+    </div>
     </div>
   );
 }
