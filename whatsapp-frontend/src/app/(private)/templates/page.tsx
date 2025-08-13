@@ -2,7 +2,7 @@
 
 import { useTemplates } from "../../../hooks/UseTemplates";
 import { Template } from "../../../types/whatsapp";
-import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
+import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { Button } from "../../../components/ui/Button";
 import { Badge } from "../../../components/ui/Badge";
@@ -63,7 +63,7 @@ export default function TemplatesPage() {
                   <td className="px-4 py-3">
                     <Link href={`/templates/enviarplantilla?id=${template.id}`}>
                       <Button variant="outline" size="sm" className="flex gap-1">
-                        <ChatBubbleLeftIcon className="w-4 h-4" />
+                        <PaperAirplaneIcon className="w-4 h-4" />
                         Enviar
                       </Button>
                     </Link>

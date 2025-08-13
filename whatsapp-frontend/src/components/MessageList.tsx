@@ -19,22 +19,23 @@ export function MessageList({
   const [isAtBottom, setIsAtBottom] = useState(true);
   const prevMessagesLength = useRef(messages.length);
 
-  // Efecto para detectar posición del scroll
+  // Detectar posición del scroll
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleScroll = () => {
-      const threshold = 100; // Margen de 100px desde el fondo
-      const currentPosition = container.scrollHeight - container.scrollTop - container.clientHeight;
+      const threshold = 100;
+      const currentPosition =
+        container.scrollHeight - container.scrollTop - container.clientHeight;
       setIsAtBottom(currentPosition <= threshold);
     };
 
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Efecto para scroll automático al recibir nuevos mensajes
+  // Auto-scroll suave solo si ya estás abajo
   useEffect(() => {
     const container = containerRef.current;
     if (!container || !bottomRef.current) return;
@@ -42,12 +43,7 @@ export function MessageList({
     const hasNewMessages = messages.length > prevMessagesLength.current;
     prevMessagesLength.current = messages.length;
 
-    // WhatsApp Web behavior:
-    // 1. Always scroll to bottom on new messages if already at bottom
-    // 2. Don't scroll if user has manually scrolled up
-    // 3. Special case: initial load scrolls to bottom
     if ((isAtBottom && hasNewMessages) || messages.length <= 1) {
-      // Usamos requestAnimationFrame para asegurar que el DOM está actualizado
       requestAnimationFrame(() => {
         bottomRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -57,17 +53,25 @@ export function MessageList({
     }
   }, [messages, isAtBottom]);
 
-  // Agrupar mensajes consecutivos del mismo tipo
+  // Auto-scroll inmediato siempre que cambie la lista
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "auto", block: "nearest" });
+    }
+  }, [messages]);
+
+  // Agrupar mensajes consecutivos
   const groupedMessages = useMemo(() => {
     return messages.map((message, index) => {
       const prevMessage = messages[index - 1];
       const nextMessage = messages[index + 1];
-
       return {
         ...message,
         isConsecutive: prevMessage?.direction === message.direction,
         isLastInGroup: nextMessage?.direction !== message.direction,
-        uniqueKey: message.id ? `msg-${message.id}` : `temp-${index}-${Date.now()}`,
+        uniqueKey: message.id
+          ? `msg-${message.id}`
+          : `temp-${index}-${Date.now()}`,
       };
     });
   }, [messages]);
@@ -102,8 +106,7 @@ export function MessageList({
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-y-auto scroll-smooth px-4 py-2"
-      style={{ scrollBehavior: 'smooth' }}
+      className="h-full overflow-y-auto px-4 py-2"
     >
       <AnimatePresence>
         {groupedMessages.map((message) => (
@@ -123,13 +126,7 @@ export function MessageList({
           </motion.div>
         ))}
       </AnimatePresence>
-      
-      {/* Elemento invisible para el scroll automático */}
-      <div 
-        ref={bottomRef} 
-        className="h-px" 
-        aria-hidden="true"
-      />
+      <div ref={bottomRef} className="h-px" aria-hidden="true" />
     </div>
   );
 }

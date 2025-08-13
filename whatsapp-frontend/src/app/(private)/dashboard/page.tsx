@@ -10,24 +10,22 @@ export default function Home() {
   const [selectedWaId, setSelectedWaId] = useState<string | null>(null);
 
 
-  return (
-    <main className="h-screen flex">
+return (
+    <main className="h-full flex min-h-0">
       {/* Columna izquierda: lista de chats */}
-      <div className="w-1/3 border-r border-gray-200 overflow-y-auto">
+      <div className="w-1/3 border-r border-gray-200 h-full overflow-y-auto">
         <Message onSelectChat={setSelectedWaId} />
       </div>
 
       {/* Columna derecha: chat activo */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-h-0">
         {selectedWaId ? (
           <ChatPage
             waId={selectedWaId}
-            onBack={() => {
-              setSelectedWaId(null);
-            }}
+            onBack={() => setSelectedWaId(null)}
           />
         ) : (
-          <div className="h-full flex items-center justify-center text-gray-400">
+          <div className="flex-1 flex items-center justify-center text-gray-400">
             Selecciona un chat para comenzar
           </div>
         )}
