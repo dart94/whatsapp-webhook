@@ -5,11 +5,23 @@ import useUsers from "@/hooks/useUsers";
 import { User } from "@/types/user";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
+import useUsersDelete from "@/hooks/useUsersDelete";
+import { showSweetAlert } from "@/components/common/Sweet";
+import { UserCreate } from "@/components/modal/UserCreate";
+import { showToast } from "@/components/common/Toast";
+
+
 export default function PrivatePage() {
   const { logout } = useAuth();
   const { users, loading, error } = useUsers();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const {
+    deleteUserHandler,
+    loading: deleteLoading,
+    error: deleteError,
+  } = useUsersDelete();
+  const [isOpen, setIsOpen] = useState(false);
 
   // Seleccionar primer usuario automáticamente
   useEffect(() => {
@@ -26,6 +38,48 @@ export default function PrivatePage() {
     );
   }
 
+  // Eliminar usuario
+  const handleDeleteUser = async (id: number) => {
+    try {
+      showSweetAlert({
+        title: "¿Estás seguro de que deseas eliminar este usuario?",
+        text: "Esta acción no se puede deshacer",
+        icon: "warning",
+        confirmButtonText: "Sí, eliminar usuario",
+        cancelButtonText: "Cancelar",
+        showCancelButton: true,
+        customClass: {
+          container: "w-full",
+          confirmButton:
+            "bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded",
+          cancelButton:
+            "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded",
+        },
+      }).then((result) => {
+        if (result.isConfirmed) {
+          deleteUserHandler(id);
+        }
+        //Mostrar toast
+        showToast({
+          type: "success",
+          message: "Usuario eliminado correctamente",
+        });
+      });
+    } catch (err) {
+      showToast({
+        type: "error",
+        message: "Error al eliminar el usuario",
+      });
+      console.log(err);
+    }
+  };
+
+  // Mostrar modal de creación de usuario de userCreate
+  const handleCreateUser = () => {
+    setIsOpen(true);
+  };
+
+
   if (error) {
     return (
       <div className="h-screen flex items-center justify-center text-red-500">
@@ -38,6 +92,15 @@ export default function PrivatePage() {
     <div className="h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-10 px-4">
         <h1 className="text-3xl font-bold mb-8 text-gray-800">Usuarios</h1>
+        <button
+          onClick={() => handleCreateUser()}
+          className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          Crear
+        </button>
+
+        {/* Modal */}
+        <UserCreate isOpen={isOpen} onClose={() => setIsOpen(false)} />
 
         <div className="overflow-x-auto border rounded-xl shadow-sm bg-white">
           <table className="min-w-full text-sm">
@@ -72,16 +135,20 @@ export default function PrivatePage() {
                       {user.isAdmin ? "Sí" : "No"}
                     </Badge>
                   </td>
+                  {/* Acciones */}
                   <td className="px-4 py-3">
                     <div className="flex space-x-2">
                       <Link
                         href={`/users/${user.id}/edit`}
                         className="text-blue-500 hover:text-blue-700"
                       >
-                        <PencilIcon className="w-5 h-5" />
+                        <PencilSquareIcon className="w-5 h-5" />
                       </Link>
+                      {/* Eliminar usuario */}
                       <button
-                        onClick={() => setSelectedUser(user)}
+                        onClick={() =>
+                          handleDeleteUser(user.id as unknown as number)
+                        }
                         className="text-red-500 hover:text-red-700"
                       >
                         <TrashIcon className="w-5 h-5" />
