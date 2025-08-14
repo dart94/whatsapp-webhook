@@ -94,7 +94,7 @@ export default function ChatInput({ waId }: ChatInputProps) {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-1 bg-gray-100 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+          className="flex-1 bg-gray-100 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
           placeholder="Escribe un mensaje..."
           disabled={loading}
           autoComplete="off"
@@ -103,7 +103,7 @@ export default function ChatInput({ waId }: ChatInputProps) {
           type="submit"
           onClick={handleButtonClick}
           disabled={loading || !message.trim()}
-          className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          className="bg-purple-500 text-white p-2 rounded-full hover:bg-purple-600 disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
           aria-label={loading ? "Enviando..." : "Enviar mensaje"}
         >
           {loading ? (

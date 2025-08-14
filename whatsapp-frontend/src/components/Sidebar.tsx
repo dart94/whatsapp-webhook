@@ -103,7 +103,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
     <aside
       className={`
         fixed inset-y-0 left-0 z-50
-        w-64 bg-gray-800 text-white flex flex-col
+        w-64 bg-purple-500 text-white flex flex-col
         transition-transform duration-300 ease-in-out
         ${!isOpen ? "-translate-x-full" : "translate-x-0"}
         ${isMobile ? "shadow-2xl" : ""}
@@ -140,7 +140,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
             className={`
               flex items-center justify-between w-full px-4 py-2 rounded-md 
               transition-colors duration-200 group
-              ${isTemplatesActive ? "bg-green-600 text-white" : "hover:bg-gray-700 text-gray-300"}
+              ${isTemplatesActive ? "bg-purple-200 text-black" : "hover:bg-purple-300 text-gray-300"}
             `}
             aria-expanded={openTemplates}
           >
@@ -219,8 +219,8 @@ function NavLink({ href, label, Icon, active, onClick }: NavLinkProps) {
         transition-colors duration-200 group
         ${
           active
-            ? "bg-green-600 text-white"
-            : "text-gray-300 hover:bg-gray-700 hover:text-white"
+            ? "bg-purple-200 text-black semifont-medium"
+            : "text-gray-300 hover:bg-purple-300 hover:text-white"
         }
       `}
     >
@@ -240,8 +240,8 @@ function SubNavLink({ href, label, Icon, active, onClick }: SubNavLinkProps) {
         transition-colors duration-200
         ${
           active
-            ? "bg-green-500 text-white"
-            : "text-gray-400 hover:bg-gray-700 hover:text-white"
+            ? "bg-purple-200 text-black semifont-medium"
+            : "text-gray-400 hover:bg-purple-300 hover:text-white"
         }
       `}
     >
