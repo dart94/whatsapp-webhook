@@ -11,10 +11,9 @@ import { showSweetAlert } from "@/components/common/Sweet";
 import { UserCreate } from "@/components/modal/UserCreate";
 import { showToast } from "@/components/common/Toast";
 
-
 export default function PrivatePage() {
   const { logout } = useAuth();
-  const { users, loading, error } = useUsers();
+  const { users, loading, error, refresh } = useUsers();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const {
     deleteUserHandler,
@@ -74,11 +73,18 @@ export default function PrivatePage() {
     }
   };
 
+  const openCreate = () => {
+    setIsOpen(true);
+  };
+  const closeCreate = () => {
+    setIsOpen(false);
+  };
+
   // Mostrar modal de creación de usuario de userCreate
   const handleCreateUser = () => {
     setIsOpen(true);
+    refresh();
   };
-
 
   if (error) {
     return (
@@ -100,7 +106,14 @@ export default function PrivatePage() {
         </button>
 
         {/* Modal */}
-        <UserCreate isOpen={isOpen} onClose={() => setIsOpen(false)} />
+        <UserCreate
+          isOpen={isOpen}
+          onClose={closeCreate}
+          onCreated={() => {
+            refresh();
+            closeCreate();
+          }}
+        />
 
         <div className="overflow-x-auto border rounded-xl shadow-sm bg-white">
           <table className="min-w-full text-sm">

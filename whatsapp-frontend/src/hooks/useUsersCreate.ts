@@ -1,30 +1,29 @@
+// hooks/useUsersCreate.ts
 import { useState } from "react";
 import { createUser } from "@/lib/users";
 import { User } from "@/types/user";
 
 export default function useUsersCreate() {
-  const [user, setUser] = useState<User>({
-    id: "",
-    name: "",
-    email: "",
-    password: "",
-    isAdmin: false,
-    IsActive: true,
-  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createUserHandler = async (data: User) => {
+  type CreateUserInput = Omit<User, "id">;
+
+  const createUserHandler = async (data: CreateUserInput): Promise<User> => {
     try {
       setLoading(true);
-      const response = await createUser(data);
-      console.log("Usuario creado:", response.data);
-      setLoading(false);
+      setError(null);
+      const response = await createUser(data); 
+      const responseData = response.data as User;
+      return responseData;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al crear usuario");
+      const msg = err instanceof Error ? err.message : "Error al crear usuario";
+      setError(msg);
+      throw err;
+    } finally {
       setLoading(false);
     }
   };
 
-  return { user, createUserHandler, loading, error };
+  return { createUserHandler, loading, error };
 }

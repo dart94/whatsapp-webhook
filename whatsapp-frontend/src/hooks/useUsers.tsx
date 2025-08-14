@@ -1,27 +1,34 @@
-import { useState, useEffect } from "react";
+// hooks/useUsers.ts
+import { useState, useEffect, useCallback } from "react";
 import { getUsers } from "@/lib/users";
 import { User } from "@/types/user";
+
 export default function useUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const response = await getUsers();
-        // Asegurar que tomamos el arreglo correcto
-        setUsers(Array.isArray(response.data) ? response.data : []);
-        console.log("Usuarios obtenidos:", response.data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Error al obtener usuarios");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsers();
+  const fetchUsers = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getUsers();
+      setUsers(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al obtener usuarios");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { users, loading, error };
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  return { 
+    users, 
+    loading, 
+    error,
+    refresh: fetchUsers
+}
 }

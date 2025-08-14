@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import useUsersCreate from "@/hooks/useUsersCreate";
 import { User } from "@/types/user";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { showToast } from "../common/Toast";
+import { useUsersStore } from "@/stores/users";
 
 interface UserCreateProps {
   isOpen: boolean;
   onClose: () => void;
+  onCreated?: () => void;
 }
 
-export function UserCreate({ isOpen, onClose }: UserCreateProps) {
+export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
   const { createUserHandler, loading, error } = useUsersCreate();
-  const { logout } = useAuth();
 
   const [user, setUser] = useState<User>({
     id: "",
@@ -45,6 +45,7 @@ export function UserCreate({ isOpen, onClose }: UserCreateProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
   const lastActiveElement = useRef<Element | null>(null);
+  const add = useUsersStore((state) => state.add);
 
   useEffect(() => {
     if (isOpen) {
@@ -82,6 +83,10 @@ export function UserCreate({ isOpen, onClose }: UserCreateProps) {
   };
 
   const confirmAndCreate = async () => {
+    // 🚫 no abras confirmación si hay errores visibles
+    setTouched({ name: true, email: true, password: true });
+    if (hasErrors) return;
+
     try {
       const result = await showSweetAlert({
         title: "¿Crear este usuario?",
@@ -99,18 +104,20 @@ export function UserCreate({ isOpen, onClose }: UserCreateProps) {
         },
       });
 
-      if (result.isConfirmed) {
-        await createUserHandler(user);
+      if (!result.isConfirmed) return;
 
-        showToast({
-          type: "success",
-          message: "Usuario creado correctamente",
-        });
-        handleClose();
-      }
+      // ✅ crear en backend y obtener el usuario creado
+      const created = await createUserHandler(user);
+      add(created);
+      showToast({
+        type: "success",
+        message: "Usuario creado correctamente",
+      });
+      onCreated?.();
+      onClose();
     } catch (err: any) {
       console.error(err);
-      await showToast({
+      showToast({
         type: "error",
         message: err?.message || "Inténtalo de nuevo más tarde.",
       });
@@ -119,13 +126,13 @@ export function UserCreate({ isOpen, onClose }: UserCreateProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // marcar como tocados
     setTouched({ name: true, email: true, password: true });
     if (hasErrors) return; // no lanzamos confirmación si hay errores
     await confirmAndCreate();
   };
 
   if (!isOpen) return null;
+
 
   return (
     <div
