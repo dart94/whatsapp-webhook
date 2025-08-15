@@ -6,19 +6,31 @@ import bcrypt from "bcryptjs";
 
 const jwtSecret = process.env.JWT_SECRET || "defaultSecretKey";
 
-//Login
-export async function login(email: string, password: string, rememberMe: boolean, isAdmin: boolean) {
+export async function login(email: string, password: string, rememberMe: boolean) {
   try {
     const user = await getUserByEmail(email);
     if (!user) {
       throw new Error("Usuario no encontrado");
     }
+
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
       throw new Error("Contraseña incorrecta");
     }
+
+    // Generar token con id del usuario
     const token = jwt.sign({ id: user.id }, jwtSecret);
-    return { token, user };
+
+    // Retornar user incluyendo isAdmin
+    return {
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin, 
+      },
+    };
   } catch (error) {
     logInfo(`❌ Error al iniciar sesión: ${error}`);
     return null;
