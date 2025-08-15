@@ -7,22 +7,26 @@ import bcrypt from "bcryptjs";
 const jwtSecret = process.env.JWT_SECRET || "defaultSecretKey";
 
 //Login
-export async function login(email: string, password: string, rememberMe: boolean, isAdmin: boolean) {
+export async function login(email: string, password: string, rememberMe: boolean, _isAdmin?: boolean) {
   try {
     const user = await getUserByEmail(email);
-    if (!user) {
-      throw new Error("Usuario no encontrado");
-    }
+    if (!user) throw new Error("Usuario no encontrado");
+
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) {
-      throw new Error("Contraseña incorrecta");
-    }
-    //Enviar isAdmin para verificar si el usuario tiene permisos de admin
-    if (isAdmin && !user.isAdmin) {
-      throw new Error("No tienes permisos de admin");
-    }
+    if (!isPasswordCorrect) throw new Error("Contraseña incorrecta");
+
+    // Ignorar _isAdmin del frontend, siempre usar el valor de la DB
     const token = jwt.sign({ id: user.id }, jwtSecret);
-    return { token, user };
+
+    return {
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin, // <- important
+      },
+    };
   } catch (error) {
     logInfo(`❌ Error al iniciar sesión: ${error}`);
     return null;
