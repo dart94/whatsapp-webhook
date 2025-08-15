@@ -12,9 +12,10 @@ interface UserEditProps {
   isOpen: boolean;
   onClose: () => void;
   user: User;
+  onUpdated?: () => void;
 }
 
-export function UserEdit({ isOpen, onClose, user }: UserEditProps) {
+export function UserEdit({ isOpen, onClose, user, onUpdated }: UserEditProps) {
   const { updateUserHandler, loading, error } = useUsersUpdate();
   const { logout } = useAuth();
   const { touched, setTouched, errorsMap, hasErrors } = useFormValidation(
@@ -110,6 +111,7 @@ export function UserEdit({ isOpen, onClose, user }: UserEditProps) {
           message: "Usuario actualizado correctamente",
         });
         handleClose();
+        await onUpdated?.();
       }
     } catch (err: any) {
       console.error(err);

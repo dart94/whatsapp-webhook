@@ -84,6 +84,11 @@ export default function PrivatePage() {
     refresh();
   };
 
+  const handleEditUser = (u: User) => {
+    setEditingUser(u);
+    setIsOpenEdit(true);
+  };
+
   const openEditUser = (u: User) => {
     setEditingUser(u);
     setIsOpenEdit(true);
@@ -158,7 +163,7 @@ export default function PrivatePage() {
                     <div className="flex space-x-2">
                       {/* Editar usuario */}
                       <button
-                        onClick={() => openEditUser(user)}
+                        onClick={() => handleEditUser(user)}
                         className="text-blue-500 hover:text-blue-700"
                         aria-label="Editar usuario"
                       >
@@ -218,6 +223,10 @@ export default function PrivatePage() {
               isOpen={isOpenEdit}
               onClose={closeEditUser}
               user={editingUser}
+              onUpdated={async () => {
+                await refresh?.(); // ✅ refresca después del update
+                closeEditUser(); // ✅ cierra
+              }}
             />
           )}
         </div>
