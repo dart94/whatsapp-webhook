@@ -15,6 +15,7 @@ import { showSweetAlert } from "@/components/common/Sweet";
 import { UserCreate } from "@/components/modal/UserCreate";
 import { showToast } from "@/components/common/Toast";
 import { UserEdit } from "@/components/modal/UserEdit";
+import { withAdmin } from "@/guards/WithAuth";
 
 export default function PrivatePage() {
   const { logout } = useAuth();

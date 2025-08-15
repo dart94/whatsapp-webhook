@@ -12,16 +12,17 @@ import {
   ArrowLeftCircleIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { useState, useEffect, ForwardRefExoticComponent, SVGProps, RefAttributes } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { showSweetAlert } from "./common/Sweet";
 
 interface NavLinkProps {
   href: string;
   label: string;
-  Icon?: ForwardRefExoticComponent<SVGProps<SVGSVGElement> & RefAttributes<SVGSVGElement>>;
+
   active: boolean;
   onClick?: () => void;
+  adminOnly?: boolean;
 }
 
 interface SubNavLinkProps extends Omit<NavLinkProps, "active"> {
@@ -52,32 +53,35 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
     if (!pathname.startsWith("/templates")) setOpenTemplates(false);
   }, [pathname]);
 
-  console.log(user);
-  // Rutas principales
-const navigationItems: NavLinkProps[] = [
-  ...(user?.isAdmin
-    ? [
-        {
-          href: "/users",
-          label: "Usuarios",
-          Icon: UserGroupIcon,
-          active: pathname === "/users",
-        },
-      ]
-    : []),
-  {
-    href: "/dashboard",
-    label: "Conversaciones",
-    Icon: ChatBubbleLeftRightIcon,
-    active: pathname === "/dashboard",
-  },
-  {
-    href: "/sheets",
-    label: "Sheets",
-    Icon: DocumentCheckIcon,
-    active: pathname === "/sheets",
-  },
-];
+  // Función para verificar si el usuario es admin
+  const isAdmin = user?.isAdmin === true;
+
+  // Definición de las rutas de navegación
+  const baseNavigationItems = [
+    // Usuarios (solo para admin)
+    {
+      href: "/users",
+      label: "Usuarios",
+      Icon: UserGroupIcon,
+    },
+    {
+      href: "/dashboard",
+      label: "Conversaciones",
+      Icon: ChatBubbleLeftRightIcon,
+      active: pathname === "/dashboard",
+    },
+    {
+      href: "/sheets",
+      label: "Sheets",
+      Icon: DocumentCheckIcon,
+      active: pathname === "/sheets",
+    },
+  ];
+
+  // Filtrar las rutas basadas en el rol del usuario
+  const navigationItems = baseNavigationItems.filter(
+    (item) => !item.adminOnly || isAdmin
+  );
 
   // Submenú Plantillas
   const templateItems: SubNavLinkProps[] = [
@@ -92,8 +96,14 @@ const navigationItems: NavLinkProps[] = [
       label: "Crear Plantilla",
       Icon: PencilSquareIcon,
       active: pathname === "/templates/new",
+      adminOnly: true,
     },
   ];
+
+  // Filtrar también los items de plantillas si es necesario
+  const filteredTemplateItems = templateItems.filter(
+    (item) => !item.adminOnly || isAdmin
+  );
 
   const isTemplatesActive = pathname.startsWith("/templates");
 
@@ -142,11 +152,11 @@ const navigationItems: NavLinkProps[] = [
             />
           ))}
 
-          {/* Submenú Plantillas */}
-          <div className="space-y-1">
-            <button
-              onClick={() => setOpenTemplates(!openTemplates)}
-              className={`
+          {filteredTemplateItems.length > 0 && (
+            <div className="space-y-1">
+              <button
+                onClick={() => setOpenTemplates(!openTemplates)}
+                className={`
                 flex items-center justify-between w-full px-4 py-2 rounded-md 
                 transition-colors duration-200 group
                 ${
@@ -155,40 +165,49 @@ const navigationItems: NavLinkProps[] = [
                     : "hover:bg-purple-300 text-gray-300"
                 }
               `}
-              aria-expanded={openTemplates}
-            >
-              <span className="flex items-center space-x-3">
-                <Squares2X2Icon className="w-5 h-5" />
-                <span className="font-medium">Plantillas</span>
-              </span>
-              <ChevronDownIcon
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  openTemplates ? "rotate-180" : ""
-                }`}
-              />
-            </button>
+                aria-expanded={openTemplates}
+              >
+                <span className="flex items-center space-x-3">
+                  <Squares2X2Icon className="w-5 h-5" />
+                  <span className="font-medium">Plantillas</span>
+                </span>
+                <ChevronDownIcon
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    openTemplates ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
 
-            <div
-              className={`
+              <div
+                className={`
                 overflow-hidden transition-all duration-200 ease-in-out
                 ${openTemplates ? "max-h-24 opacity-100" : "max-h-0 opacity-0"}
               `}
-            >
-              <div className="ml-6 space-y-1 pt-1">
-                {templateItems.map((item) => (
-                  <SubNavLink
-                    key={item.href}
-                    {...item}
-                    onClick={isMobile ? onToggle : undefined}
-                  />
-                ))}
+              >
+                <div className="ml-6 space-y-1 pt-1">
+                  {filteredTemplateItems.map((item) => (
+                    <SubNavLink
+                      key={item.href}
+                      {...item}
+                      onClick={isMobile ? onToggle : undefined}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </nav>
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-700 shrink-0 space-y-3">
+          <div className="text-sm text-white text-center">
+            {user?.email && (
+              <p className="truncate">
+                {user.role === "admin" ? "👑 " : ""}
+                {user.email}
+              </p>
+            )}
+          </div>
           <button
             onClick={() => {
               showSweetAlert({

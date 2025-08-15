@@ -19,7 +19,7 @@ export function Button({
   const baseStyles = "font-semibold rounded-lg transition duration-200 disabled:opacity-50";
 
   const variants: Record<Variant, string> = {
-    default: "bg-green-600 hover:bg-green-700 text-white shadow-sm",
+    default: "bg-purple-600 hover:bg-purple-700 text-white",
     outline: "border border-gray-300 text-gray-800 bg-white hover:bg-gray-50",
     ghost: "bg-transparent text-gray-800 hover:bg-gray-100",
     danger: "bg-red-600 hover:bg-red-700 text-white",

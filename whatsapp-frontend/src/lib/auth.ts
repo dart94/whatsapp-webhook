@@ -2,7 +2,6 @@ import { API_BASE_URL } from "../config/api";
 import { User } from "@/types/user";
 
 
-
 interface LoginResponse {
   success: boolean;
   data?: {
