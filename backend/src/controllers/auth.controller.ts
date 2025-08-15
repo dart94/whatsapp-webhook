@@ -17,7 +17,7 @@ export const loginController = async (req: Request, res: Response) => {
   }
 
   try {
-    const result: LoginResult | null = await login(email, password, rememberMe );
+    const result: LoginResult | null = await login(email, password, rememberMe, isAdmin);
 
     if (!result) {
       return res.status(401).json({
