@@ -1,20 +1,16 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
 import { login as loginService, validateToken } from "@/lib/auth";
+import { User } from "@/types/user"; 
 
-// Definimos el tipo de usuario esperado
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
 
 // Tipos del contexto
 interface AuthContextType {
   login: (
     email: string,
     password: string,
-    rememberMe: boolean
+    rememberMe: boolean,
+    isAdmin: boolean
   ) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -58,10 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (
     email: string,
     password: string,
-    rememberMe: boolean
+    rememberMe: boolean,
+    isAdmin: boolean
   ) => {
     try {
-      const response = await loginService(email, password, rememberMe); // <- USANDO loginService
+      const response = await loginService(email, password, rememberMe, isAdmin); // <- USANDO loginService
 
       setIsAuthenticated(true);
       setUser(response.data?.user || null);

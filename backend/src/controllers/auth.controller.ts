@@ -7,7 +7,7 @@ interface LoginResult {
 }
 
 export const loginController = async (req: Request, res: Response) => {
-  const { email, password, rememberMe } = req.body;
+  const { email, password, rememberMe, isAdmin } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({
@@ -17,7 +17,7 @@ export const loginController = async (req: Request, res: Response) => {
   }
 
   try {
-    const result: LoginResult | null = await login(email, password, rememberMe);
+    const result: LoginResult | null = await login(email, password, rememberMe, isAdmin);
 
     if (!result) {
       return res.status(401).json({

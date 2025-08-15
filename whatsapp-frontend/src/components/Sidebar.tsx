@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import {
   ChatBubbleLeftRightIcon,
   Squares2X2Icon,
-  ChartBarIcon,
   ChevronDownIcon,
   PencilSquareIcon,
   EyeIcon,
@@ -13,14 +12,14 @@ import {
   ArrowLeftCircleIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, ForwardRefExoticComponent, SVGProps, RefAttributes } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { showSweetAlert } from "./common/Sweet";
 
 interface NavLinkProps {
   href: string;
   label: string;
-  Icon?: React.ComponentType<{ className?: string }>;
+  Icon?: ForwardRefExoticComponent<SVGProps<SVGSVGElement> & RefAttributes<SVGSVGElement>>;
   active: boolean;
   onClick?: () => void;
 }
@@ -38,13 +37,11 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [openTemplates, setOpenTemplates] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   // Detectar si es mobile
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -52,34 +49,38 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
 
   // Cerrar submenús cuando cambie la ruta
   useEffect(() => {
-    if (!pathname.startsWith("/templates")) {
-      setOpenTemplates(false);
-    }
+    if (!pathname.startsWith("/templates")) setOpenTemplates(false);
   }, [pathname]);
 
-  const navigationItems = [
-    //Usuarios
-    {
-      href: "/users",
-      label: "Usuarios",
-      Icon: UserGroupIcon,
-      active: pathname === "/users",
-    },
-    {
-      href: "/dashboard",
-      label: "Conversaciones",
-      Icon: ChatBubbleLeftRightIcon,
-      active: pathname === "/dashboard",
-    },
-    {
-      href: "/sheets",
-      label: "Sheets",
-      Icon: DocumentCheckIcon,
-      active: pathname === "/sheets",
-    },
-  ];
+  console.log(user);
+  // Rutas principales
+const navigationItems: NavLinkProps[] = [
+  ...(user?.isAdmin
+    ? [
+        {
+          href: "/users",
+          label: "Usuarios",
+          Icon: UserGroupIcon,
+          active: pathname === "/users",
+        },
+      ]
+    : []),
+  {
+    href: "/dashboard",
+    label: "Conversaciones",
+    Icon: ChatBubbleLeftRightIcon,
+    active: pathname === "/dashboard",
+  },
+  {
+    href: "/sheets",
+    label: "Sheets",
+    Icon: DocumentCheckIcon,
+    active: pathname === "/sheets",
+  },
+];
 
-  const templateItems = [
+  // Submenú Plantillas
+  const templateItems: SubNavLinkProps[] = [
     {
       href: "/templates",
       label: "Ver Plantillas",
@@ -98,7 +99,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
 
   return (
     <>
-      {/* Overlay para mobile */}
+      {/* Overlay mobile */}
       {isMobile && isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -131,7 +132,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
           )}
         </div>
 
-        {/* Navigation (único scroll dentro del sidebar) */}
+        {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navigationItems.map((item) => (
             <NavLink
@@ -141,18 +142,19 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
             />
           ))}
 
+          {/* Submenú Plantillas */}
           <div className="space-y-1">
             <button
               onClick={() => setOpenTemplates(!openTemplates)}
               className={`
-              flex items-center justify-between w-full px-4 py-2 rounded-md 
-              transition-colors duration-200 group
-              ${
-                isTemplatesActive
-                  ? "bg-purple-200 text-black"
-                  : "hover:bg-purple-300 text-gray-300"
-              }
-            `}
+                flex items-center justify-between w-full px-4 py-2 rounded-md 
+                transition-colors duration-200 group
+                ${
+                  isTemplatesActive
+                    ? "bg-purple-200 text-black"
+                    : "hover:bg-purple-300 text-gray-300"
+                }
+              `}
               aria-expanded={openTemplates}
             >
               <span className="flex items-center space-x-3">
@@ -168,9 +170,9 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
 
             <div
               className={`
-              overflow-hidden transition-all duration-200 ease-in-out
-              ${openTemplates ? "max-h-24 opacity-100" : "max-h-0 opacity-0"}
-            `}
+                overflow-hidden transition-all duration-200 ease-in-out
+                ${openTemplates ? "max-h-24 opacity-100" : "max-h-0 opacity-0"}
+              `}
             >
               <div className="ml-6 space-y-1 pt-1">
                 {templateItems.map((item) => (
@@ -222,6 +224,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
   );
 }
 
+// NavLink
 function NavLink({ href, label, Icon, active, onClick }: NavLinkProps) {
   return (
     <Link
@@ -243,6 +246,7 @@ function NavLink({ href, label, Icon, active, onClick }: NavLinkProps) {
   );
 }
 
+// SubNavLink
 function SubNavLink({ href, label, Icon, active, onClick }: SubNavLinkProps) {
   return (
     <Link

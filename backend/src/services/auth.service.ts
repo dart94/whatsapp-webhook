@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 const jwtSecret = process.env.JWT_SECRET || "defaultSecretKey";
 
 //Login
-export async function login(email: string, password: string, rememberMe: boolean) {
+export async function login(email: string, password: string, rememberMe: boolean, isAdmin: boolean) {
   try {
     const user = await getUserByEmail(email);
     if (!user) {
