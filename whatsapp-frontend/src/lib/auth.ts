@@ -1,10 +1,6 @@
 import { API_BASE_URL } from "../config/api";
+import { User } from "@/types/user";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
 
 interface LoginResponse {
   success: boolean;

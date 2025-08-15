@@ -1,13 +1,9 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
 import { login as loginService, validateToken } from "@/lib/auth";
+import { User } from "@/types/user"; // Asegúrate de que este tipo esté definido correctamente
 
-// Definimos el tipo de usuario esperado
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+
 
 // Tipos del contexto
 interface AuthContextType {
@@ -65,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setIsAuthenticated(true);
       setUser(response.data?.user || null);
+      
     } catch (error) {
       throw error instanceof Error ? error : new Error("Error desconocido");
     }

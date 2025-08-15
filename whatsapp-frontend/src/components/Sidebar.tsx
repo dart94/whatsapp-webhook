@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import {
   ChatBubbleLeftRightIcon,
   Squares2X2Icon,
-  ChartBarIcon,
   ChevronDownIcon,
   PencilSquareIcon,
   EyeIcon,
@@ -13,7 +12,7 @@ import {
   ArrowLeftCircleIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { showSweetAlert } from "./common/Sweet";
 
@@ -23,6 +22,7 @@ interface NavLinkProps {
   Icon?: React.ComponentType<{ className?: string }>;
   active: boolean;
   onClick?: () => void;
+  adminOnly?: boolean;
 }
 
 interface SubNavLinkProps extends Omit<NavLinkProps, "active"> {
@@ -38,7 +38,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [openTemplates, setOpenTemplates] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   // Detectar si es mobile
   useEffect(() => {
@@ -57,13 +57,16 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
     }
   }, [pathname]);
 
-  const navigationItems = [
-    //Usuarios
+  // Función para verificar si el usuario es admin
+  const isAdmin = user?.isAdmin === true;
+
+  // Definición de las rutas de navegación
+  const baseNavigationItems = [
+    // Usuarios (solo para admin)
     {
       href: "/users",
       label: "Usuarios",
       Icon: UserGroupIcon,
-      active: pathname === "/users",
     },
     {
       href: "/dashboard",
@@ -79,6 +82,11 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
     },
   ];
 
+  // Filtrar las rutas basadas en el rol del usuario
+  const navigationItems = baseNavigationItems.filter(
+    (item) => !item.adminOnly || isAdmin
+  );
+
   const templateItems = [
     {
       href: "/templates",
@@ -91,8 +99,14 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
       label: "Crear Plantilla",
       Icon: PencilSquareIcon,
       active: pathname === "/templates/new",
+      adminOnly: true,
     },
   ];
+
+  // Filtrar también los items de plantillas si es necesario
+  const filteredTemplateItems = templateItems.filter(
+    (item) => !item.adminOnly || isAdmin
+  );
 
   const isTemplatesActive = pathname.startsWith("/templates");
 
@@ -131,7 +145,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
           )}
         </div>
 
-        {/* Navigation (único scroll dentro del sidebar) */}
+        {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navigationItems.map((item) => (
             <NavLink
@@ -141,52 +155,62 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
             />
           ))}
 
-          <div className="space-y-1">
-            <button
-              onClick={() => setOpenTemplates(!openTemplates)}
-              className={`
-              flex items-center justify-between w-full px-4 py-2 rounded-md 
-              transition-colors duration-200 group
-              ${
-                isTemplatesActive
-                  ? "bg-purple-200 text-black"
-                  : "hover:bg-purple-300 text-gray-300"
-              }
-            `}
-              aria-expanded={openTemplates}
-            >
-              <span className="flex items-center space-x-3">
-                <Squares2X2Icon className="w-5 h-5" />
-                <span className="font-medium">Plantillas</span>
-              </span>
-              <ChevronDownIcon
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  openTemplates ? "rotate-180" : ""
-                }`}
-              />
-            </button>
+          {filteredTemplateItems.length > 0 && (
+            <div className="space-y-1">
+              <button
+                onClick={() => setOpenTemplates(!openTemplates)}
+                className={`
+                flex items-center justify-between w-full px-4 py-2 rounded-md 
+                transition-colors duration-200 group
+                ${
+                  isTemplatesActive
+                    ? "bg-purple-200 text-black"
+                    : "hover:bg-purple-300 text-gray-300"
+                }
+              `}
+                aria-expanded={openTemplates}
+              >
+                <span className="flex items-center space-x-3">
+                  <Squares2X2Icon className="w-5 h-5" />
+                  <span className="font-medium">Plantillas</span>
+                </span>
+                <ChevronDownIcon
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    openTemplates ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
 
-            <div
-              className={`
-              overflow-hidden transition-all duration-200 ease-in-out
-              ${openTemplates ? "max-h-24 opacity-100" : "max-h-0 opacity-0"}
-            `}
-            >
-              <div className="ml-6 space-y-1 pt-1">
-                {templateItems.map((item) => (
-                  <SubNavLink
-                    key={item.href}
-                    {...item}
-                    onClick={isMobile ? onToggle : undefined}
-                  />
-                ))}
+              <div
+                className={`
+                overflow-hidden transition-all duration-200 ease-in-out
+                ${openTemplates ? "max-h-24 opacity-100" : "max-h-0 opacity-0"}
+              `}
+              >
+                <div className="ml-6 space-y-1 pt-1">
+                  {filteredTemplateItems.map((item) => (
+                    <SubNavLink
+                      key={item.href}
+                      {...item}
+                      onClick={isMobile ? onToggle : undefined}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </nav>
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-700 shrink-0 space-y-3">
+          <div className="text-sm text-white text-center">
+            {user?.email && (
+              <p className="truncate">
+                {user.role === "admin" ? "👑 " : ""}
+                {user.email}
+              </p>
+            )}
+          </div>
           <button
             onClick={() => {
               showSweetAlert({
