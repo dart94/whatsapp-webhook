@@ -54,7 +54,7 @@ export const updateUserController = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name, email, password, isAdmin, IsActive } = req.body;
 
-  if (!id || !name || !email || !password) {
+  if (!id || !name || !email ) {
     return res.status(400).json({ success: false, message: "Faltan parámetros o campos requeridos." });
   }
 

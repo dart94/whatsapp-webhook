@@ -14,6 +14,7 @@ import useUsersDelete from "@/hooks/useUsersDelete";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { UserCreate } from "@/components/modal/UserCreate";
 import { showToast } from "@/components/common/Toast";
+import { UserEdit } from "@/components/modal/UserEdit";
 
 export default function PrivatePage() {
   const { logout } = useAuth();
@@ -25,6 +26,8 @@ export default function PrivatePage() {
     error: deleteError,
   } = useUsersDelete();
   const [isOpen, setIsOpen] = useState(false);
+  const [isOpenEdit, setIsOpenEdit] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   // Seleccionar primer usuario automáticamente
   useEffect(() => {
@@ -81,6 +84,15 @@ export default function PrivatePage() {
     refresh();
   };
 
+  const openEditUser = (u: User) => {
+    setEditingUser(u);
+    setIsOpenEdit(true);
+  };
+  const closeEditUser = () => {
+    setIsOpenEdit(false);
+    setEditingUser(null);
+  };
+
   if (error) {
     return (
       <div className="h-screen flex items-center justify-center text-red-500">
@@ -104,16 +116,6 @@ export default function PrivatePage() {
               aria-hidden="true"
             />
           </button>
-
-          {/* Modal */}
-          <UserCreate
-            isOpen={isOpen}
-            onClose={closeCreate}
-            onCreated={() => {
-              refresh();
-              closeCreate();
-            }}
-          />
         </div>
 
         {/* Tabla de usuarios */}
@@ -154,17 +156,34 @@ export default function PrivatePage() {
                   {/* Acciones */}
                   <td className="px-4 py-3">
                     <div className="flex space-x-2">
-                      <Link
-                        href={`/users/${user.id}/edit`}
+                      {/* Editar usuario */}
+                      <button
+                        onClick={() => openEditUser(user)}
                         className="text-blue-500 hover:text-blue-700"
+                        aria-label="Editar usuario"
                       >
                         <PencilSquareIcon className="w-5 h-5" />
-                      </Link>
+                      </button>
+
                       {/* Eliminar usuario */}
                       <button
-                        onClick={() => void handleDeleteUser(Number(user.id))}
+                        onClick={() => {
+                          const id =
+                            typeof user.id === "string"
+                              ? Number(user.id)
+                              : user.id;
+                          if (Number.isNaN(id)) {
+                            showToast({
+                              type: "error",
+                              message: "ID inválido",
+                            });
+                            return;
+                          }
+                          void handleDeleteUser(id as number);
+                        }}
                         disabled={deleteLoading}
                         className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                        aria-label="Eliminar usuario"
                       >
                         <TrashIcon className="w-5 h-5" />
                       </button>
@@ -176,7 +195,7 @@ export default function PrivatePage() {
               {users.length === 0 && (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="px-4 py-6 text-center text-gray-500"
                   >
                     No hay usuarios disponibles.
@@ -185,6 +204,22 @@ export default function PrivatePage() {
               )}
             </tbody>
           </table>
+          {/* Modal */}
+          <UserCreate
+            isOpen={isOpen}
+            onClose={closeCreate}
+            onCreated={() => {
+              refresh();
+            }}
+          />
+          {/* Modal de edición (único) */}
+          {editingUser && (
+            <UserEdit
+              isOpen={isOpenEdit}
+              onClose={closeEditUser}
+              user={editingUser}
+            />
+          )}
         </div>
       </div>
     </div>

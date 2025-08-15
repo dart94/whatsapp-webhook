@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import useUsersCreate from "@/hooks/useUsersCreate";
-import { User } from "@/types/user";
+import { User, CreateUserInput } from "@/types/user";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { AnimatePresence, motion } from "framer-motion";
+import { useFormValidation } from "@/hooks/useFormValidation";
 
 interface UserCreateProps {
   isOpen: boolean;
@@ -14,32 +15,13 @@ interface UserCreateProps {
 export function UserCreate({ isOpen, onClose }: UserCreateProps) {
   const { createUserHandler, loading, error } = useUsersCreate();
   const { logout } = useAuth();
-
-  const [user, setUser] = useState<User>({
-    id: "",
-    name: "",
-    email: "",
-    password: "",
-    isAdmin: false,
-    IsActive: true,
+  
+  const [user, setUser] = useState<CreateUserInput>({
+    name: "", email: "", password: "", isAdmin: false, IsActive: true
   });
+  const { touched, setTouched, errorsMap, hasErrors } =
+  useFormValidation(user, { requirePassword: true });
 
-  // Validaciones simples (client-side)
-  const [touched, setTouched] = useState<{ [k: string]: boolean }>({});
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
-
-  const errorsMap = useMemo(() => {
-    return {
-      name: user.name.trim().length < 2 ? "Escribe al menos 2 caracteres" : "",
-      email: emailRegex.test(user.email) ? "" : "Email no válido",
-      password:
-        user.password.length < 8
-          ? "La contraseña debe tener mínimo 8 caracteres"
-          : "",
-    } as Record<string, string>;
-  }, [user]);
-
-  const hasErrors = Object.values(errorsMap).some((msg) => !!msg);
 
   // Accesibilidad: manejar foco inicial y escape
   const overlayRef = useRef<HTMLDivElement | null>(null);
