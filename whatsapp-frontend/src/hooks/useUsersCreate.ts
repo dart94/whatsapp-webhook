@@ -11,7 +11,6 @@ export default function useUsersCreate() {
 
   const createUserHandler = async (data: CreateUserInput): Promise<User> => {
     try {
-      setLoading(true);
       setError(null);
       const response = await createUser(data); 
       const responseData = response.data as User;

@@ -5,7 +5,11 @@ import useUsers from "@/hooks/useUsers";
 import { User } from "@/types/user";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
-import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  PencilSquareIcon,
+  TrashIcon,
+  PlusCircleIcon,
+} from "@heroicons/react/24/outline";
 import useUsersDelete from "@/hooks/useUsersDelete";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { UserCreate } from "@/components/modal/UserCreate";
@@ -29,18 +33,10 @@ export default function PrivatePage() {
     }
   }, [users, selectedUser]);
 
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center text-gray-500 text-sm">
-        Cargando usuarios...
-      </div>
-    );
-  }
-
   // Eliminar usuario
   const handleDeleteUser = async (id: number) => {
     try {
-      showSweetAlert({
+      const result = await showSweetAlert({
         title: "¿Estás seguro de que deseas eliminar este usuario?",
         text: "Esta acción no se puede deshacer",
         icon: "warning",
@@ -54,22 +50,21 @@ export default function PrivatePage() {
           cancelButton:
             "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded",
         },
-      }).then((result) => {
-        if (result.isConfirmed) {
-          deleteUserHandler(id);
-        }
-        //Mostrar toast
-        showToast({
-          type: "success",
-          message: "Usuario eliminado correctamente",
-        });
       });
-    } catch (err) {
+
+      if (!result.isConfirmed) return;
+
+      await deleteUserHandler(id);
       showToast({
-        type: "error",
-        message: "Error al eliminar el usuario",
+        type: "success",
+        message: "Usuario eliminado correctamente",
       });
-      console.log(err);
+
+      await refresh?.();
+      refresh();
+    } catch (err) {
+      showToast({ type: "error", message: "Error al eliminar el usuario" });
+      console.error(err);
     }
   };
 
@@ -97,23 +92,31 @@ export default function PrivatePage() {
   return (
     <div className="h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-10 px-4">
-        <h1 className="text-3xl font-bold mb-8 text-gray-800">Usuarios</h1>
-        <button
-          onClick={() => handleCreateUser()}
-          className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Crear
-        </button>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold mb-8 text-gray-800">Usuarios</h1>
+          <button
+            onClick={handleCreateUser}
+            className="inline-flex items-center gap-2 justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Crear
+            <PlusCircleIcon
+              className="w-5 h-5 ml-2 shrink-0"
+              aria-hidden="true"
+            />
+          </button>
 
-        {/* Modal */}
-        <UserCreate
-          isOpen={isOpen}
-          onClose={closeCreate}
-          onCreated={() => {
-            refresh();
-            closeCreate();
-          }}
-        />
+          {/* Modal */}
+          <UserCreate
+            isOpen={isOpen}
+            onClose={closeCreate}
+            onCreated={() => {
+              refresh();
+              closeCreate();
+            }}
+          />
+        </div>
+
+        {/* Tabla de usuarios */}
 
         <div className="overflow-x-auto border rounded-xl shadow-sm bg-white">
           <table className="min-w-full text-sm">
@@ -159,10 +162,9 @@ export default function PrivatePage() {
                       </Link>
                       {/* Eliminar usuario */}
                       <button
-                        onClick={() =>
-                          handleDeleteUser(user.id as unknown as number)
-                        }
-                        className="text-red-500 hover:text-red-700"
+                        onClick={() => void handleDeleteUser(Number(user.id))}
+                        disabled={deleteLoading}
+                        className="text-red-500 hover:text-red-700 disabled:opacity-50"
                       >
                         <TrashIcon className="w-5 h-5" />
                       </button>

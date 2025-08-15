@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import useUsersCreate from "@/hooks/useUsersCreate";
 import { User } from "@/types/user";
 import { showSweetAlert } from "@/components/common/Sweet";
-import { showToast } from "../common/Toast";
-import { useUsersStore } from "@/stores/users";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface UserCreateProps {
   isOpen: boolean;
@@ -11,8 +11,9 @@ interface UserCreateProps {
   onCreated?: () => void;
 }
 
-export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
+export function UserCreate({ isOpen, onClose }: UserCreateProps) {
   const { createUserHandler, loading, error } = useUsersCreate();
+  const { logout } = useAuth();
 
   const [user, setUser] = useState<User>({
     id: "",
@@ -45,7 +46,6 @@ export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
   const lastActiveElement = useRef<Element | null>(null);
-  const add = useUsersStore((state) => state.add);
 
   useEffect(() => {
     if (isOpen) {
@@ -78,15 +78,11 @@ export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
   }, [isOpen, onClose]);
 
   const handleClose = () => {
-    if (loading) return;
+    if (loading) return; // evita cerrar mientras carga
     onClose();
   };
 
   const confirmAndCreate = async () => {
-    // 🚫 no abras confirmación si hay errores visibles
-    setTouched({ name: true, email: true, password: true });
-    if (hasErrors) return;
-
     try {
       const result = await showSweetAlert({
         title: "¿Crear este usuario?",
@@ -104,69 +100,80 @@ export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
         },
       });
 
-      if (!result.isConfirmed) return;
-
-      // ✅ crear en backend y obtener el usuario creado
-      const created = await createUserHandler(user);
-      add(created);
-      showToast({
-        type: "success",
-        message: "Usuario creado correctamente",
-      });
-      onCreated?.();
-      onClose();
+      if (result.isConfirmed) {
+        await createUserHandler(user);
+        await showSweetAlert({
+          title: "Usuario creado",
+          text: "Se ha creado correctamente.",
+          icon: "success",
+          confirmButtonText: "Continuar",
+          customClass: {
+            confirmButton:
+              "!bg-blue-600 hover:!bg-blue-700 !text-white !font-medium !rounded-lg !px-4 !py-2",
+            popup: "!rounded-2xl !shadow-xl",
+          },
+        });
+        handleClose();
+      }
     } catch (err: any) {
       console.error(err);
-      showToast({
-        type: "error",
-        message: err?.message || "Inténtalo de nuevo más tarde.",
+      await showSweetAlert({
+        title: "No se pudo crear",
+        text: err?.message || "Inténtalo de nuevo más tarde.",
+        icon: "error",
+        confirmButtonText: "Entendido",
+        customClass: {
+          confirmButton:
+            "!bg-red-600 hover:!bg-red-700 !text-white !font-medium !rounded-lg !px-4 !py-2",
+          popup: "!rounded-2xl !shadow-xl",
+        },
       });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // marcar como tocados
     setTouched({ name: true, email: true, password: true });
     if (hasErrors) return; // no lanzamos confirmación si hay errores
     await confirmAndCreate();
-  };
+  };return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" aria-hidden={!isOpen}>
 
-  if (!isOpen) return null;
-
-
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center"
-      aria-hidden={!isOpen}
-    >
       {/* Overlay */}
-      <div
+      <motion.div
         ref={overlayRef}
-        className="fixed inset-0 bg-black/50 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/50 backdrop-blur-[2px]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
         onClick={handleClose}
       />
 
       {/* Modal */}
-      <div
+      <motion.div
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-user-title"
         ref={dialogRef}
-        className="relative z-[101] w-full max-w-lg mx-4 rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 animate-in zoom-in-95 fade-in slide-in-from-bottom-2 duration-200"
+        className="relative z-[101] w-full max-w-lg mx-4 rounded-2xl bg-white shadow-2xl ring-1 ring-black/5"
+        initial={{ opacity: 0, y: 8, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 8, scale: 0.97 }}
+        transition={{ duration: 0.2 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6">
           <div className="space-y-1">
-            <h2
-              id="create-user-title"
-              className="text-xl font-semibold tracking-tight"
-            >
+            <h2 id="create-user-title" className="text-xl font-semibold tracking-tight">
               Crear usuario
             </h2>
             <p className="text-sm text-gray-500">
-              Completa la información. Los campos marcados con * son
-              obligatorios.
+              Completa la información. Los campos marcados con * son obligatorios.
             </p>
           </div>
           <button
@@ -183,10 +190,7 @@ export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
         <form onSubmit={handleSubmit} className="px-6 pb-6 pt-4 space-y-4">
           {/* Nombre */}
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Nombre *
             </label>
             <input
@@ -211,10 +215,7 @@ export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
 
           {/* Email */}
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email *
             </label>
             <input
@@ -238,10 +239,7 @@ export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
 
           {/* Password */}
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Contraseña *
             </label>
             <input
@@ -273,9 +271,7 @@ export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
                 id="isAdmin"
                 type="checkbox"
                 checked={user.isAdmin}
-                onChange={(e) =>
-                  setUser({ ...user, isAdmin: e.target.checked })
-                }
+                onChange={(e) => setUser({ ...user, isAdmin: e.target.checked })}
                 className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
               Es administrador
@@ -286,9 +282,7 @@ export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
                 id="isActive"
                 type="checkbox"
                 checked={user.IsActive}
-                onChange={(e) =>
-                  setUser({ ...user, IsActive: e.target.checked })
-                }
+                onChange={(e) => setUser({ ...user, IsActive: e.target.checked })}
                 className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
               Está activo
@@ -324,19 +318,8 @@ export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
                     xmlns="http://www.w3.org/2000/svg"
                     aria-hidden
                   >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                    />
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                   </svg>
                   Creando...
                 </span>
@@ -353,7 +336,9 @@ export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
             </div>
           )}
         </form>
-      </div>
-    </div>
+        </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
