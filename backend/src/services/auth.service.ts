@@ -14,12 +14,17 @@ export async function login(email: string, password: string, rememberMe: boolean
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) throw new Error("Contraseña incorrecta");
 
-    // 👇 Incluimos isAdmin en el payload
-    const token = jwt.sign(
-      { id: user.id, isAdmin: user.isAdmin },
-      jwtSecret,
-      { expiresIn: rememberMe ? "7d" : "1d" } 
-    );
+    
+   const token = jwt.sign(
+  { 
+    id: user.id, 
+    name: user.name, 
+    email: user.email, 
+    isAdmin: user.isAdmin 
+  },
+  jwtSecret,
+  { expiresIn: rememberMe ? "7d" : "1d" }
+);
 
     return {
       token,

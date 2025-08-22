@@ -23,7 +23,7 @@ interface NavLinkProps {
   Icon?: React.ComponentType<{ className?: string }>;
   active: boolean;
   onClick?: () => void;
-  adminOnly?: boolean; 
+  adminOnly?: boolean;
 }
 
 interface SubNavLinkProps extends Omit<NavLinkProps, "active"> {
@@ -39,7 +39,15 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [openTemplates, setOpenTemplates] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { logout,user } = useAuth();
+  const { logout, user, loading } = useAuth();
+
+  // Debug
+  useEffect(() => {
+    console.log('🔍 Debug Datos del Usuario:');
+    console.log('user:', user);
+    console.log('loading:', loading);
+    console.log('user?.isAdmin:', user?.isAdmin);
+  }, [user, loading]);
 
   // Detectar si es mobile
   useEffect(() => {
@@ -59,27 +67,26 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
   }, [pathname]);
 
   const navigationItems = [
-    // Usuarios - Solo para administradores
     {
       href: "/users",
       label: "Usuarios",
       Icon: UserGroupIcon,
       active: pathname === "/users",
-      adminOnly: true, // Marcar como solo para admin
+      adminOnly: true,
     },
     {
       href: "/dashboard",
       label: "Conversaciones",
       Icon: ChatBubbleLeftRightIcon,
       active: pathname === "/dashboard",
-      adminOnly: false, // Disponible para todos
+      adminOnly: false,
     },
     {
       href: "/sheets",
       label: "Sheets",
       Icon: DocumentCheckIcon,
       active: pathname === "/sheets",
-      adminOnly: false, // Disponible para todos
+      adminOnly: false,
     },
   ];
 
@@ -89,34 +96,70 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
       label: "Ver Plantillas",
       Icon: EyeIcon,
       active: pathname === "/templates",
-      adminOnly: false, // Disponible para todos
+      adminOnly: false,
     },
     {
       href: "/templates/new",
       label: "Crear Plantilla",
       Icon: PencilSquareIcon,
       active: pathname === "/templates/new",
-      adminOnly: true, // Solo para admin
+      adminOnly: true,
     },
   ];
 
   const isTemplatesActive = pathname.startsWith("/templates");
 
-  // Filtrar elementos basado en isAdmin
-  const filteredNavigationItems = navigationItems.filter(item => {
-    if (item.adminOnly) {
-      return user?.isAdmin === true;
-    }
-    return true; // Mostrar elementos que no son adminOnly
-  });
+  // ESPERAR A QUE EL USUARIO SE CARGUE ANTES DE FILTRAR
+  if (loading || user === null) {
+    // Mostrar skeleton o loading
+    return (
+      <aside className={`
+        fixed inset-y-0 left-0 z-50
+        w-64 bg-purple-500 text-white flex flex-col
+        transition-transform duration-300 ease-in-out
+        ${!isOpen ? "-translate-x-full" : "translate-x-0"}
+        ${isMobile ? "shadow-2xl" : ""}
+      `}>
+        <div className="flex items-center justify-between p-6 border-b border-gray-700 shrink-0">
+          <h1 className="text-xl font-bold truncate">WhatsApp Web</h1>
+          {isMobile && (
+            <button
+              onClick={onToggle}
+              className="p-1 hover:bg-gray-700 rounded transition-colors"
+              aria-label="Cerrar sidebar"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+        
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <div className="animate-pulse">
+            <div className="h-10 bg-purple-400 rounded mb-2"></div>
+            <div className="h-10 bg-purple-400 rounded mb-2"></div>
+            <div className="h-10 bg-purple-400 rounded mb-2"></div>
+          </div>
+        </nav>
+        
+        <div className="p-4 border-t border-gray-700 shrink-0">
+          <div className="h-12 bg-purple-400 rounded animate-pulse"></div>
+        </div>
+      </aside>
+    );
+  }
 
-  const filteredTemplateItems = templateItems.filter(item => {
-    if (item.adminOnly) {
-      return user?.isAdmin === true;
-    }
-    return true;
-  });
+  // Ahora sí filtrar con el usuario cargado
+  const filteredNavigationItems = navigationItems.filter(item => 
+    !item.adminOnly || user.isAdmin
+  );
 
+  const filteredTemplateItems = templateItems.filter(item => 
+    !item.adminOnly || user.isAdmin
+  );
+
+  console.log('🔍 Items filtrados después de cargar usuario:', filteredNavigationItems.map(item => item.label));
+
+  // Resto del código del sidebar...
   return (
     <>
       {/* Overlay para mobile */}
@@ -129,15 +172,13 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
       )}
 
       {/* Sidebar */}
-      <aside
-        className={`
+      <aside className={`
         fixed inset-y-0 left-0 z-50
         w-64 bg-purple-500 text-white flex flex-col
         transition-transform duration-300 ease-in-out
         ${!isOpen ? "-translate-x-full" : "translate-x-0"}
         ${isMobile ? "shadow-2xl" : ""}
-      `}
-      >
+      `}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700 shrink-0">
           <h1 className="text-xl font-bold truncate">WhatsApp Web</h1>
@@ -152,9 +193,9 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
           )}
         </div>
 
-        {/* Navigation (único scroll dentro del sidebar) */}
+        {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navigationItems.map((item) => (
+          {filteredNavigationItems.map((item) => (
             <NavLink
               key={item.href}
               {...item}
@@ -187,14 +228,12 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
               />
             </button>
 
-            <div
-              className={`
+            <div className={`
               overflow-hidden transition-all duration-200 ease-in-out
               ${openTemplates ? "max-h-24 opacity-100" : "max-h-0 opacity-0"}
-            `}
-            >
+            `}>
               <div className="ml-6 space-y-1 pt-1">
-                {templateItems.map((item) => (
+                {filteredTemplateItems.map((item) => (
                   <SubNavLink
                     key={item.href}
                     {...item}
