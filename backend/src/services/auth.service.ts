@@ -38,11 +38,13 @@ export async function login(email: string, password: string, rememberMe: boolean
 
 //Validar token
 export async function validateToken(token: string) {
-  try {
-    const decoded = jwt.verify(token, jwtSecret);
-    return decoded;
-  } catch (error) {
-    logInfo(`❌ Error al validar token: ${error}`);
-    return null;
-  }
+try {
+  console.log("Token recibido:", token);
+  const decoded = jwt.verify(token, jwtSecret);
+  console.log("Token decodificado:", decoded);
+  return decoded;
+} catch (error) {
+  console.error("Error al validar token:", error);
+  return null;
+}
 }
