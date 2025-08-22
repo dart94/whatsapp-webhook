@@ -6,8 +6,7 @@ import {
   updateUserController,
   deleteUserController,
 } from "../controllers/user.controller";
-import { checkAdmin } from "../middlewares/checkAdmin";
-
+import { checkAuth, checkAdmin } from "../middlewares/auth.middleware";
 const router = Router();
 
 /**
