@@ -6,6 +6,7 @@ import {
   updateUserController,
   deleteUserController,
 } from "../controllers/user.controller";
+import { checkAdmin } from "../middlewares/checkAdmin";
 
 const router = Router();
 
@@ -44,7 +45,7 @@ const router = Router();
  *       500:
  *         description: Error al obtener usuarios
  */
-router.get("/", getUsersController);
+router.get("/",checkAdmin, getUsersController);
 
 /**
  * @swagger
@@ -88,7 +89,7 @@ router.get("/", getUsersController);
  *       500:
  *         description: Error al obtener usuario
  */
-router.get("/:id", getUserByIdController);
+router.get("/:id",checkAdmin, getUserByIdController);
 
 /**
  * @swagger
@@ -142,7 +143,7 @@ router.get("/:id", getUserByIdController);
  *       500:
  *         description: Error al crear usuario
  */
-router.post("/", createUserController);
+router.post("/",checkAdmin, createUserController);
 
 /**
  * @swagger
@@ -203,7 +204,7 @@ router.post("/", createUserController);
  *       500:
  *         description: Error al actualizar usuario
  */
-router.put("/:id", updateUserController);
+router.put("/:id",checkAdmin, updateUserController);
 
 /**
  * @swagger
@@ -247,6 +248,6 @@ router.put("/:id", updateUserController);
  *       500:
  *         description: Error al eliminar usuario
  */
-router.delete('/:id', deleteUserController);
+router.delete('/:id',checkAdmin, deleteUserController);
 
 export default router;

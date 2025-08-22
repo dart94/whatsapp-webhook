@@ -3,11 +3,11 @@ import { login, validateToken } from "../services/auth.service";
 
 interface LoginResult {
   token: string;
-  user: any; // Puedes tipar mejor según tu modelo de usuario
+  user: any; 
 }
 
 export const loginController = async (req: Request, res: Response) => {
-  const { email, password, rememberMe, isAdmin } = req.body;
+  const { email, password, rememberMe } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({
@@ -17,7 +17,8 @@ export const loginController = async (req: Request, res: Response) => {
   }
 
   try {
-    const result: LoginResult | null = await login(email, password, rememberMe, isAdmin);
+    // 
+    const result: LoginResult | null = await login(email, password, rememberMe);
 
     if (!result) {
       return res.status(401).json({
@@ -41,6 +42,7 @@ export const loginController = async (req: Request, res: Response) => {
     });
   }
 };
+
 
 //Validar token
 export const validateTokenController = async (req: Request, res: Response) => {

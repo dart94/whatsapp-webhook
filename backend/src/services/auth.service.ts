@@ -1,4 +1,4 @@
-//Login
+
 import { getUserByEmail } from "../services/user.service";
 import { logInfo } from "../utils/logger";
 import jwt from "jsonwebtoken";
@@ -6,8 +6,7 @@ import bcrypt from "bcryptjs";
 
 const jwtSecret = process.env.JWT_SECRET || "defaultSecretKey";
 
-//Login
-export async function login(email: string, password: string, rememberMe: boolean, _isAdmin?: boolean) {
+export async function login(email: string, password: string, rememberMe: boolean) {
   try {
     const user = await getUserByEmail(email);
     if (!user) throw new Error("Usuario no encontrado");
@@ -15,8 +14,12 @@ export async function login(email: string, password: string, rememberMe: boolean
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) throw new Error("Contraseña incorrecta");
 
-    // Ignorar _isAdmin del frontend, siempre usar el valor de la DB
-    const token = jwt.sign({ id: user.id }, jwtSecret);
+    // 👇 Incluimos isAdmin en el payload
+    const token = jwt.sign(
+      { id: user.id, isAdmin: user.isAdmin },
+      jwtSecret,
+      { expiresIn: rememberMe ? "7d" : "1d" } 
+    );
 
     return {
       token,
@@ -24,7 +27,7 @@ export async function login(email: string, password: string, rememberMe: boolean
         id: user.id,
         name: user.name,
         email: user.email,
-        isAdmin: user.isAdmin, // <- important
+        isAdmin: user.isAdmin,
       },
     };
   } catch (error) {

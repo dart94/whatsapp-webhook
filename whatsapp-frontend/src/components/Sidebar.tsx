@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import {
   ChatBubbleLeftRightIcon,
   Squares2X2Icon,
+  ChartBarIcon,
   ChevronDownIcon,
   PencilSquareIcon,
   EyeIcon,
@@ -12,16 +13,17 @@ import {
   ArrowLeftCircleIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { useState, useEffect, ForwardRefExoticComponent, SVGProps, RefAttributes } from "react";
+import { useState, useEffect, use } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { showSweetAlert } from "./common/Sweet";
 
 interface NavLinkProps {
   href: string;
   label: string;
-  Icon?: ForwardRefExoticComponent<SVGProps<SVGSVGElement> & RefAttributes<SVGSVGElement>>;
+  Icon?: React.ComponentType<{ className?: string }>;
   active: boolean;
   onClick?: () => void;
+  adminOnly?: boolean; 
 }
 
 interface SubNavLinkProps extends Omit<NavLinkProps, "active"> {
@@ -37,11 +39,13 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [openTemplates, setOpenTemplates] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { logout, user } = useAuth();
+  const { logout,user } = useAuth();
 
   // Detectar si es mobile
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -49,56 +53,73 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
 
   // Cerrar submenús cuando cambie la ruta
   useEffect(() => {
-    if (!pathname.startsWith("/templates")) setOpenTemplates(false);
+    if (!pathname.startsWith("/templates")) {
+      setOpenTemplates(false);
+    }
   }, [pathname]);
 
-  // Rutas principales
-const navigationItems: NavLinkProps[] = [
-  ...(user?.isAdmin
-    ? [
-        {
-          href: "/users",
-          label: "Usuarios",
-          Icon: UserGroupIcon,
-          active: pathname === "/users",
-        },
-      ]
-    : []),
-  {
-    href: "/dashboard",
-    label: "Conversaciones",
-    Icon: ChatBubbleLeftRightIcon,
-    active: pathname === "/dashboard",
-  },
-  {
-    href: "/sheets",
-    label: "Sheets",
-    Icon: DocumentCheckIcon,
-    active: pathname === "/sheets",
-  },
-];
+  const navigationItems = [
+    // Usuarios - Solo para administradores
+    {
+      href: "/users",
+      label: "Usuarios",
+      Icon: UserGroupIcon,
+      active: pathname === "/users",
+      adminOnly: true, // Marcar como solo para admin
+    },
+    {
+      href: "/dashboard",
+      label: "Conversaciones",
+      Icon: ChatBubbleLeftRightIcon,
+      active: pathname === "/dashboard",
+      adminOnly: false, // Disponible para todos
+    },
+    {
+      href: "/sheets",
+      label: "Sheets",
+      Icon: DocumentCheckIcon,
+      active: pathname === "/sheets",
+      adminOnly: false, // Disponible para todos
+    },
+  ];
 
-  // Submenú Plantillas
-  const templateItems: SubNavLinkProps[] = [
+  const templateItems = [
     {
       href: "/templates",
       label: "Ver Plantillas",
       Icon: EyeIcon,
       active: pathname === "/templates",
+      adminOnly: false, // Disponible para todos
     },
     {
       href: "/templates/new",
       label: "Crear Plantilla",
       Icon: PencilSquareIcon,
       active: pathname === "/templates/new",
+      adminOnly: true, // Solo para admin
     },
   ];
 
   const isTemplatesActive = pathname.startsWith("/templates");
 
+  // Filtrar elementos basado en isAdmin
+  const filteredNavigationItems = navigationItems.filter(item => {
+    if (item.adminOnly) {
+      return user?.isAdmin === true;
+    }
+    return true; // Mostrar elementos que no son adminOnly
+  });
+
+  const filteredTemplateItems = templateItems.filter(item => {
+    if (item.adminOnly) {
+      return user?.isAdmin === true;
+    }
+    return true;
+  });
+
   return (
     <>
-      {/* Overlay mobile */}
+      {/* Overlay para mobile */}
       {isMobile && isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -131,7 +152,7 @@ const navigationItems: NavLinkProps[] = [
           )}
         </div>
 
-        {/* Navigation */}
+        {/* Navigation (único scroll dentro del sidebar) */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navigationItems.map((item) => (
             <NavLink
@@ -141,19 +162,18 @@ const navigationItems: NavLinkProps[] = [
             />
           ))}
 
-          {/* Submenú Plantillas */}
           <div className="space-y-1">
             <button
               onClick={() => setOpenTemplates(!openTemplates)}
               className={`
-                flex items-center justify-between w-full px-4 py-2 rounded-md 
-                transition-colors duration-200 group
-                ${
-                  isTemplatesActive
-                    ? "bg-purple-200 text-black"
-                    : "hover:bg-purple-300 text-gray-300"
-                }
-              `}
+              flex items-center justify-between w-full px-4 py-2 rounded-md 
+              transition-colors duration-200 group
+              ${
+                isTemplatesActive
+                  ? "bg-purple-200 text-black"
+                  : "hover:bg-purple-300 text-gray-300"
+              }
+            `}
               aria-expanded={openTemplates}
             >
               <span className="flex items-center space-x-3">
@@ -169,9 +189,9 @@ const navigationItems: NavLinkProps[] = [
 
             <div
               className={`
-                overflow-hidden transition-all duration-200 ease-in-out
-                ${openTemplates ? "max-h-24 opacity-100" : "max-h-0 opacity-0"}
-              `}
+              overflow-hidden transition-all duration-200 ease-in-out
+              ${openTemplates ? "max-h-24 opacity-100" : "max-h-0 opacity-0"}
+            `}
             >
               <div className="ml-6 space-y-1 pt-1">
                 {templateItems.map((item) => (
@@ -223,7 +243,6 @@ const navigationItems: NavLinkProps[] = [
   );
 }
 
-// NavLink
 function NavLink({ href, label, Icon, active, onClick }: NavLinkProps) {
   return (
     <Link
@@ -245,7 +264,6 @@ function NavLink({ href, label, Icon, active, onClick }: NavLinkProps) {
   );
 }
 
-// SubNavLink
 function SubNavLink({ href, label, Icon, active, onClick }: SubNavLinkProps) {
   return (
     <Link

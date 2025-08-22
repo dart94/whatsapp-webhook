@@ -1,6 +1,10 @@
 import { API_BASE_URL } from "../config/api";
-import { User } from "@/types/user";
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
 
 interface LoginResponse {
   success: boolean;
@@ -15,13 +19,12 @@ interface LoginResponse {
 export async function login(
   email: string,
   password: string,
-  rememberMe: boolean,
-  isAdmin: boolean
+  rememberMe: boolean
 ): Promise<LoginResponse> {
   const response = await fetch(`${API_BASE_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, rememberMe, isAdmin }),
+    body: JSON.stringify({ email, password, rememberMe }),
   });
 
   const contentType = response.headers.get("Content-Type");
@@ -63,7 +66,7 @@ export async function validateToken(): Promise<any> {
     return null;
   }
 
-  const response = await fetch(`${API_BASE_URL}/auth/validateToken`, {
+  const response = await fetch(`${API_BASE_URL}/validateToken`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token }),
