@@ -1,43 +1,32 @@
+import { apiFetch } from "@/services/appiFetch";
 
-import { API_BASE_URL } from "@/config/api";
-
-//Obtener usuario
+// Obtener un usuario por ID
 export async function getUser(id: number) {
-  const response = await fetch(`${API_BASE_URL}/users/${id}`);
-  return response.json();
+  return apiFetch(`/users/${id}`, { method: "GET" });
 }
 
-// Obtener usuarios
+// Obtener todos los usuarios
 export async function getUsers() {
-  const response = await fetch(`${API_BASE_URL}/users`);
-  return response.json();
+  return apiFetch("/users", { method: "GET" });
 }
 
 // Crear usuario
 export async function createUser(data: any) {
-  const response = await fetch(`${API_BASE_URL}/users`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  return apiFetch("/users", {
+    method: "POST",
     body: JSON.stringify(data),
   });
-  return response.json();
 }
 
 // Actualizar usuario
 export async function updateUser(id: number, data: any) {
-  const response = await fetch(`${API_BASE_URL}/users/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+  return apiFetch(`/users/${id}`, {
+    method: "PUT",
     body: JSON.stringify(data),
   });
-  return response.json();
 }
-
 
 // Eliminar usuario
 export async function deleteUser(id: number) {
-  const response = await fetch(`${API_BASE_URL}/users/${id}`, {
-    method: 'DELETE',
-  });
-  return response.json();
+  return apiFetch(`/users/${id}`, { method: "DELETE" });
 }
