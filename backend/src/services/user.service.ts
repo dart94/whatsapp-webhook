@@ -13,7 +13,8 @@ export async function getUsers() {
         name: true,
         email: true,
         isAdmin: true,
-        IsActive: true, // Corregido: era IsActive
+        IsActive: true,
+        groupId: true,
       },
     });
     logInfo(`✅ Usuarios obtenidos: ${users.length}`);
@@ -53,7 +54,8 @@ export async function createUser(userData: {
   email: string;
   password: string;
   isAdmin?: boolean;
-  IsActive?: boolean; // Corregido: era IsActive
+  IsActive?: boolean;
+  groupId?: number;
 }) {
   try {
     // Verificar si el usuario ya existe
@@ -71,7 +73,8 @@ export async function createUser(userData: {
         email: userData.email,
         password: hashedPassword,
         isAdmin: userData.isAdmin ?? false,
-        IsActive: userData.IsActive ?? true, // Corregido: era IsActive
+        IsActive: userData.IsActive ?? true,
+        groupId: userData.groupId ?? null,
       },
     });
     return newUser;
@@ -87,6 +90,7 @@ export async function updateUser(id: number, userData: { // Cambiado: string -> 
   password?: string;
   isAdmin?: boolean;
   IsActive?: boolean;
+  groupId?: number;
 }) {
   try {
     // Si se proporciona password, hashearlo

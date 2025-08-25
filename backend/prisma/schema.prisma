@@ -36,16 +36,25 @@ model SheetIntegration {
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  name          String
-  email         String   @unique
-  password      String
-  isAdmin       Boolean  @default(false)
-  IsActive      Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id               Int               @id @default(autoincrement())
+  name             String
+  email            String            @unique
+  password         String
+  isAdmin          Boolean           @default(false)
+  IsActive         Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   sheetIntegrations SheetIntegration[] 
+
+  groupId          Int?
+  group            Group?            @relation(fields: [groupId], references: [id])
 }
 
+model Group {
+  id      Int     @id @default(autoincrement())
+  name    String
+
+  users   User[]
+}
 
 
