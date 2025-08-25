@@ -25,15 +25,9 @@ export const sendTemplate = async (req: Request, res: Response) => {
 
     for (const msg of messages) {
       try {
-        console.log("----------------------------------------------------");
-        console.log(`📤 Enviando plantilla: ${templateName}`);
-        console.log(`➡️ Destinatario: ${msg.to}`);
-        console.log(`🌐 Idioma: ${language}`);
-        console.log(`📄 Parámetros recibidos:`, msg.parameters || []);
 
         // ✅ Renderizar body
         const renderedBody = renderTemplate(templateBody, msg.parameters || []);
-        console.log(`📝 Body renderizado: ${renderedBody}`);
 
         // ✅ Enviar a Meta
         const result = await sendTemplateMessage(

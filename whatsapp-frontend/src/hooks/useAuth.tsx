@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { login as loginService, validateToken } from "@/lib/auth";
 
 interface User {
@@ -15,6 +15,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
   loading: boolean;
+  initialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,12 +29,16 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // ✅ Estado consolidado para evitar múltiples updates
+  const [authState, setAuthState] = useState({
+    isAuthenticated: false,
+    user: null as User | null,
+    loading: true,
+    initialized: false
+  });
 
-  // ✅ Función simple para crear usuario (funciona tanto para login como token)
-  const createUser = (userData: any): User | null => {
+  // ✅ Función memoizada para crear usuario
+  const createUser = useCallback((userData: any): User | null => {
     if (!userData?.id) return null;
     
     return {
@@ -42,72 +47,124 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: userData.email || '',
       isAdmin: userData.isAdmin === true
     };
-  };
+  }, []);
 
+  // ✅ useEffect optimizado - una sola actualización de estado
   useEffect(() => {
+    let mounted = true; // Para evitar memory leaks
+    
     const initAuth = async () => {
       try {
-        setLoading(true);
+        console.log('🔍 Iniciando auth...');
         
         const tokenData = await validateToken();
+        console.log('🔍 Token data recibido:', tokenData);
+        
+        if (!mounted) return; // Component unmounted
         
         if (tokenData?.id) {
           const userData = createUser(tokenData);
-          setIsAuthenticated(true);
-          setUser(userData);
+          console.log('🔍 User data creado:', userData);
+          
+          // ✅ Una sola actualización de estado
+          setAuthState({
+            isAuthenticated: true,
+            user: userData,
+            loading: false,
+            initialized: true
+          });
         } else {
-          setIsAuthenticated(false);
-          setUser(null);
+          console.log('🔍 No hay token válido');
+          setAuthState({
+            isAuthenticated: false,
+            user: null,
+            loading: false,
+            initialized: true
+          });
         }
       } catch (error) {
-        console.error('Error validando token:', error);
-        setIsAuthenticated(false);
-        setUser(null);
+        console.error('🔍 Error validando token:', error);
+        if (!mounted) return;
+        
         localStorage.removeItem("token");
         sessionStorage.removeItem("token");
-      } finally {
-        setLoading(false);
+        
+        setAuthState({
+          isAuthenticated: false,
+          user: null,
+          loading: false,
+          initialized: true
+        });
       }
+      
+      console.log('🔍 Auth inicialización completa');
     };
 
     initAuth();
-  }, []);
+    
+    return () => {
+      mounted = false;
+    };
+  }, [createUser]);
 
-  const login = async (email: string, password: string, rememberMe: boolean) => {
-    try {
-      setLoading(true);
-      
-      const response = await loginService(email, password, rememberMe);
-      
-      // Usar los datos del usuario de la respuesta
-      const userData = createUser(response);
-      
-      if (userData) {
-        setIsAuthenticated(true);
-        setUser(userData);
-      } else {
-        throw new Error('Datos de usuario inválidos');
-      }
-    } catch (error) {
-      throw error instanceof Error ? error : new Error("Error desconocido");
-    } finally {
-      setLoading(false);
+  // ✅ Login optimizado
+  const login = useCallback(async (email: string, password: string, rememberMe: boolean) => {
+  try {
+    setAuthState(prev => ({ ...prev, loading: true }));
+
+    // 👉 Hacemos login (esto guarda el token en local/session storage)
+    await loginService(email, password, rememberMe);
+
+    // 👉 Inmediatamente validamos el token para obtener el user
+    const tokenData = await validateToken();
+    const userData = createUser(tokenData);
+
+    if (userData) {
+      setAuthState({
+        isAuthenticated: true,
+        user: userData,
+        loading: false,
+        initialized: true
+      });
+      console.log('🔍 Login exitoso:', userData);
+    } else {
+      throw new Error('Datos de usuario inválidos');
     }
-  };
+  } catch (error) {
+    setAuthState(prev => ({ ...prev, loading: false }));
+    throw error instanceof Error ? error : new Error("Error desconocido");
+  }
+}, [createUser]);
 
-  const logout = async () => {
-    setIsAuthenticated(false);
-    setUser(null);
+  // ✅ Logout optimizado
+  const logout = useCallback(async () => {
+    setAuthState({
+      isAuthenticated: false,
+      user: null,
+      loading: false,
+      initialized: true
+    });
+    
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
     
     if (typeof window !== "undefined") {
       window.location.href = "/";
     }
-  };
+  }, []);
+
+  // ✅ Memoizar el value del context para evitar re-renders
+  const contextValue = useMemo(() => ({
+    login,
+    logout,
+    isAuthenticated: authState.isAuthenticated,
+    user: authState.user,
+    loading: authState.loading,
+    initialized: authState.initialized
+  }), [login, logout, authState]);
 
   return (
-    <AuthContext.Provider value={{ login, logout, isAuthenticated, user, loading }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
