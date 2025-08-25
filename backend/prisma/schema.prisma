@@ -51,10 +51,18 @@ model User {
 }
 
 model Group {
-  id      Int     @id @default(autoincrement())
-  name    String
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
 
-  users   User[]
+  users     User[]
+  integrations GroupIntegration[]
 }
 
+model GroupIntegration {
+  id               Int     @id @default(autoincrement())
+  phoneNumberId    Int
+  accessTokenId    String
+  groupId          Int
+  group            Group @relation(fields: [groupId], references: [id])
+}
 
