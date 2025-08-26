@@ -30,6 +30,8 @@ export function UserEdit({ isOpen, onClose, user, onUpdated }: UserEditProps) {
     password: "",
     isAdmin: user.isAdmin,
     IsActive: user.IsActive,
+    role: user.role,
+    groupId: user.groupId
   });
 
   // Accesibilidad: manejar foco inicial y escape
@@ -80,7 +82,7 @@ export function UserEdit({ isOpen, onClose, user, onUpdated }: UserEditProps) {
     IsActive: userData.IsActive,
   };
 
-  if (userData.password.trim()) {
+  if (userData.password && userData.password.trim()) {
     updateData.password = userData.password;
   }
 

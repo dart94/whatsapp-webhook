@@ -5,6 +5,8 @@ import { User, CreateUserInput } from "@/types/user";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { AnimatePresence, motion } from "framer-motion";
 import { useFormValidation } from "@/hooks/useFormValidation";
+import { useGroups } from "@/hooks/useGroup";
+import { showToast } from "../common/Toast";
 
 interface UserCreateProps {
   isOpen: boolean;
@@ -17,10 +19,17 @@ export function UserCreate({ isOpen, onClose }: UserCreateProps) {
   const { logout } = useAuth();
   
   const [user, setUser] = useState<CreateUserInput>({
-    name: "", email: "", password: "", isAdmin: false, IsActive: true
+    name: "", 
+    email: "", 
+    password: "", 
+    isAdmin: false, 
+    IsActive: true, 
+    role: "user", 
+    groupId: 0 
   });
   const { touched, setTouched, errorsMap, hasErrors } =
   useFormValidation(user, { requirePassword: true });
+  const { groups } = useGroups();
 
 
   // Accesibilidad: manejar foco inicial y escape
@@ -59,6 +68,10 @@ export function UserCreate({ isOpen, onClose }: UserCreateProps) {
     }
   }, [isOpen, onClose]);
 
+  const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setUser({ ...user, groupId: Number(e.target.value) });
+  };
+
   const handleClose = () => {
     if (loading) return; // evita cerrar mientras carga
     onClose();
@@ -84,32 +97,12 @@ export function UserCreate({ isOpen, onClose }: UserCreateProps) {
 
       if (result.isConfirmed) {
         await createUserHandler(user);
-        await showSweetAlert({
-          title: "Usuario creado",
-          text: "Se ha creado correctamente.",
-          icon: "success",
-          confirmButtonText: "Continuar",
-          customClass: {
-            confirmButton:
-              "!bg-blue-600 hover:!bg-blue-700 !text-white !font-medium !rounded-lg !px-4 !py-2",
-            popup: "!rounded-2xl !shadow-xl",
-          },
-        });
+        await showToast({type: "success", message: "Usuario creado correctamente"});
         handleClose();
       }
     } catch (err: any) {
       console.error(err);
-      await showSweetAlert({
-        title: "No se pudo crear",
-        text: err?.message || "Inténtalo de nuevo más tarde.",
-        icon: "error",
-        confirmButtonText: "Entendido",
-        customClass: {
-          confirmButton:
-            "!bg-red-600 hover:!bg-red-700 !text-white !font-medium !rounded-lg !px-4 !py-2",
-          popup: "!rounded-2xl !shadow-xl",
-        },
-      });
+      await showToast({ type: "error", message: "Error al crear el usuario" });
     }
   };
 
@@ -245,6 +238,30 @@ export function UserCreate({ isOpen, onClose }: UserCreateProps) {
               <p className="mt-1 text-xs text-red-600">{errorsMap.password}</p>
             )}
           </div>
+
+          
+          {/* Group */}
+          <div>
+            <label htmlFor="group" className="block text-sm font-medium text-gray-700">
+              Grupo *
+            </label>
+            <select
+              id="group"
+              value={user.groupId}
+              onChange={handleGroupChange}
+              className="mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+            >
+              <option value={0}>Selecciona un grupo</option>
+              {groups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+            {touched.groupId && errorsMap.groupId && (
+              <p className="mt-1 text-xs text-red-600">{errorsMap.groupId}</p>
+            )}
+          </div>  
 
           {/* Switches */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
