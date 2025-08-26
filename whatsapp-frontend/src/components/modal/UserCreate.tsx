@@ -9,7 +9,7 @@ import { useGroups } from "@/hooks/useGroup";
 import { showToast } from "../common/Toast";
 
 
-export function UserCreate({ isOpen, onClose }: UserCreateProps) {
+export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
   const { createUserHandler, loading, error } = useUsersCreate();
   const { logout } = useAuth();
   
@@ -93,6 +93,7 @@ export function UserCreate({ isOpen, onClose }: UserCreateProps) {
       if (result.isConfirmed) {
         await createUserHandler(user);
         await showToast({type: "success", message: "Usuario creado correctamente"});
+        await onCreated?.();
         handleClose();
       }
     } catch (err: any) {

@@ -2,14 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { Group } from "@/types/groups";
-import { PencilSquareIcon, TrashIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
+import {
+  PencilSquareIcon,
+  TrashIcon,
+  PlusCircleIcon,
+} from "@heroicons/react/24/outline";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { showToast } from "@/components/common/Toast";
 import { GroupCreate } from "@/components/modal/GroupCreate";
-// import { GroupEdit } from "@/components/modal/GroupEdit";
+import { GroupEdit } from "@/components/modal/GroupEdit";
 import { withAdmin } from "@/guards/WithAuth";
 import { useGroups } from "@/hooks/useGroup";
 import Loader from "@/components/ui/Loader";
+import { useSort } from "@/components/ui/table/sort";
 
 function PrivatePage() {
   const { groups, loading, error, refresh, removeGroup } = useGroups();
@@ -18,6 +23,8 @@ function PrivatePage() {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenEdit, setIsOpenEdit] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
+  const { sortedData, sortBy, sortDirection, setSortBy, setSortDirection } =
+    useSort(groups, "id", "asc");
 
   // Seleccionar primer grupo automáticamente
   useEffect(() => {
@@ -38,8 +45,10 @@ function PrivatePage() {
         showCancelButton: true,
         customClass: {
           container: "w-full",
-          confirmButton: "bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded",
-          cancelButton: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded",
+          confirmButton:
+            "bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded",
+          cancelButton:
+            "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded",
         },
       });
 
@@ -67,6 +76,15 @@ function PrivatePage() {
     setEditingGroup(null);
   };
 
+  const toggleSort = (key: keyof Group) => {
+    if (sortBy === key) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(key);
+      setSortDirection("asc");
+    }
+  };
+
   if (error) {
     return (
       <div className="h-screen flex items-center justify-center text-red-500">
@@ -87,7 +105,10 @@ function PrivatePage() {
             className="inline-flex items-center gap-2 justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Crear
-            <PlusCircleIcon className="w-5 h-5 ml-2 shrink-0" aria-hidden="true" />
+            <PlusCircleIcon
+              className="w-5 h-5 ml-2 shrink-0"
+              aria-hidden="true"
+            />
           </button>
         </div>
 
@@ -96,13 +117,45 @@ function PrivatePage() {
           <table className="min-w-full text-sm">
             <thead className="bg-gray-50 border-b text-xs text-gray-600 uppercase">
               <tr>
-                <th className="px-4 py-3 text-left">ID</th>
-                <th className="px-4 py-3 text-left">Nombre</th>
+                <th
+                  className="px-4 py-3 text-left cursor-pointer select-none"
+                  onClick={() => toggleSort("id")}
+                  aria-sort={
+                    sortBy === "id"
+                      ? sortDirection === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                  }
+                  title="Ordenar por ID"
+                >
+                  ID{" "}
+                  {sortBy === "id" ? (sortDirection === "asc" ? "▲" : "▼") : ""}
+                </th>
+                <th
+                  className="px-4 py-3 text-left cursor-pointer select-none"
+                  onClick={() => toggleSort("name")}
+                  aria-sort={
+                    sortBy === "name"
+                      ? sortDirection === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                  }
+                  title="Ordenar por Nombre"
+                >
+                  Nombre{" "}
+                  {sortBy === "name"
+                    ? sortDirection === "asc"
+                      ? "▲"
+                      : "▼"
+                    : ""}
+                </th>
                 <th className="px-4 py-3 text-left">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 text-gray-800">
-              {groups.map((group) => (
+              {sortedData.map((group) => (
                 <tr key={group.id} className="hover:bg-gray-50 transition">
                   <td className="px-4 py-3 font-semibold">{group.id}</td>
                   <td className="px-4 py-3 font-semibold">{group.name}</td>
@@ -121,9 +174,15 @@ function PrivatePage() {
                       {/* Eliminar grupo */}
                       <button
                         onClick={() => {
-                          const id = typeof group.id === "string" ? Number(group.id) : group.id;
+                          const id =
+                            typeof group.id === "string"
+                              ? Number(group.id)
+                              : group.id;
                           if (Number.isNaN(id)) {
-                            showToast({ type: "error", message: "ID inválido" });
+                            showToast({
+                              type: "error",
+                              message: "ID inválido",
+                            });
                             return;
                           }
                           void handleDeleteGroup(id as number);
@@ -138,9 +197,12 @@ function PrivatePage() {
                 </tr>
               ))}
 
-              {groups.length === 0 && (
+              {sortedData.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
+                  <td
+                    colSpan={3}
+                    className="px-4 py-6 text-center text-gray-500"
+                  >
                     No hay grupos disponibles.
                   </td>
                 </tr>
@@ -149,17 +211,17 @@ function PrivatePage() {
           </table>
 
           {/* Modal crear */}
-           <GroupCreate
+          <GroupCreate
             isOpen={isOpen}
             onClose={closeCreate}
             onCreated={async () => {
               await refresh();
               closeCreate();
             }}
-          /> 
+          />
 
           {/* Modal editar */}
-          {/* {editingGroup && (
+          {editingGroup && (
             <GroupEdit
               isOpen={isOpenEdit}
               onClose={closeEditGroup}
@@ -169,7 +231,7 @@ function PrivatePage() {
                 closeEditGroup();
               }}
             />
-          )} */}
+          )}
         </div>
       </div>
     </div>

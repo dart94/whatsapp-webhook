@@ -6,14 +6,11 @@ import { showSweetAlert } from "@/components/common/Sweet";
 import { AnimatePresence, motion } from "framer-motion";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { showToast } from "@/components/common/Toast";
+import { GroupCreateProps } from "@/types/groups";
 
-interface GroupCreateProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onCreated?: () => void;
-}
 
-export function GroupCreate({ isOpen, onClose }: GroupCreateProps) {
+
+export function GroupCreate({ isOpen, onClose, onCreated }: GroupCreateProps) {
   const { addGroup, loading, error } = useGroups();
   const [group, setGroup] = useState<CreateGroupInput>({ name: "" });
   const [touched, setTouched] = useState<{
@@ -87,6 +84,7 @@ export function GroupCreate({ isOpen, onClose }: GroupCreateProps) {
           type: "success",
           message: "Grupo creado correctamente",
         });
+        await onCreated?.();
         handleClose();
       }
     } catch (err: any) {

@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import useUsers from "@/hooks/useUsers";
 import { User } from "@/types/user";
@@ -17,6 +18,7 @@ import { showToast } from "@/components/common/Toast";
 import { UserEdit } from "@/components/modal/UserEdit";
 import { withAdmin } from "@/guards/WithAuth";
 import Loader from "@/components/ui/Loader";
+import { useSort } from "@/components/ui/table/sort";
 
 export default function PrivatePage() {
   const { logout } = useAuth();
@@ -30,6 +32,16 @@ export default function PrivatePage() {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenEdit, setIsOpenEdit] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const usersForTable = useMemo(
+    () =>
+      users.map((u) => ({
+        ...u,
+        _groupName: u.group?.name ?? "(Sin grupo)",
+      })),
+    [users]
+  );
+  const { sortedData, sortBy, sortDirection, setSortBy, setSortDirection } =
+    useSort(usersForTable, "name", "asc");
 
   // Seleccionar primer usuario automáticamente
   useEffect(() => {
@@ -64,7 +76,6 @@ export default function PrivatePage() {
         type: "success",
         message: "Usuario eliminado correctamente",
       });
-
       await refresh?.();
       refresh();
     } catch (err) {
@@ -83,7 +94,6 @@ export default function PrivatePage() {
   // Mostrar modal de creación de usuario de userCreate
   const handleCreateUser = () => {
     setIsOpen(true);
-    refresh();
   };
 
   const handleEditUser = (u: User) => {
@@ -98,6 +108,15 @@ export default function PrivatePage() {
   const closeEditUser = () => {
     setIsOpenEdit(false);
     setEditingUser(null);
+  };
+
+  const toggleSort = (key: keyof (typeof usersForTable)[number]) => {
+    if (sortBy === key) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(key);
+      setSortDirection("asc");
+    }
   };
 
   if (error) {
@@ -133,87 +152,159 @@ export default function PrivatePage() {
           <table className="min-w-full text-sm">
             <thead className="bg-gray-50 border-b text-xs text-gray-600 uppercase">
               <tr>
-                <th className="px-4 py-3 text-left">Nombre</th>
-                <th className="px-4 py-3 text-left">Correo</th>
-                <th className="px-4 py-3 text-left">Grupo</th>
-                <th className="px-4 py-3 text-left">Estado</th>
-                <th className="px-4 py-3 text-left">Administrador</th>
+                <th
+                  className="px-4 py-3 text-left cursor-pointer select-none"
+                  onClick={() => toggleSort("name")}
+                  aria-sort={
+                    sortBy === "name"
+                      ? sortDirection === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                  }
+                >
+                  Nombre{" "}
+                  {sortBy === "name"
+                    ? sortDirection === "asc"
+                      ? "▲"
+                      : "▼"
+                    : ""}
+                </th>
+
+                <th
+                  className="px-4 py-3 text-left cursor-pointer select-none"
+                  onClick={() => toggleSort("email")}
+                  aria-sort={
+                    sortBy === "email"
+                      ? sortDirection === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                  }
+                >
+                  Correo{" "}
+                  {sortBy === "email"
+                    ? sortDirection === "asc"
+                      ? "▲"
+                      : "▼"
+                    : ""}
+                </th>
+
+                <th
+                  className="px-4 py-3 text-left cursor-pointer select-none"
+                  onClick={() => toggleSort("_groupName")}
+                  aria-sort={
+                    sortBy === "_groupName"
+                      ? sortDirection === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                  }
+                >
+                  Grupo{" "}
+                  {sortBy === "_groupName"
+                    ? sortDirection === "asc"
+                      ? "▲"
+                      : "▼"
+                    : ""}
+                </th>
+
+                <th
+                  className="px-4 py-3 text-left cursor-pointer select-none"
+                  onClick={() => toggleSort("IsActive")}
+                  aria-sort={
+                    sortBy === "IsActive"
+                      ? sortDirection === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                  }
+                >
+                  Estado{" "}
+                  {sortBy === "IsActive"
+                    ? sortDirection === "asc"
+                      ? "▲"
+                      : "▼"
+                    : ""}
+                </th>
+
+                <th
+                  className="px-4 py-3 text-left cursor-pointer select-none"
+                  onClick={() => toggleSort("isAdmin")}
+                  aria-sort={
+                    sortBy === "isAdmin"
+                      ? sortDirection === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                  }
+                >
+                  Administrador{" "}
+                  {sortBy === "isAdmin"
+                    ? sortDirection === "asc"
+                      ? "▲"
+                      : "▼"
+                    : ""}
+                </th>
+
                 <th className="px-4 py-3 text-left">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 text-gray-800">
-              {users.map((user) => (
-                <tr
-                  key={user.id}
-                  className={`transition ${
-                    user.id === selectedUser?.id
-                      ? "bg-gray-100"
-                      : "hover:bg-gray-50"
-                  }`}
-                >
-                  <td className="px-4 py-3 font-semibold">{user.name}</td>
-                  <td className="px-4 py-3">{user.email}</td>
-                  <td className="px-4 py-3">{user.group?.name ?? "(Sin grupo)"}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant="outline">
-                      {user.IsActive ? "Activo" : "Inactivo"}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge variant={user.isAdmin ? "solid" : "outline"}>
-                      {user.isAdmin ? "Sí" : "No"}
-                    </Badge>
-                  </td>
-                  {/* Acciones */}
-                  <td className="px-4 py-3">
-                    <div className="flex space-x-2">
-                      {/* Editar usuario */}
-                      <button
-                        onClick={() => handleEditUser(user)}
-                        className="text-blue-500 hover:text-blue-700"
-                        aria-label="Editar usuario"
-                      >
-                        <PencilSquareIcon className="w-5 h-5" />
-                      </button>
+<tbody className="divide-y divide-gray-200 text-gray-800">
+  {sortedData.map((user) => (
+    <tr
+      key={user.id}
+      className={`transition ${user.id === selectedUser?.id ? "bg-gray-100" : "hover:bg-gray-50"}`}
+    >
+      <td className="px-4 py-3 font-semibold">{user.name}</td>
+      <td className="px-4 py-3">{user.email}</td>
+      <td className="px-4 py-3">{user._groupName}</td>
+      <td className="px-4 py-3">
+        <Badge variant="outline">{user.IsActive ? "Activo" : "Inactivo"}</Badge>
+      </td>
+      <td className="px-4 py-3">
+        <Badge variant={user.isAdmin ? "solid" : "outline"}>{user.isAdmin ? "Sí" : "No"}</Badge>
+      </td>
 
-                      {/* Eliminar usuario */}
-                      <button
-                        onClick={() => {
-                          const id =
-                            typeof user.id === "string"
-                              ? Number(user.id)
-                              : user.id;
-                          if (Number.isNaN(id)) {
-                            showToast({
-                              type: "error",
-                              message: "ID inválido",
-                            });
-                            return;
-                          }
-                          void handleDeleteUser(id as number);
-                        }}
-                        disabled={deleteLoading}
-                        className="text-red-500 hover:text-red-700 disabled:opacity-50"
-                        aria-label="Eliminar usuario"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+      {/* Acciones */}
+      <td className="px-4 py-3">
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleEditUser(user)}
+            className="text-blue-500 hover:text-blue-700"
+            aria-label="Editar usuario"
+          >
+            <PencilSquareIcon className="w-5 h-5" />
+          </button>
 
-              {users.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-4 py-6 text-center text-gray-500"
-                  >
-                    No hay usuarios disponibles.
-                  </td>
-                </tr>
-              )}
-            </tbody>
+          <button
+            onClick={() => {
+              const id = typeof user.id === "string" ? Number(user.id) : user.id;
+              if (Number.isNaN(id)) {
+                showToast({ type: "error", message: "ID inválido" });
+                return;
+              }
+              void handleDeleteUser(id as number);
+            }}
+            disabled={deleteLoading}
+            className="text-red-500 hover:text-red-700 disabled:opacity-50"
+            aria-label="Eliminar usuario"
+          >
+            <TrashIcon className="w-5 h-5" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  ))}
+
+  {sortedData.length === 0 && (
+    <tr>
+      <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
+        No hay usuarios disponibles.
+      </td>
+    </tr>
+  )}
+</tbody>
           </table>
           {/* Modal */}
           <UserCreate
