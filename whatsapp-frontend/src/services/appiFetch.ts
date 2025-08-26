@@ -13,7 +13,6 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
     ...(options.headers || {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
-  console.log("Header Authorization:", token ? `Bearer ${token}` : "ninguno");
 
   const res = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
 

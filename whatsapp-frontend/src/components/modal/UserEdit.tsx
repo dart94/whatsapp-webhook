@@ -8,6 +8,7 @@ import { showSweetAlert } from "@/components/common/Sweet";
 import { AnimatePresence, motion, number } from "framer-motion";
 import { showToast } from "@/components/common/Toast";
 import { useFormValidation } from "@/hooks/useFormValidation";
+import { group } from "console";
 
 
 export function UserEdit({ isOpen, onClose, user, onUpdated }: UserEditProps) {
@@ -66,9 +67,14 @@ export function UserEdit({ isOpen, onClose, user, onUpdated }: UserEditProps) {
     }
   }, [isOpen, onClose]);
 
-  const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setUserData({ ...userData, groupId: Number(e.target.value) });
-  };
+const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const raw = e.target.value; // string
+setUserData({ 
+  ...userData, 
+  groupId: raw === "" ? undefined : Number(raw) 
+});
+};
+
 
   const handleClose = () => {
     if (loading) return; // evita cerrar mientras carga
@@ -80,6 +86,7 @@ export function UserEdit({ isOpen, onClose, user, onUpdated }: UserEditProps) {
     email: userData.email,
     isAdmin: userData.isAdmin,
     IsActive: userData.IsActive,
+    groupId: userData.groupId
   };
 
   if (userData.password && userData.password.trim()) {

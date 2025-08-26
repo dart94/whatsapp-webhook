@@ -6,7 +6,8 @@ export interface User {
   isAdmin: boolean;
   IsActive?: boolean;
   role: "admin" | "user";
-  groupId: number; 
+  groupId?: number ;
+  group?: { id: number; name: string } | null;
 }
 
 

@@ -55,16 +55,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     const initAuth = async () => {
       try {
-        console.log('🔍 Iniciando auth...');
         
         const tokenData = await validateToken();
-        console.log('🔍 Token data recibido:', tokenData);
         
         if (!mounted) return; // Component unmounted
         
         if (tokenData?.id) {
           const userData = createUser(tokenData);
-          console.log('🔍 User data creado:', userData);
           
           // ✅ Una sola actualización de estado
           setAuthState({
@@ -74,7 +71,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             initialized: true
           });
         } else {
-          console.log('🔍 No hay token válido');
           setAuthState({
             isAuthenticated: false,
             user: null,
@@ -83,7 +79,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
         }
       } catch (error) {
-        console.error('🔍 Error validando token:', error);
         if (!mounted) return;
         
         localStorage.removeItem("token");
@@ -97,7 +92,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       }
       
-      console.log('🔍 Auth inicialización completa');
     };
 
     initAuth();

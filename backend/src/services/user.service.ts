@@ -15,6 +15,7 @@ export async function getUsers() {
         isAdmin: true,
         IsActive: true,
         groupId: true,
+        group: { select: { id: true, name: true } },
       },
     });
     logInfo(`✅ Usuarios obtenidos: ${users.length}`);

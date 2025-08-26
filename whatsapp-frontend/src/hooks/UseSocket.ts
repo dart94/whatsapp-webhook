@@ -13,7 +13,6 @@ export function useSocket(onNewMessage: (payload: any) => void) {
   useEffect(() => {
     // Solo crear una conexión si no existe
     if (!socketRef.current) {
-      console.log('Creando conexión WebSocket...');
       
       const socket = io("https://whatsapp-webhook-production-6e49.up.railway.app", {
         transports: ["websocket", "polling"], // Fallback a polling
@@ -23,22 +22,16 @@ export function useSocket(onNewMessage: (payload: any) => void) {
         reconnectionAttempts: 5,
         reconnectionDelay: 2000,
       });
-
       socket.on("connect", () => {
-        console.log('WebSocket conectado exitosamente');
       });
-
       socket.on("disconnect", (reason) => {
-        console.log('WebSocket desconectado:', reason);
       });
 
       socket.on("connect_error", (error) => {
-        console.error('Error de conexión WebSocket:', error);
       });
 
       // Usar la referencia del callback para evitar recrear listeners
       socket.on("new_message", (payload) => {
-        console.log('Nuevo mensaje recibido:', payload);
         onNewMessageRef.current(payload);
       });
 
@@ -48,7 +41,6 @@ export function useSocket(onNewMessage: (payload: any) => void) {
     // Cleanup solo al desmontar el componente
     return () => {
       if (socketRef.current) {
-        console.log('Desconectando WebSocket...');
         socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
         socketRef.current = null;

@@ -153,7 +153,7 @@ export default function PrivatePage() {
                 >
                   <td className="px-4 py-3 font-semibold">{user.name}</td>
                   <td className="px-4 py-3">{user.email}</td>
-                  <td className="px-4 py-3">{user.groupId}</td>
+                  <td className="px-4 py-3">{user.group?.name ?? "(Sin grupo)"}</td>
                   <td className="px-4 py-3">
                     <Badge variant="outline">
                       {user.IsActive ? "Activo" : "Inactivo"}
