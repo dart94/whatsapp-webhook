@@ -47,7 +47,7 @@ export async function getGroupIntegrationById(id: number) {
 
 //Crear grupo
 export async function createGroupIntegration(
-  phoneNumberId: number,
+  phoneNumberId: string,
   accessTokenId: string,
   groupId: number
 ) {
@@ -71,7 +71,7 @@ export async function createGroupIntegration(
 // Actualizar grupo
 export async function updateGroupIntegration(
   id: number,
-  phoneNumberId: number,
+  phoneNumberId: string,
   accessTokenId: string,
   groupId: number
 ) {

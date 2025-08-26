@@ -1,6 +1,12 @@
 //controller para grupos
 import { Request, Response } from "express";
-import { getGroupIntegrationById, getGroupIntegrations, createGroupIntegration, updateGroupIntegration, deleteGroupIntegration } from "../services/groupIntegration.service";
+import {
+  getGroupIntegrationById,
+  getGroupIntegrations,
+  createGroupIntegration,
+  updateGroupIntegration,
+  deleteGroupIntegration,
+} from "../services/groupIntegration.service";
 import { logInfo } from "../utils/logger";
 
 //obtener grupo
@@ -45,13 +51,15 @@ export const createGroupIntegrationController = async (
     }
 
     const groupIntegration = await createGroupIntegration(
-      Number(phoneNumberId),
+      phoneNumberId,
       accessTokenId,
       Number(groupId)
     );
 
     if (!groupIntegration || (groupIntegration as any).error) {
-      return res.status(500).json({ error: "Error al crear grupo", details: groupIntegration });
+      return res
+        .status(500)
+        .json({ error: "Error al crear grupo", details: groupIntegration });
     }
 
     res.status(201).json(groupIntegration);
@@ -95,4 +103,3 @@ export const deleteGroupIntegrationController = async (
     res.status(500).json({ error: "Error al eliminar grupo" });
   }
 };
-
