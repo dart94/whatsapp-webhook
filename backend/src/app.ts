@@ -8,6 +8,7 @@ import sheetIntegration from './routes/sheetIntegration.routes';
 import user from './routes/user.routes';
 import authRoutes from './routes/auth.routes';
 import groupRoutes from './routes/group.routes';
+import groupIntegrationRoutes from './routes/grpupIntegration.routes';
 import { PORT } from './config/constants';
 import cors from 'cors';
 import swaggerSpec from './config/swagger';
@@ -42,6 +43,7 @@ app.use('/sheetIntegration', sheetIntegration);
 app.use('/users', user);
 app.use('/', authRoutes);
 app.use('/groups', groupRoutes);
+app.use('/groupIntegration', groupIntegrationRoutes);
 
 
 // Health check endpoint

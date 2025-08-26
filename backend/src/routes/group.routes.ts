@@ -122,7 +122,7 @@ router.put('/:id', updateGroupController);
  */
 router.delete('/:id', deleteGroupController);
 
-export default router;
+
 
 /**
  * @swagger
@@ -159,4 +159,6 @@ export default router;
  * 
  */
 router.get('/:id', getGroupByIdController);
+
+export default router;
 
