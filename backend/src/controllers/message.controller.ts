@@ -9,6 +9,7 @@ import { renderTemplate } from "../utils/renderTemplate";
 import { getUnreadCountsPerConversation } from "../services/messagesby.service";
 
 // Enviar mensajes por plantilla
+
 export const sendTemplate = async (req: Request, res: Response) => {
   const { messages, templateName, language, body } = req.body;
 
@@ -34,13 +35,23 @@ export const sendTemplate = async (req: Request, res: Response) => {
 
     const userId = (decoded as any).id;
 
-    // ✅ Obtener integración desde la base de datos
+    // ✅ Obtener groupId del usuario desde la BD
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { groupId: true },
+    });
+
+    if (!user?.groupId) {
+      return res.status(400).json({
+        success: false,
+        message: "User has no associated group",
+      });
+    }
+
+    // ✅ Obtener integración del grupo
     const integration = await prisma.groupIntegration.findFirst({
-      where: { groupId: (decoded as any).groupId }, // asumimos que el usuario tiene groupId
-      select: {
-        phoneNumberId: true,
-        accessTokenId: true,
-      },
+      where: { groupId: user.groupId },
+      select: { phoneNumberId: true, accessTokenId: true },
     });
 
     if (!integration || !integration.phoneNumberId || !integration.accessTokenId) {
@@ -69,6 +80,7 @@ export const sendTemplate = async (req: Request, res: Response) => {
           phoneNumberId,
           accessTokenId,
         });
+
         console.log(`📡 Respuesta de Meta:`, JSON.stringify(result, null, 2));
 
         const message_id = result?.messages?.[0]?.id || "NO_ID";
@@ -87,6 +99,7 @@ export const sendTemplate = async (req: Request, res: Response) => {
             read: false,
           },
         });
+
         console.log(`💾 Guardado en BD con ID interno: ${saved.id}`);
 
         results.push({
