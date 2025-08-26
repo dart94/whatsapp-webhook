@@ -1,16 +1,15 @@
-import { PHONE_NUMBER_ID, ACCESS_TOKEN } from "../config/constants";
 import { logInfo, logError } from "../utils/logger";
-
 
 // Función para enviar un mensaje de template
 export async function sendTemplateMessage(
   to: string,
   templateName: string,
   language: { code: string },
-  parameters: string[]
+  parameters: string[],
+  phonenumberId: string,
+  accessToken: string
 ) {
   const languageCode = typeof language === "string" ? language : language?.code;
-
   if (!languageCode) {
     throw new Error("Language code is missing!");
   }
@@ -21,9 +20,7 @@ export async function sendTemplateMessage(
     type: "template",
     template: {
       name: templateName,
-      language: {
-        code: languageCode,
-      },
+      language: { code: languageCode },
       components: [
         {
           type: "body",
@@ -38,11 +35,11 @@ export async function sendTemplateMessage(
 
   try {
     const response = await fetch(
-      `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+      `https://graph.facebook.com/v19.0/${phonenumberId}/messages`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
@@ -56,7 +53,6 @@ export async function sendTemplateMessage(
     } else {
       logError(`❌ Error sending template message: ${JSON.stringify(data)}`);
     }
-
     return data;
   } catch (error) {
     logError(`❌ Network error sending template: ${error}`);

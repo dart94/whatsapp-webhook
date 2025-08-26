@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { sendTemplateMessage } from "../services/SendTemplate.service";
 import { logInfo, logError } from "../utils/logger";
 import { sendWhatsAppMessage } from "../services/sendwhatsapp.service";
+import { validateToken } from "../services/auth.service";
 import { prisma } from "../prisma";
 import { log } from "console";
 import { renderTemplate } from "../utils/renderTemplate";
@@ -20,21 +21,43 @@ export const sendTemplate = async (req: Request, res: Response) => {
   }
 
   try {
+    // ✅ Obtener token del usuario
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: "Token required" });
+    }
+
+    const decoded = await validateToken(token);
+    if (!decoded || typeof decoded !== "object") {
+      return res.status(401).json({ success: false, message: "Invalid token" });
+    }
+
+    // ✅ Sacar phoneNumberId y accessTokenId del token (puestos en el login)
+    const integration = (decoded as any).integration || {};
+    const { phonenumberId, accessTokenId } = integration;
+    if (!phonenumberId || !accessTokenId) {
+      return res.status(400).json({
+        success: false,
+        message: "Integration data (phoneNumberId, accessTokenId) missing",
+      });
+    }
+
     const templateBody = body;
-    const results = [];
+    const results: any[] = [];
 
     for (const msg of messages) {
       try {
-
         // ✅ Renderizar body
         const renderedBody = renderTemplate(templateBody, msg.parameters || []);
 
-        // ✅ Enviar a Meta
+        // ✅ Enviar a Meta con valores dinámicos
         const result = await sendTemplateMessage(
           msg.to,
           templateName,
           language,
-          msg.parameters || []
+          msg.parameters || [],
+          phonenumberId,
+          accessTokenId
         );
         console.log(`📡 Respuesta de Meta:`, JSON.stringify(result, null, 2));
 

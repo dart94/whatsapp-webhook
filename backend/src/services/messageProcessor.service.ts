@@ -62,6 +62,7 @@ export async function processIncomingMessage(message: WhatsAppMessage) {
   }
 }
 
+// Función para procesar mensajes interactivos (botones, listas)
 export function processInteractiveMessage(
   interactive: WhatsAppMessage["interactive"]
 ) {
@@ -78,6 +79,7 @@ export function processInteractiveMessage(
   }
 }
 
+// Función para procesar el estado de un mensaje
 export function processMessageStatus(status: WhatsAppStatus) {
   logInfo(`📊 ESTADO DE MENSAJE: ${status.status} para ${status.recipient_id}`);
   if (status.errors) {
@@ -85,12 +87,14 @@ export function processMessageStatus(status: WhatsAppStatus) {
   }
 }
 
+// Función para procesar contactos
 export function processContact(contact: WhatsAppContact) {
   logInfo(
     `👤 CONTACTO: ${contact.wa_id} - ${contact.profile?.name || "Sin nombre"}`
   );
 }
 
+// Función para procesar metadatos
 export function processMetadata(metadata: WhatsAppMetadata) {
   logInfo(`📋 METADATOS: ${metadata.display_phone_number}`);
 }

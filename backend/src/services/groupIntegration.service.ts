@@ -4,7 +4,7 @@ import { logInfo } from "../utils/logger";
 
 const prisma = new PrismaClient();
 
-//Obtener grupos
+//Obtener integración de grupos
 export async function getGroupIntegrations() {
   try {
     const groupIntegrations = await prisma.groupIntegration.findMany({
@@ -23,7 +23,7 @@ export async function getGroupIntegrations() {
   }
 }
 
-//obtener grupo por id
+//obtener integracion de grupo por ID
 export async function getGroupIntegrationById(id: number) {
   try {
     const groupIntegration = await prisma.groupIntegration.findUnique({
@@ -45,7 +45,7 @@ export async function getGroupIntegrationById(id: number) {
   }
 }
 
-//Crear grupo
+//Crear integración de grupo
 export async function createGroupIntegration(
   phoneNumberId: string,
   accessTokenId: string,
@@ -68,7 +68,7 @@ export async function createGroupIntegration(
   }
 }
 
-// Actualizar grupo
+// Actualizar integracion de grupo
 export async function updateGroupIntegration(
   id: number,
   phoneNumberId: string,
@@ -94,7 +94,7 @@ export async function updateGroupIntegration(
   }
 }
 
-//Eliminar grupo
+//Eliminar integracion de grupo
 export async function deleteGroupIntegration(id: number) {
   try {
     const groupIntegration = await prisma.groupIntegration.delete({
@@ -106,6 +106,29 @@ export async function deleteGroupIntegration(id: number) {
     return groupIntegration;
   } catch (error) {
     logInfo(`❌ Error al eliminar grupo: ${error}`);
+    return null;
+  }
+}
+
+// Obtener integración de grupo por groupId
+export async function getGroupIntegrationByGroupId(groupId: number) {
+  try {
+    const groupIntegration = await prisma.groupIntegration.findFirst({
+      where: {
+        groupId: groupId,
+      },
+      select: {
+        id: true,
+        phoneNumberId: true,
+        accessTokenId: true,
+        groupId: true,
+      },
+    });
+
+    logInfo(`✅ Integración obtenida para groupId ${groupId}: ${groupIntegration?.id}`);
+    return groupIntegration;
+  } catch (error) {
+    logInfo(`❌ Error al obtener integración por groupId: ${error}`);
     return null;
   }
 }
