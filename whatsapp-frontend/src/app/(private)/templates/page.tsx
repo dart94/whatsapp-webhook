@@ -6,18 +6,18 @@ import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { Button } from "../../../components/ui/Button";
 import { Badge } from "../../../components/ui/Badge";
-
+import Loader from "../../../components/ui/Loader";
 
 export default function TemplatesPage() {
   const { templates, loading, error } = useTemplates();
+
+  if (loading) return <Loader message="Cargando plantillas" showTips={true} />;
 
   return (
     <div className="max-w-7xl mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold mb-8 text-gray-800">Plantillas</h1>
 
-      {loading ? (
-        <p className="text-gray-500 text-sm">Cargando plantillas...</p>
-      ) : error ? (
+      {error ? (
         <p className="text-red-500">Error: {error}</p>
       ) : (
         <div className="overflow-x-auto border rounded-xl shadow-sm bg-white">
@@ -43,11 +43,7 @@ export default function TemplatesPage() {
                     <Badge variant="outline">{template.category}</Badge>
                   </td>
                   <td className="px-4 py-3">
-                    <Badge
-                      
-                    >
-                      {template.status}
-                    </Badge>
+                    <Badge>{template.status}</Badge>
                   </td>
                   <td className="px-4 py-3">
                     {template.header || (
@@ -58,11 +54,17 @@ export default function TemplatesPage() {
                     {template.body || <span className="text-gray-400">—</span>}
                   </td>
                   <td className="px-4 py-3">
-                    {template.footer || <span className="text-gray-400">—</span>}
+                    {template.footer || (
+                      <span className="text-gray-400">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <Link href={`/templates/enviarplantilla?id=${template.id}`}>
-                      <Button variant="outline" size="sm" className="flex gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex gap-1"
+                      >
                         <PaperAirplaneIcon className="w-4 h-4" />
                         Enviar
                       </Button>

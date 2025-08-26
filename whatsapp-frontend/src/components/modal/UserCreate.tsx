@@ -1,18 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import useUsersCreate from "@/hooks/useUsersCreate";
-import { User, CreateUserInput } from "@/types/user";
+import { User, CreateUserInput, UserCreateProps } from "@/types/user";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { AnimatePresence, motion } from "framer-motion";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { useGroups } from "@/hooks/useGroup";
 import { showToast } from "../common/Toast";
 
-interface UserCreateProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onCreated?: () => void;
-}
 
 export function UserCreate({ isOpen, onClose }: UserCreateProps) {
   const { createUserHandler, loading, error } = useUsersCreate();

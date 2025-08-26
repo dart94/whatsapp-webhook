@@ -32,3 +32,16 @@ export interface TokenValidationResponse {
   success: boolean;
   user?: User;
 }
+
+export interface UserCreateProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onCreated?: () => void;
+}
+
+export interface UserEditProps {
+  isOpen: boolean;
+  onClose: () => void;
+  user: User;
+  onUpdated?: () => void;
+}

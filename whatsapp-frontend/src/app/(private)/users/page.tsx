@@ -16,6 +16,7 @@ import { UserCreate } from "@/components/modal/UserCreate";
 import { showToast } from "@/components/common/Toast";
 import { UserEdit } from "@/components/modal/UserEdit";
 import { withAdmin } from "@/guards/WithAuth";
+import Loader from "@/components/ui/Loader";
 
 export default function PrivatePage() {
   const { logout } = useAuth();
@@ -106,6 +107,8 @@ export default function PrivatePage() {
       </div>
     );
   }
+
+  if (loading) return <Loader message="Cargando usuarios" showTips={true} />;
 
   return (
     <div className="h-screen bg-gray-50">

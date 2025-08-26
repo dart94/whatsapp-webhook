@@ -9,6 +9,7 @@ import { showToast } from "@/components/common/Toast";
 // import { GroupEdit } from "@/components/modal/GroupEdit";
 import { withAdmin } from "@/guards/WithAuth";
 import { useGroups } from "@/hooks/useGroup";
+import Loader from "@/components/ui/Loader";
 
 function PrivatePage() {
   const { groups, loading, error, refresh, removeGroup } = useGroups();
@@ -74,13 +75,7 @@ function PrivatePage() {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center text-gray-500">
-        Cargando grupos...
-      </div>
-    );
-  }
+  if (loading) return <Loader message="Cargando grupos" showTips={true} />;
 
   return (
     <div className="h-screen bg-gray-50">

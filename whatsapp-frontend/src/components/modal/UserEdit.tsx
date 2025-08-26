@@ -2,18 +2,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import useUsersUpdate from "@/hooks/useUsersUpdate";
-import { User, UserUpdateData } from "@/types/user";
+import { useGroups } from "@/hooks/useGroup";
+import { User, UserEditProps } from "@/types/user";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { AnimatePresence, motion, number } from "framer-motion";
 import { showToast } from "@/components/common/Toast";
 import { useFormValidation } from "@/hooks/useFormValidation";
 
-interface UserEditProps {
-  isOpen: boolean;
-  onClose: () => void;
-  user: User;
-  onUpdated?: () => void;
-}
 
 export function UserEdit({ isOpen, onClose, user, onUpdated }: UserEditProps) {
   const { updateUserHandler, loading, error } = useUsersUpdate();
@@ -22,6 +17,7 @@ export function UserEdit({ isOpen, onClose, user, onUpdated }: UserEditProps) {
     user,
     { requirePassword: false }
   );
+  const { groups } = useGroups();
 
   const [userData, setUserData] = useState<User>({
     id: user.id,
@@ -69,6 +65,10 @@ export function UserEdit({ isOpen, onClose, user, onUpdated }: UserEditProps) {
       (lastActiveElement.current as HTMLElement | null)?.focus?.();
     }
   }, [isOpen, onClose]);
+
+  const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setUserData({ ...userData, groupId: Number(e.target.value) });
+  };
 
   const handleClose = () => {
     if (loading) return; // evita cerrar mientras carga
@@ -283,6 +283,29 @@ export function UserEdit({ isOpen, onClose, user, onUpdated }: UserEditProps) {
                   </p>
                 )}
               </div>
+
+          {/* Group */}
+          <div>
+            <label htmlFor="group" className="block text-sm font-medium text-gray-700">
+              Grupo *
+            </label>
+            <select
+              id="group"
+              value={user.groupId}
+              onChange={handleGroupChange}
+              className="mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+            >
+              <option value={0}>Selecciona un grupo</option>
+              {groups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+            {touched.groupId && errorsMap.groupId && (
+              <p className="mt-1 text-xs text-red-600">{errorsMap.groupId}</p>
+            )}
+          </div>  
 
               {/* Switches */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
