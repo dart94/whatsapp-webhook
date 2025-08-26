@@ -83,33 +83,67 @@ export async function createUser(userData: {
   }
 }
 
-// Actualizar usuario
-export async function updateUser(id: number, userData: { // Cambiado: string -> number
-  name?: string;
-  email?: string;
-  password?: string;
-  isAdmin?: boolean;
-  IsActive?: boolean;
-  groupId?: number;
-}) {
+export async function updateUser(
+  id: number,
+  userData: {
+    name?: string;
+    email?: string;
+    password?: string;
+    isAdmin?: boolean;
+    IsActive?: boolean;  
+    groupId?: number | null; 
+  }
+) {
   try {
-    // Si se proporciona password, hashearlo
+    // 1) Clonar y normalizar isActive
     const updateData: any = { ...userData };
-    if (userData.password) {
-      updateData.password = await hashPassword(userData.password);
+    if (Object.prototype.hasOwnProperty.call(updateData, "IsActive")) {
+      updateData.isActive = updateData.IsActive; // trasladar
+      delete updateData.IsActive;
     }
 
+    // 2) Hashear password si viene
+    if (updateData.password) {
+      updateData.password = await hashPassword(updateData.password);
+    }
+
+    // 3) Preparar payload para Prisma
+    const prismaData: any = {
+      name: updateData.name,
+      email: updateData.email,
+      password: updateData.password,
+      isActive: updateData.isActive,
+      isAdmin: updateData.isAdmin,
+      // Importante: manejar la relación correctamente
+      ...(Object.prototype.hasOwnProperty.call(userData, "groupId")
+        ? {
+            group:
+              userData.groupId == null
+                ? { disconnect: true }     // quitar grupo
+                : { connect: { id: userData.groupId } }, // asignar grupo
+          }
+        : {}),
+    };
+
     const updatedUser = await prisma.user.update({
-      where: {
-        id, // Ahora espera number
-      },
-      data: updateData,
+      where: { id },
+      data: prismaData,
+      select: { id: true, name: true, email: true, isAdmin: true, IsActive: true, groupId: true }, // no exponemos password
     });
+
     logInfo(`✅ Usuario actualizado: ${updatedUser.name}`);
     return updatedUser;
-  } catch (error) {
+  } catch (error: any) {
+    // Manejo de errores comunes de Prisma
+    if (error.code === "P2002") {
+      logInfo(`❌ Email duplicado`);
+      throw new Error("El email ya está en uso.");
+    }
+    if (error.code === "P2025") {
+      throw new Error("Usuario no encontrado.");
+    }
     logInfo(`❌ Error al actualizar usuario: ${error}`);
-    return null;
+    throw error;
   }
 }
 

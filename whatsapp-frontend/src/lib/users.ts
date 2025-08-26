@@ -19,10 +19,22 @@ export async function createUser(data: any) {
 }
 
 // Actualizar usuario
-export async function updateUser(id: number, data: any) {
+export async function updateUser(
+  id: number,
+  data: { name?: string; email?: string; isAdmin?: boolean; isActive?: boolean; groupId?: number }
+) {
+  const body = {
+    name: data.name,
+    email: data.email,
+    isAdmin: data.isAdmin,
+    isActive: data.isActive, 
+    groupId: data.groupId,  
+  };
+
   return apiFetch(`/users/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(data),
+    method: "PUT", 
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
 }
 

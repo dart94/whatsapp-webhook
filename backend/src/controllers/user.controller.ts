@@ -54,16 +54,15 @@ export const updateUserController = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name, email, password, isAdmin, IsActive, groupId } = req.body;
 
-  if (!id || !name || !email ) {
-    return res.status(400).json({ success: false, message: "Faltan parámetros o campos requeridos." });
+  if (!id) {
+    return res.status(400).json({ success: false, message: "Falta id." });
   }
 
   try {
     const user = await updateUser(Number(id), { name, email, password, isAdmin, IsActive, groupId });
-    res.status(200).json({ success: true, data: user });
-  } catch (error) {
-    logInfo(`❌ Error al actualizar usuario: ${error}`);
-    res.status(500).json({ success: false, message: "Error al actualizar usuario." });
+    return res.status(200).json({ success: true, data: user });
+  } catch (error: any) {
+    return res.status(400).json({ success: false, message: error.message ?? "Error al actualizar usuario." });
   }
 };
 
