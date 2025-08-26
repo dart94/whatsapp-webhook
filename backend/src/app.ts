@@ -8,7 +8,7 @@ import sheetIntegration from './routes/sheetIntegration.routes';
 import user from './routes/user.routes';
 import authRoutes from './routes/auth.routes';
 import groupRoutes from './routes/group.routes';
-import groupIntegrationRoutes from './routes/grpupIntegration.routes';
+import groupIntegrationRoutes from './routes/groupIntegration.routes';
 import { PORT } from './config/constants';
 import cors from 'cors';
 import swaggerSpec from './config/swagger';
