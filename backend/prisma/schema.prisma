@@ -59,10 +59,9 @@ model Group {
 }
 
 model GroupIntegration {
-  id               Int     @id @default(autoincrement())
-  phoneNumberId    Int
-  accessTokenId    String
-  groupId          Int
-  group            Group @relation(fields: [groupId], references: [id])
+  id            Int    @id @default(autoincrement())
+  phoneNumberId String
+  accessTokenId String
+  groupId       Int
+  group         Group @relation(fields: [groupId], references: [id])
 }
-
