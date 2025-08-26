@@ -54,16 +54,17 @@ export async function createGroupIntegration(
   try {
     const groupIntegration = await prisma.groupIntegration.create({
       data: {
-        phoneNumberId: phoneNumberId,
-        accessTokenId: accessTokenId,
-        groupId: groupId,
+        phoneNumberId,
+        accessTokenId,
+        groupId,
       },
     });
     logInfo(`✅ Grupo integrado creado: ${groupIntegration.id}`);
     return groupIntegration;
   } catch (error) {
     logInfo(`❌ Error al crear grupo: ${error}`);
-    return null;
+    // Retornamos el error para debug
+    return { error: String(error) };
   }
 }
 

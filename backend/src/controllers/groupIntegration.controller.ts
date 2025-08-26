@@ -39,11 +39,21 @@ export const createGroupIntegrationController = async (
 ) => {
   try {
     const { phoneNumberId, accessTokenId, groupId } = req.body;
+
+    if (!phoneNumberId || !accessTokenId || !groupId) {
+      return res.status(400).json({ error: "Faltan parámetros requeridos" });
+    }
+
     const groupIntegration = await createGroupIntegration(
-      phoneNumberId,
+      Number(phoneNumberId),
       accessTokenId,
-      groupId
+      Number(groupId)
     );
+
+    if (!groupIntegration || (groupIntegration as any).error) {
+      return res.status(500).json({ error: "Error al crear grupo", details: groupIntegration });
+    }
+
     res.status(201).json(groupIntegration);
   } catch (error) {
     logInfo(`❌ Error al crear grupo: ${error}`);
