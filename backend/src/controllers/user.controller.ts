@@ -33,7 +33,7 @@ export const getUserByIdController = async (req: Request, res: Response) => {
 
 //Crear nuevo usuario
 export const createUserController = async (req: Request, res: Response) => {
-  const { name, email, password, isAdmin, IsActive } = req.body;
+  const { name, email, password, isAdmin, IsActive, groupId } = req.body;
 
   const validationErrors = validateUserInputFull({ name, email, password });
 if (validationErrors.length > 0) {
@@ -41,7 +41,7 @@ if (validationErrors.length > 0) {
 }
 
   try {
-    const user = await createUser({ name, email, password, isAdmin, IsActive });
+    const user = await createUser({ name, email, password, isAdmin, IsActive, groupId });
     res.status(201).json({ success: true, data: user });
   } catch (error: any) {
     logInfo(`❌ Error al crear usuario: ${error.message}`);
@@ -52,14 +52,14 @@ if (validationErrors.length > 0) {
 //Actualizar usuario
 export const updateUserController = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, email, password, isAdmin, IsActive } = req.body;
+  const { name, email, password, isAdmin, IsActive, groupId } = req.body;
 
   if (!id || !name || !email ) {
     return res.status(400).json({ success: false, message: "Faltan parámetros o campos requeridos." });
   }
 
   try {
-    const user = await updateUser(Number(id), { name, email, password, isAdmin, IsActive });
+    const user = await updateUser(Number(id), { name, email, password, isAdmin, IsActive, groupId });
     res.status(200).json({ success: true, data: user });
   } catch (error) {
     logInfo(`❌ Error al actualizar usuario: ${error}`);

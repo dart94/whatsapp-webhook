@@ -5,7 +5,7 @@ import { Group } from "@/types/groups";
 import { PencilSquareIcon, TrashIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { showToast } from "@/components/common/Toast";
-// import { GroupCreate } from "@/components/modal/GroupCreate";
+import { GroupCreate } from "@/components/modal/GroupCreate";
 // import { GroupEdit } from "@/components/modal/GroupEdit";
 import { withAdmin } from "@/guards/WithAuth";
 import { useGroups } from "@/hooks/useGroup";
@@ -96,18 +96,15 @@ function PrivatePage() {
           <table className="min-w-full text-sm">
             <thead className="bg-gray-50 border-b text-xs text-gray-600 uppercase">
               <tr>
+                <th className="px-4 py-3 text-left">ID</th>
                 <th className="px-4 py-3 text-left">Nombre</th>
                 <th className="px-4 py-3 text-left">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 text-gray-800">
               {groups.map((group) => (
-                <tr
-                  key={group.id}
-                  className={`transition ${
-                    group.id === selectedGroup?.id ? "bg-gray-100" : "hover:bg-gray-50"
-                  }`}
-                >
+                <tr key={group.id} className="hover:bg-gray-50 transition">
+                  <td className="px-4 py-3 font-semibold">{group.id}</td>
                   <td className="px-4 py-3 font-semibold">{group.name}</td>
 
                   <td className="px-4 py-3">
@@ -152,14 +149,14 @@ function PrivatePage() {
           </table>
 
           {/* Modal crear */}
-          {/* <GroupCreate
+           <GroupCreate
             isOpen={isOpen}
             onClose={closeCreate}
             onCreated={async () => {
               await refresh();
               closeCreate();
             }}
-          /> */}
+          /> 
 
           {/* Modal editar */}
           {/* {editingGroup && (

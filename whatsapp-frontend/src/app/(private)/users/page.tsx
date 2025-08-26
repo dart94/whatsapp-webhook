@@ -135,6 +135,7 @@ export default function PrivatePage() {
               <tr>
                 <th className="px-4 py-3 text-left">Nombre</th>
                 <th className="px-4 py-3 text-left">Correo</th>
+                <th className="px-4 py-3 text-left">Grupo</th>
                 <th className="px-4 py-3 text-left">Estado</th>
                 <th className="px-4 py-3 text-left">Administrador</th>
                 <th className="px-4 py-3 text-left">Acciones</th>
@@ -152,6 +153,7 @@ export default function PrivatePage() {
                 >
                   <td className="px-4 py-3 font-semibold">{user.name}</td>
                   <td className="px-4 py-3">{user.email}</td>
+                  <td className="px-4 py-3">{user.groupId}</td>
                   <td className="px-4 py-3">
                     <Badge variant="outline">
                       {user.IsActive ? "Activo" : "Inactivo"}
