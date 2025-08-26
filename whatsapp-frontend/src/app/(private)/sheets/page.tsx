@@ -12,6 +12,7 @@ import { error } from "console";
 import { useRouter } from "next/navigation";
 import { Badge } from "../../../components/ui/Badge";
 import { Label } from "../../../components/ui/Label";
+import Loader from "@/components/ui/Loader";
 
 export default function RegisterSheetForm() {
   const [name, setName] = useState("");
@@ -77,6 +78,8 @@ export default function RegisterSheetForm() {
     }
   };
 
+  if (loading) return <Loader message="Cargando encabezados" showTips={true} />;
+  
   return (
     <Card className="max-w-xl mx-auto mt-10 shadow-lg rounded-2xl">
       <CardContent className="space-y-6 py-8 px-6">
