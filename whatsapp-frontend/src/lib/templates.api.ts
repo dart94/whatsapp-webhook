@@ -12,15 +12,26 @@ export async function fetchTemplates(): Promise<Template[]> {
 
 
 //Enviar mensajes por plantilla
+
 export async function sendTemplateMessage(payload: SendTemplatePayload) {
+  // Recuperar token de localStorage o sessionStorage
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+
+  if (!token) {
+    console.error("❌ No se encontró token. El usuario debe iniciar sesión.");
+    throw new Error("No se encontró token. Inicia sesión primero.");
+  }
+
   const res = await fetch(`${API_BASE_URL}/message/template`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`, 
     },
     body: JSON.stringify(payload),
   });
-  console.log("Enviando plantilla con payload:", payload);
+
+  console.log("📤 Enviando plantilla con payload:", payload);
   const json = await res.json();
   return json.data;
 }

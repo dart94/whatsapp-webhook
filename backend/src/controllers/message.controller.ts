@@ -8,7 +8,7 @@ import { log } from "console";
 import { renderTemplate } from "../utils/renderTemplate";
 import { getUnreadCountsPerConversation } from "../services/messagesby.service";
 
-//Enviar mensajes por plantilla
+// Enviar mensajes por plantilla
 export const sendTemplate = async (req: Request, res: Response) => {
   const { messages, templateName, language, body } = req.body;
 
@@ -32,15 +32,25 @@ export const sendTemplate = async (req: Request, res: Response) => {
       return res.status(401).json({ success: false, message: "Invalid token" });
     }
 
-    // ✅ Sacar phoneNumberId y accessTokenId del token (puestos en el login)
-    const integration = (decoded as any).integration || {};
-    const { phonenumberId, accessTokenId } = integration;
-    if (!phonenumberId || !accessTokenId) {
+    const userId = (decoded as any).id;
+
+    // ✅ Obtener integración desde la base de datos
+    const integration = await prisma.groupIntegration.findFirst({
+      where: { groupId: (decoded as any).groupId }, // asumimos que el usuario tiene groupId
+      select: {
+        phoneNumberId: true,
+        accessTokenId: true,
+      },
+    });
+
+    if (!integration || !integration.phoneNumberId || !integration.accessTokenId) {
       return res.status(400).json({
         success: false,
         message: "Integration data (phoneNumberId, accessTokenId) missing",
       });
     }
+
+    const { phoneNumberId, accessTokenId } = integration;
 
     const templateBody = body;
     const results: any[] = [];
@@ -51,20 +61,15 @@ export const sendTemplate = async (req: Request, res: Response) => {
         const renderedBody = renderTemplate(templateBody, msg.parameters || []);
 
         // ✅ Enviar a Meta con valores dinámicos
-        const result = await sendTemplateMessage(
-          msg.to,
+        const result = await sendTemplateMessage({
+          to: msg.to,
           templateName,
           language,
-          msg.parameters || [],
-          phonenumberId,
-          accessTokenId
-        );
+          parameters: msg.parameters || [],
+          phoneNumberId,
+          accessTokenId,
+        });
         console.log(`📡 Respuesta de Meta:`, JSON.stringify(result, null, 2));
-
-        // Verificar si la API devolvió mensajes
-        if (!result?.messages || result.messages.length === 0) {
-          console.warn(`⚠️ No se recibió message_id para ${msg.to}`);
-        }
 
         const message_id = result?.messages?.[0]?.id || "NO_ID";
 

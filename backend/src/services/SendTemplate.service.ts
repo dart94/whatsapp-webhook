@@ -1,19 +1,28 @@
 import { logInfo, logError } from "../utils/logger";
 
-// Función para enviar un mensaje de template
-export async function sendTemplateMessage(
-  to: string,
-  templateName: string,
-  language: { code: string },
-  parameters: string[],
-  phonenumberId: string,
-  accessToken: string
-) {
+interface SendTemplatePayload {
+  to: string;
+  templateName: string;
+  language: { code: string } | string;
+  parameters?: string[];
+  phoneNumberId: string;  // ahora dinámico
+  accessTokenId: string;  // ahora dinámico
+}
+
+// Función para enviar mensaje por plantilla
+export async function sendTemplateMessage(payload: SendTemplatePayload) {
+  const { to, templateName, language, parameters = [], phoneNumberId, accessTokenId } = payload;
+
+  if (!phoneNumberId || !accessTokenId) {
+    throw new Error("phoneNumberId or accessTokenId missing");
+  }
+
   const languageCode = typeof language === "string" ? language : language?.code;
   if (!languageCode) {
     throw new Error("Language code is missing!");
   }
 
+  // Construir body para la API de WhatsApp
   const body = {
     messaging_product: "whatsapp",
     to,
@@ -24,38 +33,33 @@ export async function sendTemplateMessage(
       components: [
         {
           type: "body",
-          parameters: parameters.map((param) => ({
-            type: "text",
-            text: param,
-          })),
+          parameters: parameters.map((param) => ({ type: "text", text: param })),
         },
       ],
     },
   };
 
   try {
-    const response = await fetch(
-      `https://graph.facebook.com/v19.0/${phonenumberId}/messages`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      }
-    );
+    const res = await fetch(`https://graph.facebook.com/v19.0/${phoneNumberId}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessTokenId}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
 
-    const data = await response.json();
+    const data = await res.json();
 
-    if (response.ok) {
-      logInfo(`✅ Template message sent successfully: ${JSON.stringify(data)}`);
+    if (res.ok) {
+      console.log(`✅ Template message sent successfully: ${JSON.stringify(data)}`);
     } else {
-      logError(`❌ Error sending template message: ${JSON.stringify(data)}`);
+      console.error(`❌ Error sending template message: ${JSON.stringify(data)}`);
     }
+
     return data;
   } catch (error) {
-    logError(`❌ Network error sending template: ${error}`);
+    console.error(`❌ Network error sending template: ${error}`);
     throw error;
   }
 }
