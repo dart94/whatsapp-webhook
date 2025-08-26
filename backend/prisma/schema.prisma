@@ -61,7 +61,7 @@ model Group {
 model GroupIntegration {
   id            Int    @id @default(autoincrement())
   phoneNumberId String
-  accessTokenId String
+  accessTokenId String @db.Text
   groupId       Int
   group         Group @relation(fields: [groupId], references: [id])
 }
