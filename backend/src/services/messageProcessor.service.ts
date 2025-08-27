@@ -54,7 +54,13 @@ export async function processIncomingMessage(message: WhatsAppMessage) {
 
   if (AUTO_RESPONSE_ENABLED) {
     const responseMessage = generateAutoResponse(message);
-    await sendWhatsAppMessage(message.from, responseMessage);
+    await sendWhatsAppMessage({
+      to: message.from,
+      message: responseMessage,
+      phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || "",
+      accessTokenId: process.env.WHATSAPP_ACCESS_TOKEN || "",
+      replyToMessageId: message.id,
+    });
 
     logInfo(`✅ Respuesta enviada a ${message.from}: "${responseMessage}"`);
   } else {
