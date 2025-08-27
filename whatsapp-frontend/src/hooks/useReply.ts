@@ -18,7 +18,7 @@ export function useReply(waId: string | undefined, token: string) {
       const newMessage = await replyToMessage(waId, message, token);
       setMessage('');
 
-      return newMessage; // ✅ devolver el mensaje enviado
+      return newMessage; 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al enviar mensaje');
       return null;
