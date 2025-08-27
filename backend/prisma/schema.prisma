@@ -62,6 +62,7 @@ model GroupIntegration {
   id            Int    @id @default(autoincrement())
   phoneNumberId String
   accessTokenId String @db.Text
+  Waba_id       String?
   groupId       Int
   group         Group @relation(fields: [groupId], references: [id])
 }
