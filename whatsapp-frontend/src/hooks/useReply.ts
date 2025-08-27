@@ -26,6 +26,7 @@ export function useReply(waId: string | undefined, token: string) {
       setLoading(false);
     }
   }, [waId, message, token]); 
+  console.log("Token in useReply:", token);
 
   return {
     message,
