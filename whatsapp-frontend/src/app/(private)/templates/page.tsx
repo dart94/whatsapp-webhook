@@ -9,7 +9,9 @@ import { Badge } from "../../../components/ui/Badge";
 import Loader from "../../../components/ui/Loader";
 
 export default function TemplatesPage() {
-  const { templates, loading, error } = useTemplates();
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const { templates, loading, error, reload } = useTemplates(token);
+
 
   if (loading) return <Loader message="Cargando plantillas" showTips={true} />;
 

@@ -3,12 +3,22 @@ import { Template } from "../types/whatsapp";
 import { SendTemplatePayload } from "../types/whatsapp";
 
 //Obtener las plantillas
-export async function fetchTemplates(): Promise<Template[]> {
-  const res = await fetch(`${API_BASE_URL}/templates`);
+export async function fetchTemplates(token: string): Promise<Template[]> {
+  const res = await fetch(`${API_BASE_URL}/templates`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`, 
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Error HTTP ${res.status}: ${text}`);
+  }
+
   const json = await res.json();
   return json.data;
 }
-
 
 
 //Enviar mensajes por plantilla

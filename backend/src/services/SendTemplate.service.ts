@@ -1,13 +1,8 @@
+import { log } from "console";
 import { logInfo, logError } from "../utils/logger";
+import type { SendTemplatePayload } from "../interface/send.interface";
 
-interface SendTemplatePayload {
-  to: string;
-  templateName: string;
-  language: { code: string } | string;
-  parameters?: string[];
-  phoneNumberId: string;  // ahora dinámico
-  accessTokenId: string;  // ahora dinámico
-}
+
 
 // Función para enviar mensaje por plantilla
 export async function sendTemplateMessage(payload: SendTemplatePayload) {
@@ -52,14 +47,14 @@ export async function sendTemplateMessage(payload: SendTemplatePayload) {
     const data = await res.json();
 
     if (res.ok) {
-      console.log(`✅ Template message sent successfully: ${JSON.stringify(data)}`);
+      logInfo(`✅ Template message sent: ${JSON.stringify(data)}`);
     } else {
-      console.error(`❌ Error sending template message: ${JSON.stringify(data)}`);
+      logError(`❌ Error sending template message: ${JSON.stringify(data)}`);
     }
 
     return data;
   } catch (error) {
-    console.error(`❌ Network error sending template: ${error}`);
+    logError(`❌ Exception sending template message: ${error}`);
     throw error;
   }
 }

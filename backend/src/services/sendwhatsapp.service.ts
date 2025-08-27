@@ -1,15 +1,8 @@
-import { PHONE_NUMBER_ID, ACCESS_TOKEN } from '../config/constants';
 import { logInfo, logError } from '../utils/logger';
 import { prisma } from '../prisma';
+import type { SendTextPayload } from '../interface/send.interface';
 
-// types
-interface SendTextPayload {
-  to: string;
-  message: string;
-  phoneNumberId: string; // ahora dinámico
-  accessTokenId: string; // ahora dinámico
-  replyToMessageId?: string;
-}
+
 
 // Función para enviar un mensaje de texto dinámico
 export async function sendWhatsAppMessage(payload: SendTextPayload) {
