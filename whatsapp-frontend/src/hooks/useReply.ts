@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
-import {replyToMessage} from "../lib/conversation.api";
-import {WhatsappMessage} from "../types/whatsapp";
+import { replyToMessage } from "../lib/conversation.api";
+import { WhatsappMessage } from "../types/whatsapp";
 
-export function useReply(waId: string | undefined) {
+export function useReply(waId: string | undefined, token: string) {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +14,8 @@ export function useReply(waId: string | undefined) {
       setLoading(true);
       setError(null);
 
-      const newMessage = await replyToMessage(waId, message);
+      // 🔹 Pasar token al enviar el mensaje
+      const newMessage = await replyToMessage(waId, message, token);
       setMessage('');
 
       return newMessage; // ✅ devolver el mensaje enviado
@@ -24,7 +25,7 @@ export function useReply(waId: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [waId, message]);
+  }, [waId, message, token]); 
 
   return {
     message,
@@ -34,4 +35,3 @@ export function useReply(waId: string | undefined) {
     setMessage,
   };
 }
-

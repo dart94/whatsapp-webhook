@@ -46,6 +46,7 @@ export async function sendWhatsAppMessage(payload: SendTextPayload) {
         body: JSON.stringify(body),
       }
     );
+    console.log("Número destino:", to);
 
     const data = await response.json();
 
