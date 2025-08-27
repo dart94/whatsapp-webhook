@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Button } from "../../../components/ui/Button";
 import { Badge } from "../../../components/ui/Badge";
 import Loader from "../../../components/ui/Loader";
+import { XCircleIcon } from "@heroicons/react/24/solid";
 
 export default function TemplatesPage() {
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -20,7 +21,10 @@ export default function TemplatesPage() {
       <h1 className="text-3xl font-bold mb-8 text-gray-800">Plantillas</h1>
 
       {error ? (
-        <p className="text-red-500">Error: {error}</p>
+        <div className="max-w-4xl mx-auto mt-10 text-red-500 text-center">
+          <XCircleIcon className="w-12 h-12 mx-auto mb-4" />
+          <p>Error al cargar las plantillas. Contacta con el administrador.</p>
+        </div>
       ) : (
         <div className="overflow-x-auto border rounded-xl shadow-sm bg-white">
           <table className="min-w-full text-sm">
