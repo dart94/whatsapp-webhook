@@ -134,9 +134,9 @@ export const sendTemplate = async (req: Request, res: Response) => {
 
 //Responder mensajes
 export const replyToMessage = async (req: Request, res: Response) => {
-  const { to, message } = req.body;
+  const { to, message, replyToMessageId } = req.body;
 
-  if (!to || !message  ) {
+  if (!to || !message) {
     return res.status(400).json({
       success: false,
       message: "Missing required fields: to, message",
@@ -144,17 +144,65 @@ export const replyToMessage = async (req: Request, res: Response) => {
   }
 
   try {
-    const result = await sendWhatsAppMessage(to, message );
+    // ✅ Obtener token del usuario
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: "Token required" });
+    }
+
+    const decoded = await validateToken(token);
+    if (!decoded || typeof decoded !== "object") {
+      return res.status(401).json({ success: false, message: "Invalid token" });
+    }
+
+    const userId = (decoded as any).id;
+
+    // ✅ Obtener groupId del usuario
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { groupId: true },
+    });
+
+    if (!user?.groupId) {
+      return res.status(400).json({
+        success: false,
+        message: "User has no associated group",
+      });
+    }
+
+    // ✅ Obtener integración del grupo
+    const integration = await prisma.groupIntegration.findFirst({
+      where: { groupId: user.groupId },
+      select: { phoneNumberId: true, accessTokenId: true },
+    });
+
+    if (!integration?.phoneNumberId || !integration?.accessTokenId) {
+      return res.status(400).json({
+        success: false,
+        message: "Integration data (phoneNumberId, accessTokenId) missing",
+      });
+    }
+
+    // ✅ Enviar mensaje de texto dinámico
+    const result = await sendWhatsAppMessage({
+      to,
+      message,
+      replyToMessageId,
+      phoneNumberId: integration.phoneNumberId,
+      accessTokenId: integration.accessTokenId,
+    });
 
     return res.status(200).json({
       success: true,
       data: result,
     });
+
   } catch (error) {
     logError(`❌ Error in replyToMessage controller: ${error}`);
     return res.status(500).json({
       success: false,
       message: "Error sending reply message.",
+      error: String(error),
     });
   }
 };

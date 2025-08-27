@@ -2,12 +2,23 @@ import { PHONE_NUMBER_ID, ACCESS_TOKEN } from '../config/constants';
 import { logInfo, logError } from '../utils/logger';
 import { prisma } from '../prisma';
 
-// Función para enviar un mensaje de texto
-export async function sendWhatsAppMessage(
-  to: string,
-  message: string,
-  replyToMessageId?: string
-) {
+// types
+interface SendTextPayload {
+  to: string;
+  message: string;
+  phoneNumberId: string; // ahora dinámico
+  accessTokenId: string; // ahora dinámico
+  replyToMessageId?: string;
+}
+
+// Función para enviar un mensaje de texto dinámico
+export async function sendWhatsAppMessage(payload: SendTextPayload) {
+  const { to, message, phoneNumberId, accessTokenId, replyToMessageId } = payload;
+
+  if (!phoneNumberId || !accessTokenId) {
+    throw new Error("phoneNumberId or accessTokenId missing");
+  }
+
   const body: any = {
     messaging_product: 'whatsapp',
     to,
@@ -25,11 +36,11 @@ export async function sendWhatsAppMessage(
 
   try {
     const response = await fetch(
-      `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+      `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`,
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          Authorization: `Bearer ${accessTokenId}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
@@ -50,8 +61,8 @@ export async function sendWhatsAppMessage(
           type: 'text',
           body_text: message,
           context_message_id: replyToMessageId || null,
-          timestamp: Date.now(),
-          raw_json: data,
+          timestamp: BigInt(Math.floor(Date.now() / 1000)),
+          raw_json: JSON.stringify(data),
           read: true,
         },
       });
