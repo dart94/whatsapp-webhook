@@ -14,6 +14,8 @@ export default function ChatInput({ waId }: ChatInputProps) {
   const [error, setError] = useState<string | null>(null);
   const { addMessageToChat, updateMessageInChat } = useChatStore();
 
+  
+
   const handleSend = useCallback(async () => {
     if (loading || !message.trim()) return;
     
@@ -22,6 +24,7 @@ export default function ChatInput({ waId }: ChatInputProps) {
     
     // 1. Crear mensaje optimista
     const tempId = Date.now();
+
     const optimisticMessage: WhatsappMessage = {
       id: tempId,
       message_id: `temp-${tempId}`,
@@ -39,9 +42,16 @@ export default function ChatInput({ waId }: ChatInputProps) {
     addMessageToChat(waId, optimisticMessage);
     setMessage('');
 
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+
+    if (!token) {
+      console.error("❌ No se encontró token. El usuario debe iniciar sesión.");
+      throw new Error("No se encontró token. Inicia sesión primero.");
+    }
+
     try {
       // 3. Enviar al servidor
-      const sentMessage = await replyToMessage(waId, message);
+      const sentMessage = await replyToMessage(waId, message, token);
       
       // 4. Actualizar con la respuesta real
       updateMessageInChat(waId, tempId, {
