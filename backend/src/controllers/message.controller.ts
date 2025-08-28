@@ -9,11 +9,9 @@ import { renderTemplate } from "../utils/renderTemplate";
 import { getUnreadCountsPerConversation } from "../services/messagesby.service";
 
 // Enviar mensajes por plantilla
-
 export const sendTemplate = async (req: Request, res: Response) => {
   const { messages, templateName, language, body } = req.body;
 
-  // ✅ Validación de campos requeridos
   if (!messages || !templateName || !language || !body) {
     return res.status(400).json({
       success: false,
@@ -22,56 +20,43 @@ export const sendTemplate = async (req: Request, res: Response) => {
   }
 
   try {
-    // ✅ Obtener token del usuario
     const token = req.headers.authorization?.split(" ")[1];
-    if (!token) {
-      return res.status(401).json({ success: false, message: "Token required" });
-    }
+    if (!token) return res.status(401).json({ success: false, message: "Token required" });
 
     const decoded = await validateToken(token);
     if (!decoded || typeof decoded !== "object") {
       return res.status(401).json({ success: false, message: "Invalid token" });
     }
+    const actorUserId = (decoded as any).id as number;
 
-    const userId = (decoded as any).id;
-
-    // ✅ Obtener groupId del usuario desde la BD
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: actorUserId },
       select: { groupId: true },
     });
-
     if (!user?.groupId) {
-      return res.status(400).json({
-        success: false,
-        message: "User has no associated group",
-      });
+      return res.status(400).json({ success: false, message: "User has no associated group" });
     }
 
-    // ✅ Obtener integración del grupo
     const integration = await prisma.groupIntegration.findFirst({
       where: { groupId: user.groupId },
-      select: { phoneNumberId: true, accessTokenId: true },
+      select: { id: true, phoneNumberId: true, accessTokenId: true },
     });
-
-    if (!integration || !integration.phoneNumberId || !integration.accessTokenId) {
+    if (!integration?.phoneNumberId || !integration?.accessTokenId) {
       return res.status(400).json({
         success: false,
         message: "Integration data (phoneNumberId, accessTokenId) missing",
       });
     }
 
-    const { phoneNumberId, accessTokenId } = integration;
-
+    const { id: groupIntegrationId, phoneNumberId, accessTokenId } = integration;
     const templateBody = body;
     const results: any[] = [];
 
-    for (const msg of messages) {
+    for (const msg of messages as Array<{ to: string; parameters?: string[] }>) {
       try {
-        // ✅ Renderizar body
         const renderedBody = renderTemplate(templateBody, msg.parameters || []);
 
-        // ✅ Enviar a Meta con valores dinámicos
+        // Llamada a Meta
         const result = await sendTemplateMessage({
           to: msg.to,
           templateName,
@@ -79,51 +64,40 @@ export const sendTemplate = async (req: Request, res: Response) => {
           parameters: msg.parameters || [],
           phoneNumberId,
           accessTokenId,
+          actorUserId, // aunque aquí no lo uses para persistir desde el servicio
+          groupIntegrationId,
         });
-
-        console.log(`📡 Respuesta de Meta:`, JSON.stringify(result, null, 2));
 
         const message_id = result?.messages?.[0]?.id || "NO_ID";
 
-        // ✅ Guardar en BD
-        const saved = await prisma.whatsappMessage.create({
+        // Guardado en BD AQUÍ (si no lo hace el servicio)
+        await prisma.whatsappMessage.create({
           data: {
             wa_id: msg.to,
             message_id,
-            direction: "OUT",
+            direction: "outbound",            
             type: "template",
-            body_text: renderedBody,
+            body_text: renderedBody,          
             context_message_id: null,
             timestamp: BigInt(Math.floor(Date.now() / 1000)),
-            raw_json: JSON.stringify(result),
+            raw_json: result,                  
             read: false,
+
+            fromPhone: phoneNumberId,
+            toPhone: msg.to,
+            sentByUserId: actorUserId,
+            groupIntegrationId,
           },
         });
 
-        console.log(`💾 Guardado en BD con ID interno: ${saved.id}`);
-
-        results.push({
-          to: msg.to,
-          result,
-        });
-
+        results.push({ to: msg.to, meta: result });
       } catch (msgError) {
-        console.error(`❌ Error procesando ${msg.to}:`, msgError);
-        results.push({
-          to: msg.to,
-          error: String(msgError),
-        });
+        results.push({ to: msg.to, error: String(msgError) });
       }
     }
 
-    console.log("✅ Proceso completado para todas las plantillas");
-    return res.status(200).json({
-      success: true,
-      data: results,
-    });
-
+    return res.status(200).json({ success: true, data: results });
   } catch (error) {
-    console.error(`❌ Error general en sendTemplate:`, error);
     return res.status(500).json({
       success: false,
       message: "Error sending template message.",
@@ -131,7 +105,6 @@ export const sendTemplate = async (req: Request, res: Response) => {
     });
   }
 };
-
 //Responder mensajes
 export const replyToMessage = async (req: Request, res: Response) => {
   const { to, message, replyToMessageId } = req.body;
@@ -144,25 +117,22 @@ export const replyToMessage = async (req: Request, res: Response) => {
   }
 
   try {
-    // ✅ Obtener token del usuario
+    // ✅ Token y usuario
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
       return res.status(401).json({ success: false, message: "Token required" });
     }
-
     const decoded = await validateToken(token);
     if (!decoded || typeof decoded !== "object") {
       return res.status(401).json({ success: false, message: "Invalid token" });
     }
+    const actorUserId = (decoded as any).id as number;
 
-    const userId = (decoded as any).id;
-
-    // ✅ Obtener groupId del usuario
+    // ✅ Grupo del usuario
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: actorUserId },
       select: { groupId: true },
     });
-
     if (!user?.groupId) {
       return res.status(400).json({
         success: false,
@@ -170,12 +140,11 @@ export const replyToMessage = async (req: Request, res: Response) => {
       });
     }
 
-    // ✅ Obtener integración del grupo
+    // ✅ Integración del grupo (incluye id para evitar lookup en el servicio)
     const integration = await prisma.groupIntegration.findFirst({
       where: { groupId: user.groupId },
-      select: { phoneNumberId: true, accessTokenId: true },
+      select: { id: true, phoneNumberId: true, accessTokenId: true },
     });
-
     if (!integration?.phoneNumberId || !integration?.accessTokenId) {
       return res.status(400).json({
         success: false,
@@ -183,20 +152,21 @@ export const replyToMessage = async (req: Request, res: Response) => {
       });
     }
 
-    // ✅ Enviar mensaje de texto dinámico
+    // ✅ Enviar y persistir con relaciones (actor + integración)
     const result = await sendWhatsAppMessage({
       to,
       message,
       replyToMessageId,
       phoneNumberId: integration.phoneNumberId,
       accessTokenId: integration.accessTokenId,
+      actorUserId,                           
+      groupIntegrationId: integration.id,    
     });
 
     return res.status(200).json({
       success: true,
       data: result,
     });
-
   } catch (error) {
     logError(`❌ Error in replyToMessage controller: ${error}`);
     return res.status(500).json({

@@ -4,7 +4,9 @@ export interface SendTemplatePayload {
   language: { code: string } | string;
   parameters?: string[];
   phoneNumberId: string;  
-  accessTokenId: string;  
+  accessTokenId: string;
+  actorUserId?: number;
+  groupIntegrationId?: number | null;
 }
 
 export interface SendTextPayload {
@@ -13,4 +15,6 @@ export interface SendTextPayload {
   phoneNumberId: string; 
   accessTokenId: string; 
   replyToMessageId?: string;
+  actorUserId?: number;
+  groupIntegrationId?: number | null;
 }

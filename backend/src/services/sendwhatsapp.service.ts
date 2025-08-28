@@ -1,21 +1,26 @@
-import { logInfo, logError } from '../utils/logger';
-import { prisma } from '../prisma';
-import type { SendTextPayload } from '../interface/send.interface';
-
-
+import { logInfo, logError } from "../utils/logger";
+import { prisma } from "../prisma";
+import type { SendTextPayload } from "../interface/send.interface";
 
 // Función para enviar un mensaje de texto dinámico
 export async function sendWhatsAppMessage(payload: SendTextPayload) {
-  const { to, message, phoneNumberId, accessTokenId, replyToMessageId } = payload;
+  const {
+    to,
+    message,
+    phoneNumberId,
+    accessTokenId,
+    replyToMessageId,
+    actorUserId,
+  } = payload;
 
   if (!phoneNumberId || !accessTokenId) {
     throw new Error("phoneNumberId or accessTokenId missing");
   }
 
   const body: any = {
-    messaging_product: 'whatsapp',
+    messaging_product: "whatsapp",
     to,
-    type: 'text',
+    type: "text",
     text: {
       body: message,
     },
@@ -31,34 +36,42 @@ export async function sendWhatsAppMessage(payload: SendTextPayload) {
     const response = await fetch(
       `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
           Authorization: `Bearer ${accessTokenId}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
       }
     );
-    console.log("Número destino:", to);
-    console.log("token usado:", accessTokenId);
 
     const data = await response.json();
 
     if (response.ok) {
       logInfo(`✅ Mensaje enviado: ${JSON.stringify(data)}`);
 
+      const gi = await prisma.groupIntegration.findFirst({
+        where: { phoneNumberId },
+        select: { id: true },
+      });
+
       // Guardar en DB
       await prisma.whatsappMessage.create({
         data: {
           wa_id: to,
-          message_id: data.messages?.[0]?.id || 'unknown',
-          direction: 'OUT',
-          type: 'text',
+          message_id: data.messages?.[0]?.id || "unknown",
+          direction: "OUT",
+          type: "text",
           body_text: message,
           context_message_id: replyToMessageId || null,
           timestamp: BigInt(Math.floor(Date.now() / 1000)),
-          raw_json: JSON.stringify(data),
+          raw_json: data,
           read: true,
+
+          fromPhone: phoneNumberId, 
+          toPhone: to,
+          groupIntegrationId: gi?.id ?? null,
+          sentByUserId: actorUserId,
         },
       });
     } else {
@@ -66,7 +79,6 @@ export async function sendWhatsAppMessage(payload: SendTextPayload) {
     }
 
     return data;
-
   } catch (error) {
     logError(`❌ Error enviando mensaje: ${error}`);
     throw error;

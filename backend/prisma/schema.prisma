@@ -1,3 +1,4 @@
+// schema.prisma
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
@@ -11,7 +12,7 @@ model WhatsappMessage {
   id                 BigInt     @id @default(autoincrement())
   wa_id              String
   message_id         String
-  direction          String
+  direction          String                   // 'outbound' | 'inbound'
   type               String?
   body_text          String?    @db.Text
   context_message_id String?
@@ -20,6 +21,26 @@ model WhatsappMessage {
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
   read               Boolean    @default(false)
+
+  // NUEVO: telefonía explícita (útil para backfill/consultas)
+  fromPhone          String?                   // emisor: tu número (outbound) o cliente (inbound)
+  toPhone            String?                   // receptor
+
+  // NUEVO: relaciones
+  sentByUserId       Int?
+  sentByUser         User?        @relation("MessageSentByUser", fields: [sentByUserId], references: [id])
+
+  groupIntegrationId Int?
+  groupIntegration   GroupIntegration? @relation(fields: [groupIntegrationId], references: [id])
+
+  @@index([sentByUserId])
+  @@index([groupIntegrationId])
+  @@index([fromPhone])
+  @@index([toPhone])
+  @@index([direction])
+  @@index([wa_id])
+  @@index([message_id])
+  @@index([createdAt])
 }
 
 model SheetIntegration {
@@ -31,38 +52,46 @@ model SheetIntegration {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  userId        Int?                    
-  user          User?      @relation(fields: [userId], references: [id]) 
+  userId        Int?
+  user          User?      @relation(fields: [userId], references: [id])
 }
 
 model User {
-  id               Int               @id @default(autoincrement())
-  name             String
-  email            String            @unique
-  password         String
-  isAdmin          Boolean           @default(false)
-  IsActive         Boolean           @default(false)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  sheetIntegrations SheetIntegration[] 
+  id                Int                 @id @default(autoincrement())
+  name              String
+  email             String              @unique
+  password          String
+  isAdmin           Boolean             @default(false)
+  IsActive          Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 
-  groupId          Int?
-  group            Group?            @relation(fields: [groupId], references: [id])
+  sheetIntegrations SheetIntegration[]
+
+  // Relación con grupo (si aplica)
+  groupId           Int?
+  group             Group?              @relation(fields: [groupId], references: [id])
+
+  // NUEVO: back-rel de mensajes enviados por este usuario
+  sentMessages      WhatsappMessage[]   @relation("MessageSentByUser")
 }
 
 model Group {
-  id        Int     @id @default(autoincrement())
-  name      String  @unique
+  id            Int                @id @default(autoincrement())
+  name          String             @unique
 
-  users     User[]
-  integrations GroupIntegration[]
+  users         User[]
+  integrations  GroupIntegration[]
 }
 
 model GroupIntegration {
-  id            Int    @id @default(autoincrement())
-  phoneNumberId String
-  accessTokenId String @db.Text
+  id            Int               @id @default(autoincrement())
+  phoneNumberId String            // número/ID del remitente (tu línea de negocio)
+  accessTokenId String            @db.Text
   Waba_id       String?
   groupId       Int
-  group         Group @relation(fields: [groupId], references: [id])
+  group         Group             @relation(fields: [groupId], references: [id])
+
+  // NUEVO: back-rel de mensajes que usaron esta integración/número
+  messages      WhatsappMessage[]
 }
