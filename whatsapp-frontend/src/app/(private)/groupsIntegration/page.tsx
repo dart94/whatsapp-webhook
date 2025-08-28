@@ -14,7 +14,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { GroupIntCreate } from "@/components/modal/GroupIntCreate";
-import { GroupEdit } from "@/components/modal/GroupEdit";
+import { GroupIntEdit } from "@/components/modal/GroupIntEdit";
 import { withAdmin } from "@/guards/WithAuth";
 import { useGroups } from "@/hooks/useGroups";
 import Loader from "@/components/ui/Loader";
@@ -331,8 +331,8 @@ function PrivatePage() {
             }}
           />
           {/* Modal de edición (único) */}
-          {/* {editingGroupIntegration && (
-            <GroupEdit
+          {editingGroupIntegration && (
+            <GroupIntEdit
               isOpen={isOpenEdit}
               onClose={closeEditGroupIntegration}
               group={editingGroupIntegration}
@@ -341,7 +341,7 @@ function PrivatePage() {
                 closeEditGroupIntegration();
               }}
             />
-          )} */}
+          )}
         </div>
       </div>
     </div>

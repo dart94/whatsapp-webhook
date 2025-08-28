@@ -15,11 +15,13 @@ import {
   UserGroupIcon,
   ShieldCheckIcon,
   UserIcon,
-  LinkIcon
+  LinkIcon,
 } from "@heroicons/react/24/outline";
 
 import { useAuth } from "@/hooks/useAuth";
 import { showSweetAlert } from "./common/Sweet";
+import Image from "next/image";
+import King from "../../public/king.png";
 
 /* -------------------- Helpers robustos -------------------- */
 
@@ -167,15 +169,14 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
         Icon: UserGroupIcon,
         active: pathname === "/groups",
         adminOnly: true,
-      }
-      ,
+      },
       {
         href: "/groupsIntegration",
         label: "Integración Grupos",
         Icon: LinkIcon,
         active: pathname === "/groupsIntegration",
         adminOnly: true,
-      }
+      },
     ],
     [pathname]
   );
@@ -291,19 +292,14 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
             </button>
           )}
         </div>
-
-
         {/* Navigation */}
-        
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-
-          
-              {/* Administración */}
-              {isAdmin && filteredAdminItems?.length > 0 && (
-                <div className="space-y-1">
-                  <button
-                    onClick={handleToggleAdmin} // ← ya no handleMobileClick
-                    className={`
+          {/* Administración */}
+          {isAdmin && filteredAdminItems?.length > 0 && (
+            <div className="space-y-1">
+              <button
+                onClick={handleToggleAdmin} // ← ya no handleMobileClick
+                className={`
         flex items-center justify-between w-full px-4 py-2 rounded-md
         transition-colors duration-200 group
         ${
@@ -312,44 +308,44 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
             : "hover:bg-purple-300 text-gray-200"
         }
       `}
-                    aria-expanded={openAdmin}
-                    aria-controls="admin-panel"
-                  >
-                    <span className="flex items-center space-x-3">
-                      <ShieldCheckIcon className="w-5 h-5" />
-                      <span className="font-medium">Administración</span>
-                    </span>
-                    <ChevronDownIcon
-                      className={`w-4 h-4 transition-transform duration-200 ${
-                        openAdmin ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
+                aria-expanded={openAdmin}
+                aria-controls="admin-panel"
+              >
+                <span className="flex items-center space-x-3">
+                  <ShieldCheckIcon className="w-5 h-5" />
+                  <span className="font-medium">Administración</span>
+                </span>
+                <ChevronDownIcon
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    openAdmin ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
 
-                  <div
-                    id="admin-panel"
-                    className={`
+              <div
+                id="admin-panel"
+                className={`
         overflow-hidden transition-all duration-200 ease-in-out
         ${openAdmin ? "max-h-screen opacity-100" : "max-h-0 opacity-0"}
       `}
-                  >
-                    <div className="ml-6 space-y-1 pt-1">
-                      {filteredAdminItems.map((item) => (
-                        <SubNavLink
-                          key={item.href}
-                          {...item}
-                          onClick={handleMobileClick}
-                        />
-                      ))}
-                    </div>
-                  </div>
+              >
+                <div className="ml-6 space-y-1 pt-1">
+                  {filteredAdminItems.map((item) => (
+                    <SubNavLink
+                      key={item.href}
+                      {...item}
+                      onClick={handleMobileClick}
+                    />
+                  ))}
                 </div>
-              )}
-              {/* Plantillas */}
-              <div className="space-y-1  ">
-                <button
-                  onClick={handleToggleTemplates}
-                  className={`
+              </div>
+            </div>
+          )}
+          {/* Plantillas */}
+          <div className="space-y-1  ">
+            <button
+              onClick={handleToggleTemplates}
+              className={`
                     flex items-center justify-between w-full px-4 py-2 rounded-md
                     transition-colors duration-200 group
                     ${
@@ -358,21 +354,21 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
                         : "hover:bg-purple-300 text-gray-200"
                     }
                   `}
-                  aria-expanded={openTemplates}
-                >
-                  <span className="flex items-center space-x-3">
-                    <Squares2X2Icon className="w-5 h-5" />
-                    <span className="font-medium">Plantillas</span>
-                  </span>
-                  <ChevronDownIcon
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                      openTemplates ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
+              aria-expanded={openTemplates}
+            >
+              <span className="flex items-center space-x-3">
+                <Squares2X2Icon className="w-5 h-5" />
+                <span className="font-medium">Plantillas</span>
+              </span>
+              <ChevronDownIcon
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  openTemplates ? "rotate-180" : ""
+                }`}
+              />
+            </button>
 
-                <div
-                  className={`
+            <div
+              className={`
                     overflow-hidden transition-all duration-200 ease-in-out
                     ${
                       openTemplates
@@ -380,18 +376,18 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
                         : "max-h-0 opacity-0"
                     }
                   `}
-                >
-                  <div className="ml-6 space-y-1 pt-1">
-                    {filteredTemplateItems.map((item) => (
-                      <SubNavLink
-                        key={item.href}
-                        {...item}
-                        onClick={handleMobileClick}
-                      />
-                    ))}
-                  </div>
-                </div>
+            >
+              <div className="ml-6 space-y-1 pt-1">
+                {filteredTemplateItems.map((item) => (
+                  <SubNavLink
+                    key={item.href}
+                    {...item}
+                    onClick={handleMobileClick}
+                  />
+                ))}
               </div>
+            </div>
+          </div>
 
           {/* Shimmer suave mientras valida, pero sin bloquear */}
           {initialized && loading ? (
@@ -402,7 +398,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
             </div>
           ) : (
             <>
-            {/* Navegación */}
+              {/* Navegación */}
               {filteredNavigationItems.map((item) => (
                 <NavLink
                   key={item.href}
@@ -413,18 +409,44 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
             </>
           )}
         </nav>
-
         {/* Footer */}
         <div className="p-4 border-t border-purple-700/60 shrink-0 space-y-3">
           {authSnap.hasUser ? (
-            <div className="text-sm text-gray-200 mb-2">
-              <div className="font-medium">{authSnap.name ?? "Usuario"}</div>
-              <div className="text-xs">{authSnap.email ?? "—"}</div>
-              {authSnap.isAdmin && (
-                <div className="text-xs text-yellow-300 font-medium">
-                  👑 Admin
-                </div>
-              )}
+            <div className="flex flex-row-reverse items-center gap-3 text-sm text-gray-200 ">
+              {/* Avatar */}
+
+              {/* Info del usuario */}
+<div className="flex flex-col text-right">
+  <div className="flex items-center justify-end gap-2">
+    <span className="font-medium">
+      {authSnap.name ?? "Usuario"}
+    </span>
+
+    {authSnap.isAdmin ? (
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-yellow-300 font-semibold">Admin</span>
+        <Image
+          src="/king.png"
+          alt="Avatar"
+          width={40}
+          height={40}
+          className="rounded-full border border-purple-500/40 shadow-sm"
+        />
+      </div>
+    ) : (
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-gray-400 font-medium">Usuario</span>
+        <Image
+          src="/profile.png"
+          alt="Avatar"
+          width={40}
+          height={40}
+          className="rounded-full border border-gray-400/30 shadow-sm"
+        />
+      </div>
+    )}
+  </div>
+</div>
             </div>
           ) : (
             <div className="text-xs text-gray-300/80">
@@ -432,6 +454,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
             </div>
           )}
 
+          {/* Botón debajo */}
           <button
             onClick={() => {
               showSweetAlert({
@@ -451,7 +474,6 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
               }).then((result) => {
                 if (result.isConfirmed) {
                   if (isMobile && onToggle) onToggle();
-
                   setTimeout(() => logout(), 0);
                 }
               });
@@ -463,7 +485,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
           </button>
 
           <div className="text-xs text-gray-300/70 text-center">v1.0.0</div>
-        </div>
+        </div>{" "}
       </aside>
     </>
   );

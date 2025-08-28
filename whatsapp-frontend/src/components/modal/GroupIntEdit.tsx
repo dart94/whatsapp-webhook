@@ -3,25 +3,26 @@ import { useGroupsIntegration } from "@/hooks/useGroupsIntegration";
 import {
   GroupIntegration,
   CreateGroupIntegrationInput,
-  GroupIntegrationCreateProps,
+  GroupIntegrationEditProps,
 } from "@/types/groupIntegration";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { AnimatePresence, motion } from "framer-motion";
 import { showToast } from "@/components/common/Toast";
 import { useGroups } from "@/hooks/useGroups";
 
-export function GroupIntCreate({
+export function GroupIntEdit({
   isOpen,
   onClose,
-  onCreated,
-}: GroupIntegrationCreateProps) {
-  const { addGroupIntegration, loading, error } = useGroupsIntegration();
-  const [groupIntegration, setGroupIntegration] =
+  group: groupIntegration,
+  onUpdated,
+}: GroupIntegrationEditProps) {
+  const { editGroupIntegration, loading, error } = useGroupsIntegration();
+  const [groupIntegrationEdit, setGroupIntegrationEdit] =
     useState<CreateGroupIntegrationInput>({
-      phoneNumberId: "",
-      accessTokenId: "",
-      groupId: 0,
-      Waba_id: "",
+      phoneNumberId: groupIntegration.phoneNumberId,
+      accessTokenId: groupIntegration.accessTokenId,
+      groupId: groupIntegration.groupId,
+      Waba_id: groupIntegration.Waba_id,
     });
   const [touched, setTouched] = useState<{
     phoneNumberId: boolean;
@@ -77,16 +78,18 @@ export function GroupIntCreate({
     onClose();
   };
 
-  const confirmAndCreate = async () => {
+  const confirmAndUpdate = async () => {
     try {
       const result = await showSweetAlert({
-        title: "¿Crear esta integración?",
-        text: `${groupIntegration.phoneNumberId || "(Sin número de teléfono)"}
-        ${groupIntegration.accessTokenId || "(Sin token de acceso)"}
-        ${groupIntegration.groupId || "(Sin grupo)"}
-        ${groupIntegration.Waba_id || "(Sin Waba_id)"}`,
+        title: "¿Actualizar esta integración?",
+        text: `${
+          groupIntegrationEdit.phoneNumberId || "(Sin número de teléfono)"
+        }
+        ${groupIntegrationEdit.accessTokenId || "(Sin token de acceso)"}
+        ${groupIntegrationEdit.groupId || "(Sin grupo)"}
+        ${groupIntegrationEdit.Waba_id || "(Sin Waba_id)"}`,
         icon: "warning",
-        confirmButtonText: "Sí, crear",
+        confirmButtonText: "Sí, actualizar",
         cancelButtonText: "Cancelar",
         showCancelButton: true,
         customClass: {
@@ -99,19 +102,19 @@ export function GroupIntCreate({
       });
 
       if (result.isConfirmed) {
-        await addGroupIntegration(groupIntegration);
+        await editGroupIntegration(groupIntegration.id, groupIntegrationEdit);
         await showToast({
           type: "success",
-          message: "Integración creada correctamente",
+          message: "Integración actualizada correctamente",
         });
-        await onCreated?.();
+        await onUpdated?.();
         handleClose();
       }
     } catch (err: any) {
       console.error(err);
       await showToast({
         type: "error",
-        message: "Error al crear la integración",
+        message: "Error al actualizar la integración",
       });
     }
   };
@@ -126,7 +129,7 @@ export function GroupIntCreate({
       Waba_id: true,
     });
     if (error) return; // no lanzamos confirmación si hay errores
-    await confirmAndCreate();
+    await confirmAndUpdate();
   };
 
   return (
@@ -167,7 +170,7 @@ export function GroupIntCreate({
                   id="create-group-integration-title"
                   className="text-xl font-semibold tracking-tight"
                 >
-                  Crear integración de grupo
+                  Actualizar integración de grupo
                 </h2>
                 <p className="text-sm text-gray-500">
                   Completa la información. Los campos marcados con * son
@@ -199,15 +202,15 @@ export function GroupIntCreate({
                   type="text"
                   id="phoneNumberId"
                   autoComplete="phoneNumberId"
-                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-blue-500 disabled:opacity-60 ${
+                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus-visible:ring-blue-500 disabled:opacity-60 ${
                     touched.phoneNumberId && error
                       ? "border-red-300 focus:ring-red-500"
                       : "border-gray-300"
                   }`}
-                  value={groupIntegration.phoneNumberId}
+                  value={groupIntegrationEdit.phoneNumberId}
                   onChange={(e) =>
-                    setGroupIntegration({
-                      ...groupIntegration,
+                    setGroupIntegrationEdit({
+                      ...groupIntegrationEdit,
                       phoneNumberId: e.target.value,
                     })
                   }
@@ -229,20 +232,21 @@ export function GroupIntCreate({
                 >
                   Token de acceso *
                 </label>
+                
                 <input
-                //   ref={firstFieldRef}
+                  ref={firstFieldRef}
                   type="text"
                   id="accessTokenId"
                   autoComplete="accessTokenId"
-                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-blue-500 disabled:opacity-60 ${
+                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus-visible:ring-blue-500 disabled:opacity-60 ${
                     touched.accessTokenId && error
                       ? "border-red-300 focus:ring-red-500"
                       : "border-gray-300"
                   }`}
-                  value={groupIntegration.accessTokenId}
+                  value={groupIntegrationEdit.accessTokenId}
                   onChange={(e) =>
-                    setGroupIntegration({
-                      ...groupIntegration,
+                    setGroupIntegrationEdit({
+                      ...groupIntegrationEdit,
                       accessTokenId: e.target.value,
                     })
                   }
@@ -265,17 +269,18 @@ export function GroupIntCreate({
                   Grupo *
                 </label>
                 <select
+                //   ref={firstFieldRef}
                   id="groupId"
                   autoComplete="groupId"
-                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-blue-500 disabled:opacity-60 ${
+                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus-visible:ring-blue-500 disabled:opacity-60 ${
                     touched.groupId && error
                       ? "border-red-300 focus:ring-red-500"
                       : "border-gray-300"
                   }`}
-                  value={groupIntegration.groupId}
+                  value={groupIntegrationEdit.groupId}
                   onChange={(e) =>
-                    setGroupIntegration({
-                      ...groupIntegration,
+                    setGroupIntegrationEdit({
+                      ...groupIntegrationEdit,
                       groupId: Number(e.target.value),
                     })
                   }
@@ -303,19 +308,19 @@ export function GroupIntCreate({
                   Waba_id *
                 </label>
                 <input
-                //   ref={firstFieldRef}
+                  ref={firstFieldRef}
                   type="text"
                   id="Waba_id"
                   autoComplete="Waba_id"
-                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-blue-500 disabled:opacity-60 ${
+                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus-visible:ring-blue-500 disabled:opacity-60 ${
                     touched.Waba_id && error
                       ? "border-red-300 focus:ring-red-500"
                       : "border-gray-300"
                   }`}
-                  value={groupIntegration.Waba_id}
+                  value={groupIntegrationEdit.Waba_id}
                   onChange={(e) =>
-                    setGroupIntegration({
-                      ...groupIntegration,
+                    setGroupIntegrationEdit({
+                      ...groupIntegrationEdit,
                       Waba_id: e.target.value,
                     })
                   }
@@ -370,10 +375,10 @@ export function GroupIntCreate({
                           d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                         />
                       </svg>
-                      Creando...
+                      Actualizando...
                     </span>
                   ) : (
-                    "Crear"
+                    "Actualizar"
                   )}
                 </button>
               </div>

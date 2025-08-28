@@ -15,6 +15,8 @@ import { withAdmin } from "@/guards/WithAuth";
 import { useGroups } from "@/hooks/useGroups";
 import Loader from "@/components/ui/Loader";
 import { useSort } from "@/components/ui/table/sort";
+import { GroupIntCreate } from "@/components/modal/GroupIntCreate";
+
 
 
 function PrivatePage() {
@@ -25,6 +27,8 @@ function PrivatePage() {
   const [isOpenEdit, setIsOpenEdit] = useState(false);
   const [isOpenAddAssociation, setIsOpenAddAssociation] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
+  const [editingGroupIntegration, setEditingGroupIntegration] =
+    useState<Group | null>(null);
   const { sortedData, sortBy, sortDirection, setSortBy, setSortDirection } =
     useSort(groups, "id", "asc");
 
@@ -85,6 +89,11 @@ function PrivatePage() {
   const closeAddAssociation = () => {
     setIsOpenAddAssociation(false);
     setEditingGroup(null);
+  };
+
+  const handleEditGroupIntegration = (g: Group) => {
+    setEditingGroupIntegration(g);
+    setIsOpenAddAssociation(true);
   };
 
   const toggleSort = (key: keyof Group) => {
@@ -167,14 +176,16 @@ function PrivatePage() {
 
                   <td className="px-4 py-3">
                     <div className="flex space-x-2">
+
                       {/* Agregar Asociasión */}
                       <button
-                        onClick={() => handleAddAssociation(group)}
+                        onClick={() => handleEditGroupIntegration(group)}
                         className="text-green-500 hover:text-green-700"
-                        aria-label="Agregar asociación"
+                        aria-label="Agregar integración"
                       >
                         <PlusCircleIcon className="w-5 h-5" />
-                      </button>
+                        </button>
+
                       {/* Editar grupo */}
                       <button
                         onClick={() => handleEditGroup(group)}
@@ -243,6 +254,18 @@ function PrivatePage() {
               onUpdated={async () => {
                 await refresh();
                 closeEditGroup();
+              }}
+            />
+          )}
+
+          {/* Modal de integración */}
+          {editingGroupIntegration && (
+            <GroupIntCreate
+              isOpen={isOpenAddAssociation}
+              onClose={closeAddAssociation}
+              onCreated={async () => {
+                await refresh();
+                closeAddAssociation();
               }}
             />
           )}

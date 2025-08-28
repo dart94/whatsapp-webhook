@@ -22,7 +22,7 @@ export interface GroupIntegrationCreateProps {
 
 export interface GroupIntegrationEditProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (updated?: boolean) => void;
   group: GroupIntegration;
   onUpdated?: () => void;
 }

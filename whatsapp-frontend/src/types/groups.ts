@@ -18,6 +18,6 @@ export interface GroupCreateProps {
 export interface GroupEditProps {
   isOpen: boolean;
   onClose: () => void;
-  group: Group;
   onUpdated?: () => void;
+  group: Group;
 }
