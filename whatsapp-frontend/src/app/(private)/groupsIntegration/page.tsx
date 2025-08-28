@@ -10,6 +10,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
   PlusCircleIcon,
+  ClipboardIcon,
 } from "@heroicons/react/24/outline";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { GroupCreate } from "@/components/modal/GroupCreate";
@@ -21,13 +22,16 @@ import { useSort } from "@/components/ui/table/sort";
 import { showToast } from "@/components/common/Toast";
 
 function PrivatePage() {
-  const { groupIntegrations, loading, error, refresh, removeGroupIntegration } = useGroupsIntegration();
-  const [selectedGroupIntegration, setSelectedGroupIntegration] = useState<GroupIntegration | null>(null);
+  const { groupIntegrations, loading, error, refresh, removeGroupIntegration } =
+    useGroupsIntegration();
+  const [selectedGroupIntegration, setSelectedGroupIntegration] =
+    useState<GroupIntegration | null>(null);
 
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenEdit, setIsOpenEdit] = useState(false);
   const [isOpenAddAssociation, setIsOpenAddAssociation] = useState(false);
-  const [editingGroupIntegration, setEditingGroupIntegration] = useState<GroupIntegration | null>(null);
+  const [editingGroupIntegration, setEditingGroupIntegration] =
+    useState<GroupIntegration | null>(null);
   const { sortedData, sortBy, sortDirection, setSortBy, setSortDirection } =
     useSort(groupIntegrations, "id", "asc");
 
@@ -110,8 +114,8 @@ function PrivatePage() {
     }
   };
 
-  if(loading) return <Loader message="Cargando grupos" showTips={true} />;
-  if (error)   return <div>Error: {error}</div>;
+  if (loading) return <Loader message="Cargando grupos" showTips={true} />;
+  if (error) return <div>Error: {error}</div>;
   if (!groupIntegrations.length) return <div>Sin grupos.</div>;
 
   return (
@@ -226,72 +230,92 @@ function PrivatePage() {
                 <th className="px-4 py-3 text-left">Acciones</th>
               </tr>
             </thead>
-<tbody className="divide-y divide-gray-200 text-gray-800">
-  {sortedData.map((group) => (
-    <tr
-      key={group.id}
-      className={`transition ${group.id === selectedGroupIntegration?.id ? "bg-gray-100" : "hover:bg-gray-50"}`}
-    >
-      <td className="px-4 py-3 font-semibold">{group.id}</td>
-      <td className="px-4 py-3 font-semibold">{group.groupId}</td>
-      <td className="px-4 py-3 font-semibold">{group.accessTokenId}</td>
-      <td className="px-4 py-3 font-semibold">{group.phoneNumberId}</td>
-      <td className="px-4 py-3 font-semibold">{group.Waba_id}</td>
-      
+            <tbody className="divide-y divide-gray-200 text-gray-800">
+              {sortedData.map((group) => (
+                <tr
+                  key={group.id}
+                  className={`transition ${
+                    group.id === selectedGroupIntegration?.id
+                      ? "bg-gray-100"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  <td className="px-4 py-3 font-semibold">{group.id}</td>
+                  <td className="px-4 py-3 font-semibold">{group.groupId}</td>
+                  <td className="px-4 py-3 font-semibold flex items-center gap-2">
+                    <span className="max-w-xs truncate">
+                      {group.accessTokenId}
+                    </span>
+                    <button
+                      onClick={() =>
+                        navigator.clipboard.writeText(group.accessTokenId)
+                      }
+                      className="text-sm text-purple-400 hover:text-purple-600"
+                    >
+                      <ClipboardIcon className="w-4 h-4" />
+                    </button>
+                  </td>
+                  <td className="px-4 py-3 font-semibold">
+                    {group.phoneNumberId}
+                  </td>
+                  <td className="px-4 py-3 font-semibold">{group.Waba_id}</td>
 
-      <td className="px-4 py-3">
-        <div className="flex space-x-2">
-          {/* Agregar Asociación */}
-          <button
-            onClick={() => handleAddAssociation(group)}
-            className="text-green-500 hover:text-green-700"
-            aria-label="Agregar asociación"
-          >
-            <PlusCircleIcon className="w-5 h-5" />
-          </button>
-          {/* Editar grupo */}
-          <button
-            onClick={() => handleEditGroupIntegration(group)}
-            className="text-blue-500 hover:text-blue-700"
-            aria-label="Editar grupo"
-          >
-            <PencilSquareIcon className="w-5 h-5" />
-          </button>
+                  <td className="px-4 py-3">
+                    <div className="flex space-x-2">
+                      {/* Agregar Asociación */}
+                      <button
+                        onClick={() => handleAddAssociation(group)}
+                        className="text-green-500 hover:text-green-700"
+                        aria-label="Agregar asociación"
+                      >
+                        <PlusCircleIcon className="w-5 h-5" />
+                      </button>
+                      {/* Editar grupo */}
+                      <button
+                        onClick={() => handleEditGroupIntegration(group)}
+                        className="text-blue-500 hover:text-blue-700"
+                        aria-label="Editar grupo"
+                      >
+                        <PencilSquareIcon className="w-5 h-5" />
+                      </button>
 
-          {/* Eliminar grupo */}
-          <button
-            onClick={() => {
-              const id = typeof group.id === "string" ? Number(group.id) : group.id;
-              if (Number.isNaN(id)) {
-                showToast({
-                  type: "error",
-                  message: "ID inválido",
-                });
-                return;
-              }
-              void handleDeleteGroupIntegration(id as number);
-            }}
-            className="text-red-500 hover:text-red-700 disabled:opacity-50"
-            aria-label="Eliminar grupo"
-          >
-            <TrashIcon className="w-5 h-5" />
-          </button>
-        </div>
-      </td>
-    </tr>
-  ))}
+                      {/* Eliminar grupo */}
+                      <button
+                        onClick={() => {
+                          const id =
+                            typeof group.id === "string"
+                              ? Number(group.id)
+                              : group.id;
+                          if (Number.isNaN(id)) {
+                            showToast({
+                              type: "error",
+                              message: "ID inválido",
+                            });
+                            return;
+                          }
+                          void handleDeleteGroupIntegration(id as number);
+                        }}
+                        className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                        aria-label="Eliminar grupo"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
 
-  {sortedData.length === 0 && (
-    <tr>
-      <td
-        colSpan={3}
-        className="px-4 py-6 text-center text-gray-500"
-      >
-        No hay grupos disponibles.
-      </td>
-    </tr>
-  )}
-</tbody>
+              {sortedData.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="px-4 py-6 text-center text-gray-500"
+                  >
+                    No hay grupos disponibles.
+                  </td>
+                </tr>
+              )}
+            </tbody>
           </table>
           {/* Modal */}
           <GroupCreate

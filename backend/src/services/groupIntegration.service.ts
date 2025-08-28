@@ -14,6 +14,7 @@ export async function getGroupIntegrations() {
         accessTokenId: true,
         groupId: true,
         Waba_id: true,
+        group: { select: { id: true, name: true } },
       },
     });
     logInfo(`✅ Grupos integrados obtenidos: ${groupIntegrations.length}`);
