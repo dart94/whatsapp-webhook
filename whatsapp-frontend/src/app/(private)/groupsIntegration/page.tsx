@@ -274,14 +274,6 @@ function PrivatePage() {
 
                   <td className="px-4 py-3">
                     <div className="flex space-x-2">
-                      {/* Agregar Asociación */}
-                      <button
-                        onClick={() => handleAddAssociation(group)}
-                        className="text-green-500 hover:text-green-700"
-                        aria-label="Agregar asociación"
-                      >
-                        <PlusCircleIcon className="w-5 h-5" />
-                      </button>
                       {/* Editar grupo */}
                       <button
                         onClick={() => handleEditGroupIntegration(group)}

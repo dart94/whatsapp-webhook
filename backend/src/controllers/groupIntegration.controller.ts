@@ -44,16 +44,17 @@ export const createGroupIntegrationController = async (
   res: Response
 ) => {
   try {
-    const { phoneNumberId, accessTokenId, groupId } = req.body;
+    const { phoneNumberId, accessTokenId, groupId, Waba_id } = req.body;
 
-    if (!phoneNumberId || !accessTokenId || !groupId) {
+    if (!phoneNumberId || !accessTokenId || !groupId || !Waba_id) {
       return res.status(400).json({ error: "Faltan parámetros requeridos" });
     }
 
     const groupIntegration = await createGroupIntegration(
       phoneNumberId,
       accessTokenId,
-      Number(groupId)
+      groupId,
+      Waba_id
     );
 
     if (!groupIntegration || (groupIntegration as any).error) {

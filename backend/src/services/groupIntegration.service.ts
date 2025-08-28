@@ -55,6 +55,7 @@ export async function createGroupIntegration(
   groupId: number,
   Waba_id?: string
 ) {
+
   try {
     const groupIntegration = await prisma.groupIntegration.create({
       data: {
