@@ -1,20 +1,35 @@
-// /hooks/useGroupsIntegration.ts
-import { useCallback, useEffect, useState } from "react";
-import { GroupIntegration } from "@/types/groupIntegration";
-import { getGroupIntegrations, createGroupIntegration, updateGroupIntegration, deleteGroupIntegration } from "@/lib/groupIntegration";
+// src/hooks/useGroupsIntegration.ts
+"use client";
 
-type UseGroupsReturn = {
+import { useCallback, useEffect, useState } from "react";
+import {
+  GroupIntegration,
+  CreateGroupIntegrationInput,
+} from "@/types/groupIntegration";
+import {
+  getGroupIntegrations,
+  createGroupIntegration,
+  updateGroupIntegration,
+  deleteGroupIntegration,
+} from "@/lib/groupIntegration";
+
+type UseGroupsIntegrationReturn = {
   groupIntegrations: GroupIntegration[];
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
-  addGroupIntegration: (name: string) => Promise<GroupIntegration>;
-  editGroupIntegration: (id: number, name: string) => Promise<GroupIntegration>;
+  addGroupIntegration: (input: CreateGroupIntegrationInput) => Promise<GroupIntegration>;
+  editGroupIntegration: (
+    id: number,
+    input: Partial<CreateGroupIntegrationInput>
+  ) => Promise<GroupIntegration>;
   removeGroupIntegration: (id: number) => Promise<void>;
 };
 
-export function useGroupsIntegration(): UseGroupsReturn {
-  const [groupIntegrations, setGroupIntegrations] = useState<GroupIntegration[]>([]);
+export function useGroupsIntegration(): UseGroupsIntegrationReturn {
+  const [groupIntegrations, setGroupIntegrations] = useState<GroupIntegration[]>(
+    []
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,36 +37,56 @@ export function useGroupsIntegration(): UseGroupsReturn {
     setLoading(true);
     setError(null);
     try {
-      const arr = await getGroupIntegrations();     // 👈 ya es GroupIntegration[]
+      const arr = await getGroupIntegrations(); // -> GroupIntegration[]
       setGroupIntegrations(arr);
     } catch (e: any) {
-      setError(e?.message ?? "Error al cargar grupos");
-      setGroupIntegrations([]);                     // 👈 estado definido aunque falle
+      setError(e?.message ?? "Error al cargar integraciones");
+      setGroupIntegrations([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { fetchGroupIntegrations(); }, [fetchGroupIntegrations]);
+  useEffect(() => {
+    fetchGroupIntegrations();
+  }, [fetchGroupIntegrations]);
 
-  const refresh = useCallback(async () => { await fetchGroupIntegrations(); }, [fetchGroupIntegrations]);
+  const refresh = useCallback(async () => {
+    await fetchGroupIntegrations();
+  }, [fetchGroupIntegrations]);
 
-  const addGroupIntegration = useCallback(async (name: string) => {
-    const created = await createGroupIntegration(name);
-    setGroupIntegrations(prev => [created, ...prev]);
-    return created;
-  }, []);
+  const addGroupIntegration = useCallback(
+    async (input: CreateGroupIntegrationInput) => {
+      const created = await createGroupIntegration(input);
+      setGroupIntegrations((prev) => [created, ...prev]);
+      return created;
+    },
+    []
+  );
 
-  const editGroupIntegration = useCallback(async (id: number, name: string) => {
-    const updated = await updateGroupIntegration(id, name);
-    setGroupIntegrations(prev => prev.map(g => (g.id === id ? updated : g)));
-    return updated;
-  }, []);
+  const editGroupIntegration = useCallback(
+    async (id: number, input: Partial<CreateGroupIntegrationInput>) => {
+      const updated = await updateGroupIntegration(id, input);
+      setGroupIntegrations((prev) =>
+        prev.map((g) => (g.id === id ? updated : g))
+      );
+      return updated;
+    },
+    []
+  );
 
   const removeGroupIntegration = useCallback(async (id: number) => {
     await deleteGroupIntegration(id);
-    setGroupIntegrations(prev => prev.filter(g => g.id !== id));
+    setGroupIntegrations((prev) => prev.filter((g) => g.id !== id));
   }, []);
 
-  return { groupIntegrations, loading, error, refresh, addGroupIntegration, editGroupIntegration, removeGroupIntegration };
+  return {
+    groupIntegrations,
+    loading,
+    error,
+    refresh,
+    addGroupIntegration,
+    editGroupIntegration,
+    removeGroupIntegration,
+  };
 }

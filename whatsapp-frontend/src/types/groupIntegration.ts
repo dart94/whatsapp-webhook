@@ -4,4 +4,25 @@ export type GroupIntegration = {
   accessTokenId: string;
   Waba_id: string;
   groupId: number;
+  group?: { id: number; name: string } | null;
 };
+
+export type CreateGroupIntegrationInput = {
+  phoneNumberId: string;
+  accessTokenId: string;
+  groupId: number;
+  Waba_id: string;
+}
+
+export interface GroupIntegrationCreateProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onCreated?: () => void;
+}
+
+export interface GroupIntegrationEditProps {
+  isOpen: boolean;
+  onClose: () => void;
+  group: GroupIntegration;
+  onUpdated?: () => void;
+}

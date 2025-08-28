@@ -13,7 +13,7 @@ import {
   ClipboardIcon,
 } from "@heroicons/react/24/outline";
 import { showSweetAlert } from "@/components/common/Sweet";
-import { GroupCreate } from "@/components/modal/GroupCreate";
+import { GroupIntCreate } from "@/components/modal/GroupIntCreate";
 import { GroupEdit } from "@/components/modal/GroupEdit";
 import { withAdmin } from "@/guards/WithAuth";
 import { useGroups } from "@/hooks/useGroups";
@@ -32,8 +32,16 @@ function PrivatePage() {
   const [isOpenAddAssociation, setIsOpenAddAssociation] = useState(false);
   const [editingGroupIntegration, setEditingGroupIntegration] =
     useState<GroupIntegration | null>(null);
+  const groupIntegrationsForTable = useMemo(
+    () =>
+      groupIntegrations.map((g) => ({
+        ...g,
+        _groupName: g.group?.name ?? "(Sin grupo)",
+      })),
+    [groupIntegrations]
+  );
   const { sortedData, sortBy, sortDirection, setSortBy, setSortDirection } =
-    useSort(groupIntegrations, "id", "asc");
+    useSort(groupIntegrationsForTable, "_groupName", "asc");
 
   // Seleccionar primer grupo automáticamente
   useEffect(() => {
@@ -105,7 +113,9 @@ function PrivatePage() {
     setEditingGroupIntegration(null);
   };
 
-  const toggleSort = (key: keyof GroupIntegration) => {
+  const toggleSort = (
+    key: keyof (typeof groupIntegrationsForTable)[number]
+  ) => {
     if (sortBy === key) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -122,7 +132,9 @@ function PrivatePage() {
     <div className="h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-10 px-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold mb-8 text-gray-800">Grupos</h1>
+          <h1 className="text-3xl font-bold mb-8 text-gray-800">
+            Integraciones de grupos
+          </h1>
           <button
             onClick={handleCreateGroupIntegration}
             className="inline-flex items-center gap-2 justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -157,17 +169,17 @@ function PrivatePage() {
                 </th>
                 <th
                   className="px-4 py-3 text-left cursor-pointer select-none"
-                  onClick={() => toggleSort("groupId")}
+                  onClick={() => toggleSort("_groupName")}
                   aria-sort={
-                    sortBy === "name"
+                    sortBy === "_groupName"
                       ? sortDirection === "asc"
                         ? "ascending"
                         : "descending"
                       : "none"
                   }
                 >
-                  GrupoId{" "}
-                  {sortBy === "name"
+                  Grupo{" "}
+                  {sortBy === "_groupName"
                     ? sortDirection === "asc"
                       ? "▲"
                       : "▼"
@@ -241,7 +253,7 @@ function PrivatePage() {
                   }`}
                 >
                   <td className="px-4 py-3 font-semibold">{group.id}</td>
-                  <td className="px-4 py-3 font-semibold">{group.groupId}</td>
+                  <td className="px-4 py-3 font-semibold">{group._groupName}</td>
                   <td className="px-4 py-3 font-semibold flex items-center gap-2">
                     <span className="max-w-xs truncate">
                       {group.accessTokenId}
@@ -318,7 +330,7 @@ function PrivatePage() {
             </tbody>
           </table>
           {/* Modal */}
-          <GroupCreate
+          <GroupIntCreate
             isOpen={isOpen}
             onClose={closeCreate}
             onCreated={async () => {

@@ -37,6 +37,7 @@ export async function getGroupIntegrationById(id: number) {
         phoneNumberId: true,
         accessTokenId: true,
         groupId: true,
+        Waba_id: true,
       },
     });
     logInfo(`✅ Grupo integrado obtenido: ${groupIntegration?.id}`);
@@ -51,7 +52,8 @@ export async function getGroupIntegrationById(id: number) {
 export async function createGroupIntegration(
   phoneNumberId: string,
   accessTokenId: string,
-  groupId: number
+  groupId: number,
+  Waba_id?: string
 ) {
   try {
     const groupIntegration = await prisma.groupIntegration.create({
@@ -59,6 +61,7 @@ export async function createGroupIntegration(
         phoneNumberId,
         accessTokenId,
         groupId,
+        Waba_id,
       },
     });
     logInfo(`✅ Grupo integrado creado: ${groupIntegration.id}`);
@@ -75,7 +78,8 @@ export async function updateGroupIntegration(
   id: number,
   phoneNumberId: string,
   accessTokenId: string,
-  groupId: number
+  groupId: number,
+  Waba_id?: string
 ) {
   try {
     const groupIntegration = await prisma.groupIntegration.update({
@@ -86,6 +90,7 @@ export async function updateGroupIntegration(
         phoneNumberId: phoneNumberId,
         accessTokenId: accessTokenId,
         groupId: groupId,
+        Waba_id: Waba_id,
       },
     });
     logInfo(`✅ Grupo integrado actualizado: ${groupIntegration.id}`);
@@ -124,6 +129,7 @@ export async function getGroupIntegrationByGroupId(groupId: number) {
         phoneNumberId: true,
         accessTokenId: true,
         groupId: true,
+        Waba_id: true,
       },
     });
 

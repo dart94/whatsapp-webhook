@@ -1,17 +1,40 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useGroups } from "@/hooks/useGroups";
-import { CreateGroupInput, GroupCreateProps } from "@/types/groups";
+import { useGroupsIntegration } from "@/hooks/useGroupsIntegration";
+import {
+  GroupIntegration,
+  CreateGroupIntegrationInput,
+  GroupIntegrationCreateProps,
+} from "@/types/groupIntegration";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { AnimatePresence, motion } from "framer-motion";
 import { showToast } from "@/components/common/Toast";
+import { useGroups } from "@/hooks/useGroups";
 
-export function GroupCreate({ isOpen, onClose, onCreated }: GroupCreateProps) {
-  const { addGroup, loading, error } = useGroups();
-  const [group, setGroup] = useState<CreateGroupInput>({ name: "" });
+export function GroupIntCreate({
+  isOpen,
+  onClose,
+  onCreated,
+}: GroupIntegrationCreateProps) {
+  const { addGroupIntegration, loading, error } = useGroupsIntegration();
+  const [groupIntegration, setGroupIntegration] =
+    useState<CreateGroupIntegrationInput>({
+      phoneNumberId: "",
+      accessTokenId: "",
+      groupId: 0,
+      Waba_id: "",
+    });
   const [touched, setTouched] = useState<{
-    name: boolean;
-    description: boolean;
-  }>({ name: false, description: false });
+    phoneNumberId: boolean;
+    accessTokenId: boolean;
+    groupId: boolean;
+    Waba_id: boolean;
+  }>({
+    phoneNumberId: false,
+    accessTokenId: false,
+    groupId: false,
+    Waba_id: false,
+  });
+  const { groups } = useGroups();
 
   // Accesibilidad: manejar foco inicial y escape
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -57,8 +80,11 @@ export function GroupCreate({ isOpen, onClose, onCreated }: GroupCreateProps) {
   const confirmAndCreate = async () => {
     try {
       const result = await showSweetAlert({
-        title: "¿Crear este grupo?",
-        text: `${group.name || "(Sin nombre)"}`,
+        title: "¿Crear esta integración?",
+        text: `${groupIntegration.phoneNumberId || "(Sin número de teléfono)"}
+        ${groupIntegration.accessTokenId || "(Sin token de acceso)"}
+        ${groupIntegration.groupId || "(Sin grupo)"}
+        ${groupIntegration.Waba_id || "(Sin Waba_id)"}`,
         icon: "warning",
         confirmButtonText: "Sí, crear",
         cancelButtonText: "Cancelar",
@@ -73,24 +99,32 @@ export function GroupCreate({ isOpen, onClose, onCreated }: GroupCreateProps) {
       });
 
       if (result.isConfirmed) {
-        await addGroup(group.name);
+        await addGroupIntegration(groupIntegration);
         await showToast({
           type: "success",
-          message: "Grupo creado correctamente",
+          message: "Integración creada correctamente",
         });
         await onCreated?.();
         handleClose();
       }
     } catch (err: any) {
       console.error(err);
-      await showToast({ type: "error", message: "Error al crear el grupo" });
+      await showToast({
+        type: "error",
+        message: "Error al crear la integración",
+      });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // marcar como tocados
-    setTouched({ name: true, description: true });
+    setTouched({
+      phoneNumberId: true,
+      accessTokenId: true,
+      groupId: true,
+      Waba_id: true,
+    });
     if (error) return; // no lanzamos confirmación si hay errores
     await confirmAndCreate();
   };
@@ -117,7 +151,7 @@ export function GroupCreate({ isOpen, onClose, onCreated }: GroupCreateProps) {
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-labelledby="create-group-title"
+            aria-labelledby="create-group-integration-title"
             ref={dialogRef}
             className="relative z-[101] w-full max-w-lg mx-4 rounded-2xl bg-white shadow-2xl ring-1 ring-black/5"
             initial={{ opacity: 0, y: 8, scale: 0.97 }}
@@ -130,10 +164,10 @@ export function GroupCreate({ isOpen, onClose, onCreated }: GroupCreateProps) {
             <div className="flex items-center justify-between px-6 pt-6">
               <div className="space-y-1">
                 <h2
-                  id="create-group-title"
+                  id="create-group-integration-title"
                   className="text-xl font-semibold tracking-tight"
                 >
-                  Crear grupo
+                  Crear integración de grupo
                 </h2>
                 <p className="text-sm text-gray-500">
                   Completa la información. Los campos marcados con * son
@@ -155,27 +189,140 @@ export function GroupCreate({ isOpen, onClose, onCreated }: GroupCreateProps) {
               {/* Nombre */}
               <div>
                 <label
-                  htmlFor="name"
+                  htmlFor="phoneNumberId"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Nombre *
+                  Número de teléfono *
                 </label>
                 <input
                   ref={firstFieldRef}
                   type="text"
-                  id="name"
-                  autoComplete="name"
+                  id="phoneNumberId"
+                  autoComplete="phoneNumberId"
                   className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-blue-500 disabled:opacity-60 ${
-                    touched.name && error
+                    touched.phoneNumberId && error
                       ? "border-red-300 focus:ring-red-500"
                       : "border-gray-300"
                   }`}
-                  value={group.name}
-                  onChange={(e) => setGroup({ ...group, name: e.target.value })}
-                  onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+                  value={groupIntegration.phoneNumberId}
+                  onChange={(e) =>
+                    setGroupIntegration({
+                      ...groupIntegration,
+                      phoneNumberId: e.target.value,
+                    })
+                  }
+                  onBlur={() =>
+                    setTouched((t) => ({ ...t, phoneNumberId: true }))
+                  }
                   required
                 />
-                {touched.name && error && (
+                {touched.phoneNumberId && error && (
+                  <p className="mt-1 text-xs text-red-600">{error}</p>
+                )}
+              </div>
+
+              {/* Token de acceso */}
+              <div>
+                <label
+                  htmlFor="accessTokenId"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Token de acceso *
+                </label>
+                <input
+                  ref={firstFieldRef}
+                  type="text"
+                  id="accessTokenId"
+                  autoComplete="accessTokenId"
+                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-blue-500 disabled:opacity-60 ${
+                    touched.accessTokenId && error
+                      ? "border-red-300 focus:ring-red-500"
+                      : "border-gray-300"
+                  }`}
+                  value={groupIntegration.accessTokenId}
+                  onChange={(e) =>
+                    setGroupIntegration({
+                      ...groupIntegration,
+                      accessTokenId: e.target.value,
+                    })
+                  }
+                  onBlur={() =>
+                    setTouched((t) => ({ ...t, accessTokenId: true }))
+                  }
+                  required
+                />
+                {touched.accessTokenId && error && (
+                  <p className="mt-1 text-xs text-red-600">{error}</p>
+                )}
+              </div>
+
+              {/* Grupo */}
+              <div>
+                <label
+                  htmlFor="groupId"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Grupo *
+                </label>
+                <select
+                  id="groupId"
+                  autoComplete="groupId"
+                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-blue-500 disabled:opacity-60 ${
+                    touched.groupId && error
+                      ? "border-red-300 focus:ring-red-500"
+                      : "border-gray-300"
+                  }`}
+                  value={groupIntegration.groupId}
+                  onChange={(e) =>
+                    setGroupIntegration({
+                      ...groupIntegration,
+                      groupId: Number(e.target.value),
+                    })
+                  }
+                  onBlur={() => setTouched((t) => ({ ...t, groupId: true }))}
+                  required
+                >
+                  <option value={0}>Seleccione un grupo</option>
+                  {groups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+                {touched.groupId && error && (
+                  <p className="mt-1 text-xs text-red-600">{error}</p>
+                )}
+              </div>
+
+              {/* Waba_id */}
+              <div>
+                <label
+                  htmlFor="Waba_id"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Waba_id *
+                </label>
+                <input
+                  ref={firstFieldRef}
+                  type="text"
+                  id="Waba_id"
+                  autoComplete="Waba_id"
+                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-blue-500 disabled:opacity-60 ${
+                    touched.Waba_id && error
+                      ? "border-red-300 focus:ring-red-500"
+                      : "border-gray-300"
+                  }`}
+                  value={groupIntegration.Waba_id}
+                  onChange={(e) =>
+                    setGroupIntegration({
+                      ...groupIntegration,
+                      Waba_id: e.target.value,
+                    })
+                  }
+                  onBlur={() => setTouched((t) => ({ ...t, Waba_id: true }))}
+                  required
+                />
+                {touched.Waba_id && error && (
                   <p className="mt-1 text-xs text-red-600">{error}</p>
                 )}
               </div>
