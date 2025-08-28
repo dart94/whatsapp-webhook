@@ -6,10 +6,18 @@ type FetchOpts = {
   signal?: AbortSignal;
 };
 
-/** Obtener grupos */
-export async function getGroups(opts?: FetchOpts): Promise<Group[]> {
-  const response = await apiFetch("/groups", { signal: opts?.signal });
-  return response.data as Group[];
+//Obtener todos los grupos
+type ApiResponse = { success?: boolean; data?: Group[] } | Group[];
+
+export async function getGroups(): Promise<Group[]> {
+  const json = (await apiFetch("/groups", { method: "GET" })) as ApiResponse;
+
+  // Acepta tanto { success, data: [...] } como [...] plano
+  if (Array.isArray(json)) return json;
+  if (Array.isArray(json?.data)) return json.data;
+
+  // si no vino nada, regresa arreglo vacío (evita excepciones)
+  return [];
 }
 
 /** Obtener grupo por id */

@@ -5,7 +5,7 @@ import { User, CreateUserInput, UserCreateProps } from "@/types/user";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { AnimatePresence, motion } from "framer-motion";
 import { useFormValidation } from "@/hooks/useFormValidation";
-import { useGroups } from "@/hooks/useGroup";
+import { useGroups } from "@/hooks/useGroups";
 import { showToast } from "../common/Toast";
 
 

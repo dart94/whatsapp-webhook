@@ -3,6 +3,7 @@ import { API_BASE_URL } from "@/config/api";
 
 
 function getToken() {
+  if (typeof window === "undefined") return null; 
   return localStorage.getItem("token") || sessionStorage.getItem("token");
 }
 

@@ -6,13 +6,13 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePathname, useRouter } from "next/navigation";
 
-// 🆕 helper: si hay token, asumimos que el AuthProvider está por hidratar el user
+/** Si hay token en storage, asumimos que el AuthProvider hidratará `user` en breve */
 function tokenExists(): boolean {
   if (typeof window === "undefined") return false;
   return !!(localStorage.getItem("token") || sessionStorage.getItem("token"));
 }
 
-/** Componente: exige estar autenticado; si no, redirige a /login?next=... */
+/** Requiere estar autenticado; si no, redirige a /login?next=... */
 export function RequireAuth({
   children,
   redirectTo = "/login",
@@ -23,27 +23,24 @@ export function RequireAuth({
   const hasToken = tokenExists();
 
   useEffect(() => {
-    // ⛔️ no redirigir si hay token pero aún no se ha hidratado user
+    // Si no hay user y tampoco token → redirigir a login
     if (!user && !hasToken) {
       const next = encodeURIComponent(pathname || "/");
       router.replace(`${redirectTo}?next=${next}`);
     }
   }, [user, hasToken, router, pathname, redirectTo]);
 
-  // Mientras haya token pero user sea null, esperamos a que el provider lo setee
+  // 🔑 Si HAY token pero aún no hidrata `user`, dejamos pasar al hijo
   if (!user && hasToken) {
-    return (
-      <div className="h-screen grid place-items-center text-gray-500">
-        Cargando…
-      </div>
-    );
+    return <>{children}</>;
   }
+  // Si no hay user ni token (o aún no se puede determinar), no renderizamos
   if (!user) return null;
 
   return <>{children}</>;
 }
 
-/** Componente: exige ser admin; si no, redirige a /403 (o a login si no hay sesión) */
+/** Requiere ser admin; si no hay sesión, redirige a login; si no es admin, a /403 */
 export function RequireAdmin({
   children,
   redirectToLogin = "/login",
@@ -58,6 +55,7 @@ export function RequireAdmin({
   const hasToken = tokenExists();
 
   useEffect(() => {
+    // Sin user y sin token → a login
     if (!user) {
       if (!hasToken) {
         const next = encodeURIComponent(pathname || "/");
@@ -65,24 +63,23 @@ export function RequireAdmin({
       }
       return;
     }
+    // Con user pero no admin → a /403
     if (!user.isAdmin) {
       router.replace(redirectToForbidden);
     }
   }, [user, hasToken, router, pathname, redirectToLogin, redirectToForbidden]);
 
+  // 🔑 Si HAY token pero `user` aún no hidrata, deja pasar al hijo para que sus hooks monten
   if (!user && hasToken) {
-    return (
-      <div className="h-screen grid place-items-center text-gray-500">
-        Cargando…
-      </div>
-    );
+    return <>{children}</>;
   }
+  // Si no hay user o ya sabemos que no es admin, no renderizamos
   if (!user || !user.isAdmin) return null;
 
   return <>{children}</>;
 }
 
-// Componente: exige estar autenticado y ser admin
+/** Requiere auth y admin; combina ambos requisitos */
 export function RequireAuthAndAdmin({
   children,
   redirectToLogin = "/login",
@@ -97,6 +94,7 @@ export function RequireAuthAndAdmin({
   const hasToken = tokenExists();
 
   useEffect(() => {
+    // Sin user y sin token → a login
     if (!user) {
       if (!hasToken) {
         const next = encodeURIComponent(pathname || "/");
@@ -104,19 +102,18 @@ export function RequireAuthAndAdmin({
       }
       return;
     }
+    // Con user pero no admin → a /403
     if (!user.isAdmin) {
       router.replace(redirectToForbidden);
       return;
     }
   }, [user, hasToken, router, pathname, redirectToLogin, redirectToForbidden]);
 
+  // 🔑 Si HAY token pero `user` aún no hidrata, deja pasar al hijo
   if (!user && hasToken) {
-    return (
-      <div className="h-screen grid place-items-center text-gray-500">
-        Cargando…
-      </div>
-    );
+    return <>{children}</>;
   }
+  // Si no hay user o ya sabemos que no es admin, no renderizamos
   if (!user || !user.isAdmin) return null;
 
   return <>{children}</>;

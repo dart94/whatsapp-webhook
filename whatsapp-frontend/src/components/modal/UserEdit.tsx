@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import useUsersUpdate from "@/hooks/useUsersUpdate";
-import { useGroups } from "@/hooks/useGroup";
+import { useGroups } from "@/hooks/useGroups";
 import { User, UserEditProps } from "@/types/user";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { AnimatePresence, motion, number } from "framer-motion";

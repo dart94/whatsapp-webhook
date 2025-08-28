@@ -24,12 +24,14 @@ import type { RecipientData, SheetRowData } from "@/types/sheet";
 export default function EnviarPlantillaPage() {
   const searchParams = useSearchParams();
   const templateId = searchParams.get("id") ?? "";
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
 
   const {
     templates,
     loading: loadingTemplates,
     error: errorTemplates,
-  } = useTemplates();
+  } = useTemplates(token);
 
   const {
     sendTemplate,

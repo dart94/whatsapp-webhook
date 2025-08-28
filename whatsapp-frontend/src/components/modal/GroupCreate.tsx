@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useGroups } from "@/hooks/useGroup";
+import { useGroups } from "@/hooks/useGroups";
 import { Group, CreateGroupInput } from "@/types/groups";
 import { showSweetAlert } from "@/components/common/Sweet";
 import { AnimatePresence, motion } from "framer-motion";
