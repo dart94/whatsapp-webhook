@@ -23,6 +23,7 @@ function PrivatePage() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenEdit, setIsOpenEdit] = useState(false);
+  const [isOpenAddAssociation, setIsOpenAddAssociation] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const { sortedData, sortBy, sortDirection, setSortBy, setSortDirection } =
     useSort(groups, "id", "asc");
@@ -77,6 +78,15 @@ function PrivatePage() {
     setEditingGroup(null);
   };
 
+  const handleAddAssociation = (g: Group) => {
+    setEditingGroup(g);
+    setIsOpenAddAssociation(true);
+  };
+  const closeAddAssociation = () => {
+    setIsOpenAddAssociation(false);
+    setEditingGroup(null);
+  };
+
   const toggleSort = (key: keyof Group) => {
     if (sortBy === key) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -86,7 +96,7 @@ function PrivatePage() {
     }
   };
 
-  if (loading) return <div>Cargando...</div>;
+  if(loading) return <Loader message="Cargando grupos" showTips={true} />;
   if (error)   return <div>Error: {error}</div>;
   if (!groups.length) return <div>Sin grupos.</div>;
 
@@ -157,6 +167,14 @@ function PrivatePage() {
 
                   <td className="px-4 py-3">
                     <div className="flex space-x-2">
+                      {/* Agregar Asociasión */}
+                      <button
+                        onClick={() => handleAddAssociation(group)}
+                        className="text-green-500 hover:text-green-700"
+                        aria-label="Agregar asociación"
+                      >
+                        <PlusCircleIcon className="w-5 h-5" />
+                      </button>
                       {/* Editar grupo */}
                       <button
                         onClick={() => handleEditGroup(group)}
@@ -187,6 +205,7 @@ function PrivatePage() {
                       >
                         <TrashIcon className="w-5 h-5" />
                       </button>
+
                     </div>
                   </td>
                 </tr>

@@ -11,7 +11,7 @@ import {
 const router = express.Router();
 
 //Obtener grupos
-/*
+/**
 * @swagger
 * /groupIntegration:
 *   get:
@@ -33,7 +33,7 @@ const router = express.Router();
 router.get("/", getGroupIntegrationsController);
 
 //Obtener grupo por id
-/*
+/**
 * @swagger
 * /groupIntegration/{id}:
 *   get:
@@ -60,7 +60,7 @@ router.get("/", getGroupIntegrationsController);
 router.get("/:id", getGroupIntegrationByIdController);
 
 //Crear grupo
-/*
+/**
 * @swagger
 * /groupIntegration:
 *   post:
@@ -93,7 +93,7 @@ router.get("/:id", getGroupIntegrationByIdController);
 router.post("/", createGroupIntegrationController);
 
 // Actualizar grupo
-/*
+/**
 * @swagger
 * /groupIntegration/{id}:
 *   put:
@@ -133,7 +133,7 @@ router.post("/", createGroupIntegrationController);
 router.put("/:id", updateGroupIntegrationController);
 
 //Eliminar grupo
-/*
+/**
 * @swagger
 * /groupIntegration/{id}:
 *   delete:

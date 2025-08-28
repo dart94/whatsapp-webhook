@@ -13,6 +13,7 @@ export async function getGroupIntegrations() {
         phoneNumberId: true,
         accessTokenId: true,
         groupId: true,
+        Waba_id: true,
       },
     });
     logInfo(`✅ Grupos integrados obtenidos: ${groupIntegrations.length}`);

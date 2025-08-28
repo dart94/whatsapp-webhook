@@ -14,7 +14,8 @@ import {
   ArrowLeftCircleIcon,
   UserGroupIcon,
   ShieldCheckIcon,
-  UserIcon
+  UserIcon,
+  LinkIcon
 } from "@heroicons/react/24/outline";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -165,6 +166,14 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
         label: "Grupos",
         Icon: UserGroupIcon,
         active: pathname === "/groups",
+        adminOnly: true,
+      }
+      ,
+      {
+        href: "/groupsIntegration",
+        label: "Integración Grupos",
+        Icon: LinkIcon,
+        active: pathname === "/groupsIntegration",
         adminOnly: true,
       }
     ],
@@ -321,7 +330,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
                     id="admin-panel"
                     className={`
         overflow-hidden transition-all duration-200 ease-in-out
-        ${openAdmin ? "max-h-28 opacity-100" : "max-h-0 opacity-0"}
+        ${openAdmin ? "max-h-screen opacity-100" : "max-h-0 opacity-0"}
       `}
                   >
                     <div className="ml-6 space-y-1 pt-1">
@@ -337,7 +346,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
                 </div>
               )}
               {/* Plantillas */}
-              <div className="space-y-1">
+              <div className="space-y-1  ">
                 <button
                   onClick={handleToggleTemplates}
                   className={`
