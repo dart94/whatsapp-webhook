@@ -71,24 +71,24 @@ export const sendTemplate = async (req: Request, res: Response) => {
         const message_id = result?.messages?.[0]?.id || "NO_ID";
 
         // Guardado en BD AQUÍ (si no lo hace el servicio)
-        await prisma.whatsappMessage.create({
-          data: {
-            wa_id: msg.to,
-            message_id,
-            direction: "outbound",            
-            type: "template",
-            body_text: renderedBody,          
-            context_message_id: null,
-            timestamp: BigInt(Math.floor(Date.now() / 1000)),
-            raw_json: result,                  
-            read: false,
+        // await prisma.whatsappMessage.create({
+        //   data: {
+        //     wa_id: msg.to,
+        //     message_id,
+        //     direction: "outbound",            
+        //     type: "template",
+        //     body_text: renderedBody,          
+        //     context_message_id: null,
+        //     timestamp: BigInt(Math.floor(Date.now() / 1000)),
+        //     raw_json: result,                  
+        //     read: false,
 
-            fromPhone: phoneNumberId,
-            toPhone: msg.to,
-            sentByUserId: actorUserId,
-            groupIntegrationId,
-          },
-        });
+        //     fromPhone: phoneNumberId,
+        //     toPhone: msg.to,
+        //     sentByUserId: actorUserId,
+        //     groupIntegrationId,
+        //   },
+        // });
 
         results.push({ to: msg.to, meta: result });
       } catch (msgError) {

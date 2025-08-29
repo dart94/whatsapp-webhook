@@ -66,7 +66,7 @@ export async function sendTemplateMessage(payload: SendTemplatePayload) {
     if (res.ok) {
       logInfo(`✅ Template message sent: ${JSON.stringify(data)}`);
 
-      // Si no te pasaron el ID de la integración, lo resolvemos por phoneNumberId
+      
       const giId =
         groupIntegrationId ??
         (
@@ -87,7 +87,7 @@ export async function sendTemplateMessage(payload: SendTemplatePayload) {
           message_id: data?.messages?.[0]?.id ?? "unknown",
           direction: "outbound",
           type: "template",
-          body_text: body.template.name,                         
+          body_text: body,
           context_message_id: null,
           timestamp: BigInt(Math.floor(Date.now() / 1000)),
           raw_json: data,                            
