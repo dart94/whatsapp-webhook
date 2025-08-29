@@ -3,8 +3,6 @@ import {prisma} from "../prisma";
 import { logInfo, logError } from "../utils/logger";
 import type { SendTemplatePayload } from "../interface/send.interface";
 
-
-
 // Función para enviar mensaje por plantilla
 export async function sendTemplateMessage(payload: SendTemplatePayload) {
   const {

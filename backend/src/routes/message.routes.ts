@@ -10,6 +10,9 @@ import {
 import {
   getMessagesByWaidController,
   fetchConversationsController,
+  getMessagesByWaidGroupController,
+  fetchConversationsGroupController,
+
 } from '../controllers/messagesby.controller';
 
 const router = Router();
@@ -172,4 +175,7 @@ router.get('/unread-counts', getUnreadCounts);
  */
 router.get('/messages/waid', fetchConversationsController);
 
+router.get('/conversations/:wa_id/messages/:actorUserId', getMessagesByWaidGroupController);
+
+router.get('/conversations/:actorUserId', fetchConversationsGroupController);
 export default router;
