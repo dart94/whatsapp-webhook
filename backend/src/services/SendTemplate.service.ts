@@ -79,26 +79,6 @@ export async function sendTemplateMessage(payload: SendTemplatePayload) {
 
       // Previsualización útil para búsquedas rápidas
 
-
-      // Guardar en DB con relaciones
-      await prisma.whatsappMessage.create({
-        data: {
-          wa_id: to,
-          message_id: data?.messages?.[0]?.id ?? "unknown",
-          direction: "outbound",
-          type: "template",
-          body_text: body,
-          context_message_id: null,
-          timestamp: BigInt(Math.floor(Date.now() / 1000)),
-          raw_json: data,                            
-          read: true,
-
-          fromPhone: phoneNumberId,                   
-          toPhone: to,
-          sentByUserId: actorUserId,                  
-          groupIntegrationId: giId,                   
-        },
-      });
     } else {
       logError(`❌ Error sending template message: ${JSON.stringify(data)}`);
     }
