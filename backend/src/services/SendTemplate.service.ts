@@ -78,9 +78,7 @@ export async function sendTemplateMessage(payload: SendTemplatePayload) {
         null;
 
       // Previsualización útil para búsquedas rápidas
-      const preview =
-        `template:${templateName} | lang:${languageCode}` +
-        (parameters.length ? ` | params:${parameters.join(" | ")}` : "");
+
 
       // Guardar en DB con relaciones
       await prisma.whatsappMessage.create({
@@ -89,7 +87,7 @@ export async function sendTemplateMessage(payload: SendTemplatePayload) {
           message_id: data?.messages?.[0]?.id ?? "unknown",
           direction: "outbound",
           type: "template",
-          body_text: preview,                         
+          body_text: body.template.name,                         
           context_message_id: null,
           timestamp: BigInt(Math.floor(Date.now() / 1000)),
           raw_json: data,                            
