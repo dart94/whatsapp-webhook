@@ -1,19 +1,42 @@
-
-//Vista principal de las conversaiones por numero de telefono
+// Vista principal de las conversaciones por número de teléfono
 "use client";
 
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { PageHeader } from "../components/PageHeader";
 import { ConversationList } from "../components/ConversationList";
 import { Conversation } from "../types/whatsapp";
 import { useSocket } from "../hooks/UseSocket";
 import { useConversationStore } from "../stores/UseConversationStore";
-import { useEffect } from "react";
+
+// 👇 ajusta si tienes un archivo centralizado de config
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
 type HomeProps = {
   onSelectChat: (waId: string) => void;
 };
 
+type Group = { id: number; name: string };
+
+// Carga de grupos (puedes mover esto a /lib/groups.api.ts si prefieres)
+async function fetchGroups(token?: string): Promise<Group[]> {
+  const res = await fetch(`${API_BASE_URL}/groups`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("No se pudieron cargar los grupos");
+  const json = await res.json();
+  // Asumo shape { data: Group[] }
+  return json.data ?? [];
+}
+
 export default function Message({ onSelectChat }: HomeProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const {
     conversations,
     loading,
@@ -21,22 +44,93 @@ export default function Message({ onSelectChat }: HomeProps) {
     refreshConversations,
   } = useConversationStore();
 
-  useEffect(() => {
-    refreshConversations();
-  }, [refreshConversations]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [groupsLoading, setGroupsLoading] = useState(false);
+  const [groupsError, setGroupsError] = useState<string | null>(null);
 
+  // Lee groupId de la URL (?groupId=123)
+  const groupIdFromQuery = useMemo(() => {
+    const raw = searchParams.get("groupId");
+    if (!raw) return undefined;
+    const n = Number(raw);
+    return Number.isNaN(n) ? undefined : n;
+  }, [searchParams]);
+
+  const [selectedGroupId, setSelectedGroupId] = useState<number | undefined>(
+    groupIdFromQuery
+  );
+
+  // Sincroniza estado local con la URL (si cambia por navegación externa)
+  useEffect(() => {
+    setSelectedGroupId(groupIdFromQuery);
+  }, [groupIdFromQuery]);
+
+  // Carga inicial de grupos
+  useEffect(() => {
+    (async () => {
+      try {
+        setGroupsLoading(true);
+        setGroupsError(null);
+        const token = localStorage.getItem("token") || "";
+        const data = await fetchGroups(token);
+        setGroups(data);
+      } catch (e) {
+        console.error(e);
+        setGroupsError("Ocurrió un error al cargar los grupos.");
+      } finally {
+        setGroupsLoading(false);
+      }
+    })();
+  }, []);
+
+  // Refresca conversaciones (respetando el grupo seleccionado)
+  const doRefresh = useCallback(
+    async (gid?: number) => {
+      await refreshConversations(
+        gid !== undefined ? { groupId: gid } : undefined
+      );
+    },
+    [refreshConversations]
+  );
+
+  // Primera carga de conversaciones
+  useEffect(() => {
+    doRefresh(selectedGroupId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGroupId]);
+
+  // Click en una conversación
   const handleConversationClick = (conversation: Conversation) => {
     onSelectChat(conversation.wa_id);
   };
 
+  // Botón “Actualizar”
   const handleRefresh = () => {
-    refreshConversations();
+    doRefresh(selectedGroupId);
   };
 
+  // Socket: refresca respetando el grupo actual
   useSocket(() => {
-    refreshConversations();
+    doRefresh(selectedGroupId);
   });
 
+  // Cambio en el select: actualiza estado + URL
+  const handleChangeGroup = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    const gid = value === "" ? undefined : Number(value);
+    setSelectedGroupId(gid);
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (gid === undefined) {
+      params.delete("groupId");
+    } else {
+      params.set("groupId", String(gid));
+    }
+    // Reemplaza la URL sin recargar
+    router.replace(`?${params.toString()}`);
+  };
+
+  // Render de error global de conversaciones
   if (error) {
     return (
       <main className="min-h-screen bg-gray-50 p-6">
@@ -61,29 +155,70 @@ export default function Message({ onSelectChat }: HomeProps) {
     );
   }
 
-  // Si no hay conversaciones, muestra un mensaje de bienvenida
+  const subtitle = `${
+    conversations.length
+  } conversaciones activas${
+    selectedGroupId ? ` • Grupo ${selectedGroupId}` : ""
+  }`;
+
   return (
     <main className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
         <PageHeader
           title="Conversaciones"
-          subtitle={`${conversations.length} conversaciones activas`}
+          subtitle={subtitle}
           actions={
-            <button
-              onClick={handleRefresh}
-              disabled={loading}
-              className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
-              {loading ? "Cargando..." : "Actualizar"}
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Selector de grupo */}
+              <div className="relative">
+                <select
+                  value={selectedGroupId ?? ""}
+                  onChange={handleChangeGroup}
+                  disabled={groupsLoading}
+                  className="bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  <option value="">
+                    {groupsLoading ? "Cargando grupos..." : "Todos los grupos"}
+                  </option>
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name ?? `Grupo ${g.id}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Botón Actualizar */}
+              <button
+                onClick={handleRefresh}
+                disabled={loading}
+                className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                {loading ? "Cargando..." : "Actualizar"}
+              </button>
+            </div>
           }
         />
+
+        {/* Error de grupos (no bloquea la vista de conversaciones) */}
+        {groupsError && (
+          <div className="mb-3 text-sm text-red-600">{groupsError}</div>
+        )}
 
         <ConversationList
           conversations={conversations}
           loading={loading}
           onConversationClick={handleConversationClick}
         />
+
+        {/* Estado vacío */}
+        {!loading && conversations.length === 0 && (
+          <div className="text-center text-gray-500 py-8">
+            {selectedGroupId
+              ? "No hay conversaciones para este grupo."
+              : "No hay conversaciones aún."}
+          </div>
+        )}
       </div>
     </main>
   );

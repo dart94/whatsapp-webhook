@@ -3,13 +3,27 @@ import { Conversation, WhatsappMessage } from "../types/whatsapp";
 
 
 //Muestra los conversaciones recientes por clientes unicos
-export async function fetchConversations(token: string): Promise<Conversation[]> {
-  const res = await fetch(`${API_BASE_URL}/waid`,{
+export async function fetchConversations(
+  token: string,
+  opts?: { groupId?: number }
+): Promise<Conversation[]> {
+  const params = new URLSearchParams();
+  if (opts?.groupId !== undefined) {
+    params.set("groupId", String(opts.groupId));
+  }
+
+  const url =
+    params.toString().length > 0
+      ? `${API_BASE_URL}/waid?${params.toString()}`
+      : `${API_BASE_URL}/waid`;
+
+  const res = await fetch(url, {
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`, // 🔹 pasamos el token
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
   });
+
   const json = await res.json();
   return json.data;
 }
