@@ -18,30 +18,41 @@ interface DecodedToken {
   };
 }
 
-// OPCIÓN 1: Usando validateToken (como en getTemplates que funciona)
-export const getUniqueWaidsController = async (req: Request, res: Response) => {
+// FUNCIÓN ALTERNATIVA: Si quieres mantener el patrón original pero corregido
+export const getUniqueWaidsControllerAlternative = async (req: Request, res: Response) => {
   try {
-    // ✅ Obtener token del header (mismo patrón que getTemplates)
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) {
-      logInfo('❌ No se encontró token en header de autorización');
+    // Extraer token del header Authorization
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      logInfo('❌ No se encontró header de autorización');
       return res.status(401).json({
         success: false,
-        message: "Token required",
+        message: "Token de autorización requerido",
       });
     }
 
-    // ✅ Validar token usando la misma función que funciona en getTemplates
-    const decoded = await validateToken(token);
+    // Extraer token - soportar ambos formatos
+    let token: string;
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.replace('Bearer ', '');
+    } else {
+      token = authHeader.split(" ")[1] || authHeader;
+    }
+
+    logInfo(token);
+
+    // Validar token usando la función del backend
+    const decoded = validateToken(token);
     if (!decoded || typeof decoded !== "object") {
       logInfo('❌ Token inválido o decodificación fallida');
       return res.status(401).json({
         success: false,
-        message: "Invalid token"
+        message: "Token inválido"
       });
     }
 
-    const user = decoded as any; // Cast para acceder a las propiedades
+    const user = decoded as any;
     logInfo(`✅ Token válido para usuario: ${user.email} (ID: ${user.id})`);
 
     // Obtener mensajes según los permisos del usuario
@@ -49,11 +60,9 @@ export const getUniqueWaidsController = async (req: Request, res: Response) => {
     
     if (user.isAdmin) {
       logInfo(`👑 Admin ${user.email} solicitando todos los mensajes`);
-      // Los admin pueden ver todos los mensajes
       waids = await getLatestMessagesPerWaid();
     } else {
       logInfo(`👤 Usuario ${user.email} solicitando mensajes de grupo ${user.groupId}`);
-      // Los usuarios normales solo ven mensajes de su grupo
       if (!user.groupId) {
         return res.status(403).json({
           success: false,
@@ -81,8 +90,7 @@ export const getUniqueWaidsController = async (req: Request, res: Response) => {
     logInfo(`❌ Error al obtener WAIDs únicos: ${error.message}`);
     return res.status(500).json({
       success: false,
-      message: "Error al obtener conversaciones únicas.",
-      // Solo mostrar detalles en desarrollo
+      message: "Error interno del servidor",
       ...(process.env.NODE_ENV === 'development' && { details: error.message })
     });
   }
