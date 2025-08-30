@@ -83,6 +83,20 @@ export default function Message({ onSelectChat }: HomeProps) {
     })();
   }, []);
 
+  useEffect(() => {
+  if (!groupsLoading && groups.length === 1) {
+    const onlyGroup = groups[0];
+
+    // Actualiza el estado seleccionado
+    setSelectedGroupId(onlyGroup.id);
+
+    // Sincroniza con la URL (?groupId=)
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("groupId", String(onlyGroup.id));
+    router.replace(`?${params.toString()}`);
+  }
+}, [groupsLoading, groups, router, searchParams])
+
   // Refresca conversaciones (respetando el grupo seleccionado)
   const doRefresh = useCallback(
     async (gid?: number) => {

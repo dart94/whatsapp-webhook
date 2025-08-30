@@ -2,12 +2,26 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-// Tipo para el payload que esperamos del JWT
 interface JwtPayload {
-  id: string;
+  id: number;           
   isAdmin: boolean;
+  groupId: number | null; 
   iat: number;
   exp: number;
+}
+
+
+declare global {
+  namespace Express {
+    interface UserPayload {
+      id: number;
+      isAdmin: boolean;
+      groupId: number | null;
+    }
+    interface Request {
+      user?: UserPayload;
+    }
+  }
 }
 
 // Middleware para verificar token (cualquiera que esté logueado)
@@ -29,7 +43,8 @@ export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
     // Guardamos el payload en req.user para usarlo en rutas protegidas
     (req as any).user = {
       id: decoded.id,
-      isAdmin: decoded.isAdmin
+      isAdmin: decoded.isAdmin,
+      groupId: decoded.groupId ?? null,
     };
 
     next();
@@ -41,10 +56,10 @@ export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
 
 // Middleware para rutas que requieren admin
 export const checkAdmin = (req: Request, res: Response, next: NextFunction) => {
-  // Primero verificamos que esté autenticado
+  // Reusa checkAuth para validar y popular req.user
   checkAuth(req, res, () => {
     const user = (req as any).user;
-    if (!user.isAdmin) {
+    if (!user?.isAdmin) {
       return res.status(403).json({ success: false, message: "Acceso denegado: solo admin" });
     }
     next();

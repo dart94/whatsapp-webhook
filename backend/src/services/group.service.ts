@@ -5,16 +5,30 @@ import { logInfo } from "../utils/logger";
 const prisma = new PrismaClient();
 
 //Obtener grupos
-export async function getGroups() {
+export async function getGroups(isAdmin: boolean, groupId: number | null) {
   try {
-    const groups = await prisma.group.findMany({
-      select: {
-        id: true,
-        name: true,
-      },
+    if (isAdmin) {
+      const groups = await prisma.group.findMany({
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      });
+      logInfo(`✅ Grupos (admin) obtenidos: ${groups.length}`);
+      return groups;
+    }
+
+    if (groupId == null) {
+      logInfo(`ℹ️ Usuario no-admin sin groupId asignado.`);
+      return [];
+    }
+
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+      select: { id: true, name: true },
     });
-    logInfo(`✅ Grupos obtenidos: ${groups.length}`);
-    return groups;
+
+    const list = group ? [group] : [];
+    logInfo(`✅ Grupos (no-admin) obtenidos: ${list.length}`);
+    return list;
   } catch (error) {
     logInfo(`❌ Error al obtener grupos: ${error}`);
     return [];

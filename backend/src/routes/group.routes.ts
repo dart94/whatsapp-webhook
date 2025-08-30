@@ -1,6 +1,13 @@
 //rutas para grupos
-import express from 'express';
-import { getGroupByIdController, getGroupsController, createGroupController, updateGroupController, deleteGroupController } from '../controllers/group.controller';
+import express from "express";
+import {
+  getGroupByIdController,
+  getGroupsController,
+  createGroupController,
+  updateGroupController,
+  deleteGroupController,
+} from "../controllers/group.controller";
+import { checkAuth } from "../middlewares/auth.middleware";
 
 const router = express.Router();
 
@@ -22,7 +29,7 @@ const router = express.Router();
  *       500:
  *         description: Error al obtener grupos.
  */
-router.get('/', getGroupsController);
+router.get("/groups", checkAuth, getGroupsController);
 
 /**
  * @swagger
@@ -54,7 +61,7 @@ router.get('/', getGroupsController);
  *       500:
  *         description: Error al crear grupo.
  */
-router.post('/', createGroupController);
+router.post("/", checkAuth, createGroupController);
 
 /**
  * @swagger
@@ -93,7 +100,7 @@ router.post('/', createGroupController);
  *       500:
  *         description: Error al actualizar grupo.
  */
-router.put('/:id', updateGroupController);
+router.put("/:id", checkAuth, updateGroupController);
 
 /**
  * @swagger
@@ -120,9 +127,7 @@ router.put('/:id', updateGroupController);
  *       500:
  *         description: Error al eliminar grupo.
  */
-router.delete('/:id', deleteGroupController);
-
-
+router.delete("/:id", checkAuth, deleteGroupController);
 
 /**
  * @swagger
@@ -156,9 +161,8 @@ router.delete('/:id', deleteGroupController);
  *                 $ref: '#/components/schemas/Group'
  *       500:
  *         description: Error al obtener grupos.
- * 
+ *
  */
-router.get('/:id', getGroupByIdController);
+router.get("/:id", getGroupByIdController);
 
 export default router;
-

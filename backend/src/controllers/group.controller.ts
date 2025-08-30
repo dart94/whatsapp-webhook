@@ -7,7 +7,12 @@ import { logInfo } from "../utils/logger";
 //Obtener grupos
 export const getGroupsController = async (req: Request, res: Response) => {
   try {
-    const groups = await getGroups();
+    const user = (req as any).user as { id: number; isAdmin: boolean; groupId: number | null } | undefined;
+    if (!user) {
+      return res.status(401).json({ success: false, message: "No autorizado" });
+    }
+
+    const groups = await getGroups(user.isAdmin, user.groupId);
     res.status(200).json({ success: true, data: groups });
   } catch (error) {
     logInfo(`❌ Error al obtener grupos: ${error}`);
