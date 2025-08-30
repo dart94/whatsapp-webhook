@@ -3,8 +3,13 @@ import { Conversation, WhatsappMessage } from "../types/whatsapp";
 
 
 //Muestra los conversaciones recientes por clientes unicos
-export async function fetchConversations(): Promise<Conversation[]> {
-  const res = await fetch(`${API_BASE_URL}/waid`);
+export async function fetchConversations(token: string): Promise<Conversation[]> {
+  const res = await fetch(`${API_BASE_URL}/waid`,{
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`, // 🔹 pasamos el token
+    },
+  });
   const json = await res.json();
   return json.data;
 }
