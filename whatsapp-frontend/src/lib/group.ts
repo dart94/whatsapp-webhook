@@ -1,6 +1,7 @@
 // /lib/group.ts
 import { Group } from "@/types/groups";
 import { apiFetch } from "@/services/appiFetch";
+import { API_BASE_URL } from "@/config/api";
 
 type FetchOpts = {
   signal?: AbortSignal;
@@ -9,17 +10,25 @@ type FetchOpts = {
 //Obtener todos los grupos
 type ApiResponse = { success?: boolean; data?: Group[] } | Group[];
 
-export async function getGroups(): Promise<Group[]> {
-  const json = (await apiFetch("/groups", { method: "GET" })) as ApiResponse;
+type GroupsResponse = {
+  success: boolean;
+  data: Group[];
+};
 
-  // Acepta tanto { success, data: [...] } como [...] plano
-  if (Array.isArray(json)) return json;
-  if (Array.isArray(json?.data)) return json.data;
+export async function getGroups(token: string): Promise<Group[]> {
+  const res = await fetch(`${API_BASE_URL}/groups`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  });
 
-  // si no vino nada, regresa arreglo vacío (evita excepciones)
-  return [];
+  if (!res.ok) throw new Error("No se pudieron cargar los grupos");
+
+  const json: GroupsResponse = await res.json();
+  return json.data;
 }
-
 /** Obtener grupo por id */
 export async function getGroupById(id: number, opts?: FetchOpts): Promise<Group> {
   const response = await apiFetch(`/groups/${id}`, { signal: opts?.signal });

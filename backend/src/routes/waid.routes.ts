@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { getUniqueWaidsController } from "../controllers/waid.controller";
+import { checkAuth } from "../middlewares/checkAut";
 
 const router = Router();
 
@@ -51,6 +52,6 @@ const router = Router();
  *       500:
  *         description: Error al obtener WAIDs únicos
  */
-router.get("/", getUniqueWaidsController);
+router.get("/", checkAuth,getUniqueWaidsController);
 
 export default router;
