@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { getLatestMessagesPerWaid } from '../services/waid.service';
 import { logInfo } from '../utils/logger';
+import { validateToken } from '../services/auth.service';
 
 // Interface para el token decodificado
 interface DecodedToken {
@@ -17,73 +18,31 @@ interface DecodedToken {
   };
 }
 
-// Función para extraer información del token
-function extractUserFromToken(token: string): DecodedToken {
-  try {
-    const jwtSecret = process.env.JWT_SECRET!;
-    const decoded = jwt.verify(token, jwtSecret) as DecodedToken;
-    return decoded;
-  } catch (error) {
-    throw new Error('Token inválido');
-  }
-}
-
-// Controller principal que filtra por grupo del usuario
-// Tu controller corregido
+// OPCIÓN 1: Usando validateToken (como en getTemplates que funciona)
 export const getUniqueWaidsController = async (req: Request, res: Response) => {
   try {
-    // Extraer token del header Authorization
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader) {
-      logInfo('❌ No se encontró header de autorización');
+    // ✅ Obtener token del header (mismo patrón que getTemplates)
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      logInfo('❌ No se encontró token en header de autorización');
       return res.status(401).json({
         success: false,
-        message: "Token de autorización requerido",
+        message: "Token required",
       });
     }
 
-    // El token puede venir como "Bearer TOKEN" o solo "TOKEN"
-    const token = authHeader.startsWith('Bearer ') 
-      ? authHeader.replace('Bearer ', '') 
-      : authHeader;
-
-    // Verificar que JWT_SECRET esté configurado
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      logInfo('❌ JWT_SECRET no está configurado');
-      return res.status(500).json({
+    // ✅ Validar token usando la misma función que funciona en getTemplates
+    const decoded = await validateToken(token);
+    if (!decoded || typeof decoded !== "object") {
+      logInfo('❌ Token inválido o decodificación fallida');
+      return res.status(401).json({
         success: false,
-        message: "Error de configuración del servidor",
+        message: "Invalid token"
       });
     }
 
-    // Decodificar y verificar token
-    let user: DecodedToken;
-    try {
-      user = jwt.verify(token, jwtSecret) as DecodedToken;
-      logInfo(`✅ Token válido para usuario: ${user.email} (ID: ${user.id})`);
-    } catch (jwtError: any) {
-      logInfo(`❌ Error al verificar token: ${jwtError.message}`);
-      
-      // Más información específica sobre el error del token
-      if (jwtError.name === 'TokenExpiredError') {
-        return res.status(401).json({
-          success: false,
-          message: "Token expirado",
-        });
-      } else if (jwtError.name === 'JsonWebTokenError') {
-        return res.status(401).json({
-          success: false,
-          message: "Token inválido",
-        });
-      } else {
-        return res.status(401).json({
-          success: false,
-          message: "Error de autenticación",
-        });
-      }
-    }
+    const user = decoded as any; // Cast para acceder a las propiedades
+    logInfo(`✅ Token válido para usuario: ${user.email} (ID: ${user.id})`);
 
     // Obtener mensajes según los permisos del usuario
     let waids;
@@ -122,7 +81,7 @@ export const getUniqueWaidsController = async (req: Request, res: Response) => {
     logInfo(`❌ Error al obtener WAIDs únicos: ${error.message}`);
     return res.status(500).json({
       success: false,
-      message: "Error interno del servidor",
+      message: "Error al obtener conversaciones únicas.",
       // Solo mostrar detalles en desarrollo
       ...(process.env.NODE_ENV === 'development' && { details: error.message })
     });
