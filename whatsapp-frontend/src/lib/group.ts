@@ -24,11 +24,17 @@ export async function getGroups(token: string): Promise<Group[]> {
     cache: "no-store",
   });
 
+  if (res.status === 401) {
+    throw new Error("No autorizado (token inválido o expirado)");
+  }
   if (!res.ok) throw new Error("No se pudieron cargar los grupos");
 
   const json: GroupsResponse = await res.json();
-  return json.data;
+  return json.data ?? [];
 }
+
+
+
 /** Obtener grupo por id */
 export async function getGroupById(id: number, opts?: FetchOpts): Promise<Group> {
   const response = await apiFetch(`/groups/${id}`, { signal: opts?.signal });
@@ -36,10 +42,12 @@ export async function getGroupById(id: number, opts?: FetchOpts): Promise<Group>
 }
 
 /** Crear grupo */
-export async function createGroup(name: string): Promise<Group> {
+export async function createGroup( token: string, name: string): Promise<Group> {
   const response = await apiFetch("/groups", {
     method: "POST",
-    headers: { "Content-Type": "application/json" }, // ← si apiFetch no lo añade solo
+    headers: { "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+     }, // ← si apiFetch no lo añade solo
     body: JSON.stringify({ name }),
   });
   return response.data as Group;

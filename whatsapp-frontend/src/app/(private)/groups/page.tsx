@@ -20,7 +20,8 @@ import { GroupIntCreate } from "@/components/modal/GroupIntCreate";
 
 
 function PrivatePage() {
-  const { groups, loading, error, refresh, removeGroup } = useGroups();
+   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const { groups, loading, error, refresh, removeGroup } = useGroups(token);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
 
   const [isOpen, setIsOpen] = useState(false);

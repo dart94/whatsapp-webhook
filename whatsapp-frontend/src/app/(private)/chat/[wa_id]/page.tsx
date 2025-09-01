@@ -1,6 +1,8 @@
 // app/chats/[waId]/ChatPage.tsx
 "use client";
-import { useEffect, useCallback, useState } from "react";
+
+import { useEffect, useCallback, useState, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChatHeader } from "@/components/ChatHeader";
 import { MessageList } from "@/components/MessageList";
 import TextBox from "@/components/ChatInput";
@@ -15,18 +17,58 @@ type ChatPageProps = {
 };
 
 export default function ChatPage({ waId, onBack }: ChatPageProps) {
+  const searchParams = useSearchParams();
+
   const { messagesByWaId, setMessages } = useChatStore();
   const { refreshConversations } = useConversationStore();
+
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Cargar mensajes iniciales
+  // Token desde localStorage (sólo en cliente)
   useEffect(() => {
+    const t = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    setToken(t);
+  }, []);
+
+  // Lee groupId de la URL (?groupId=123)
+  const groupId = useMemo(() => {
+    const raw = searchParams.get("groupId");
+    if (!raw) return undefined;
+    const n = Number(raw);
+    return Number.isNaN(n) ? undefined : n;
+  }, [searchParams]);
+
+  // Helper para refrescar conversaciones respetando token y groupId
+  const doRefresh = useCallback(
+    async (gid?: number) => {
+      if (!token) return;
+      await refreshConversations(token, gid !== undefined ? { groupId: gid } : undefined);
+    },
+    [token, refreshConversations]
+  );
+
+  // Cargar mensajes iniciales del chat activo
+  useEffect(() => {
+    if (!token) return; // no dispares sin token
     const loadInitialMessages = async () => {
       try {
         setIsLoading(true);
-        const messagesFromDb = await fetchMessagesByWaId(waId);
+        const messagesFromDb = await fetchMessagesByWaId(
+          token,
+          waId,
+          groupId !== undefined ? { groupId } : undefined
+        );
         setMessages(waId, messagesFromDb);
+        // marcar como leídos en este grupo
+        await markMessagesAsRead(
+          token,
+          waId,
+          groupId !== undefined ? { groupId } : undefined
+        );
+        // refrescar la lista de conversaciones (contadores, orden)
+        await doRefresh(groupId);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error al cargar mensajes");
       } finally {
@@ -34,15 +76,18 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
       }
     };
     loadInitialMessages();
-    markMessagesAsRead(waId);
-  }, [waId, setMessages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waId, token, groupId, setMessages, doRefresh]);
 
-  // Socket: refrescar conversaciones si llega mensaje del waId activo
+  // Socket: si llega mensaje del mismo waId activo, refrescamos lista de conversaciones
   const handleSocketMessage = useCallback(
     (payload: any) => {
-      if (payload?.wa_id === waId) refreshConversations();
+      if (!token) return;
+      if (!waId || payload?.wa_id === waId) {
+        void doRefresh(groupId);
+      }
     },
-    [waId, refreshConversations]
+    [token, waId, groupId, doRefresh]
   );
 
   useSocket(handleSocketMessage);
@@ -66,6 +111,7 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
 
       {/* TextBox fijo abajo */}
       <div className="border-t bg-white">
+        {/* Si tu TextBox necesita token/groupId, pásalos como props o que los lea internamente */}
         <TextBox waId={waId} />
       </div>
     </div>

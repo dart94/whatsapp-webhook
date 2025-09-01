@@ -6,7 +6,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { showToast } from "@/components/common/Toast";
 
 export function GroupCreate({ isOpen, onClose, onCreated }: GroupCreateProps) {
-  const { addGroup, loading, error } = useGroups();
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  if (!token) throw new Error("No hay token de autenticación");
+  const { addGroup, loading, error } = useGroups(token);
   const [group, setGroup] = useState<CreateGroupInput>({ name: "" });
   const [touched, setTouched] = useState<{
     name: boolean;
@@ -73,7 +75,7 @@ export function GroupCreate({ isOpen, onClose, onCreated }: GroupCreateProps) {
       });
 
       if (result.isConfirmed) {
-        await addGroup(group.name);
+        await addGroup(token, group.name);
         await showToast({
           type: "success",
           message: "Grupo creado correctamente",

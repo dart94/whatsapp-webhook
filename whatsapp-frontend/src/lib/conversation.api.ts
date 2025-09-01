@@ -8,38 +8,54 @@ export async function fetchConversations(
   opts?: { groupId?: number }
 ): Promise<Conversation[]> {
   const params = new URLSearchParams();
-  if (opts?.groupId !== undefined) {
-    params.set("groupId", String(opts.groupId));
-  }
-
-  const url =
-    params.toString().length > 0
-      ? `${API_BASE_URL}/waid?${params.toString()}`
-      : `${API_BASE_URL}/waid`;
+  if (opts?.groupId !== undefined) params.set("groupId", String(opts.groupId));
+  const url = params.toString()
+    ? `${API_BASE_URL}/waid?${params.toString()}`
+    : `${API_BASE_URL}/waid`;
 
   const res = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`, // ✅
     },
+    cache: "no-store",
   });
 
+  if (res.status === 401) {
+    const text = await res.text();
+    throw new Error(`No autorizado: ${text}`);
+  }
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Error HTTP ${res.status}: ${text}`);
+  }
+
   const json = await res.json();
-  return json.data;
+  return json.data ?? [];
 }
 
 //Muestra los mensajes recientes de una conversación por cliente
-export async function fetchMessagesByWaId(wa_id: string): Promise<WhatsappMessage[]> {
-  const res = await fetch(`${API_BASE_URL}/messages/${wa_id}`);
+export async function fetchMessagesByWaId(
+  token: string,
+  waId: string,
+  opts?: { groupId?: number }
+) {
+  const params = new URLSearchParams();
+  if (opts?.groupId !== undefined) params.set("groupId", String(opts.groupId));
+  const url = params.toString()
+    ? `${API_BASE_URL}/messages/${encodeURIComponent(waId)}?${params.toString()}`
+    : `${API_BASE_URL}/messages/${encodeURIComponent(waId)}`;
 
-if (!res.ok) {
-  const text = await res.text();
-  throw new Error(`Error HTTP ${res.status}: ${text}`);
+  const res = await fetch(url, {
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (res.status === 401) throw new Error("No autorizado (token inválido o expirado)");
+  if (!res.ok) throw new Error(`Error HTTP ${res.status}: ${await res.text()}`);
+  const json = await res.json();
+  return json.data ?? [];
 }
 
-const json = await res.json();
-return json.data;
-}
 
 //Enviar un mensaje a una conversación
 export async function replyToMessage(
@@ -71,14 +87,20 @@ export async function replyToMessage(
 }
 
 //Marcar mensajes como leídos
-export async function markMessagesAsRead(wa_id: string): Promise<void> {
-  const res = await fetch(`${API_BASE_URL}/mark-as-read/${wa_id}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+export async function markMessagesAsRead(
+  token: string,
+  waId: string,
+  opts?: { groupId?: number }
+) {
+  const body = opts?.groupId !== undefined ? { groupId: opts.groupId } : {};
+  const res = await fetch(`${API_BASE_URL}/messages/${encodeURIComponent(waId)}/read`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
   });
-  const json = await res.json();
+  if (res.status === 401) throw new Error("No autorizado (token inválido o expirado)");
+  if (!res.ok) throw new Error(`Error HTTP ${res.status}: ${await res.text()}`);
+  return true;
 }
 
 //Obtener conteo de mensajes sin leer

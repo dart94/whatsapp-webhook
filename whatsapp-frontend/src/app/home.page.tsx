@@ -8,6 +8,7 @@ import { ConversationList } from "../components/ConversationList";
 import { Conversation } from "../types/whatsapp";
 import { useSocket } from "../hooks/UseSocket";
 import { useConversationStore } from "../stores/UseConversationStore";
+import { useGroups } from "../hooks/useGroups";
 
 // 👇 ajusta si tienes un archivo centralizado de config
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
@@ -18,35 +19,30 @@ type HomeProps = {
 
 type Group = { id: number; name: string };
 
-// Carga de grupos (puedes mover esto a /lib/groups.api.ts si prefieres)
-async function fetchGroups(token?: string): Promise<Group[]> {
-  const res = await fetch(`${API_BASE_URL}/groups`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error("No se pudieron cargar los grupos");
-  const json = await res.json();
-  // Asumo shape { data: Group[] }
-  return json.data ?? [];
-}
-
 export default function Message({ onSelectChat }: HomeProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const {
-    conversations,
+    conversations = [],
     loading,
     error,
     refreshConversations,
   } = useConversationStore();
 
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [groupsLoading, setGroupsLoading] = useState(false);
-  const [groupsError, setGroupsError] = useState<string | null>(null);
+  
+  // Token del storage (solo en cliente)
+  const [token, setToken] = useState<string | null>(null);
+  useEffect(() => {
+    const t =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    setToken(t);
+  }, []);
+  const {
+    groups,
+    loading: groupsLoading,
+    error: groupsError,
+  } = useGroups(token);
 
   // Lee groupId de la URL (?groupId=123)
   const groupIdFromQuery = useMemo(() => {
@@ -65,53 +61,52 @@ export default function Message({ onSelectChat }: HomeProps) {
     setSelectedGroupId(groupIdFromQuery);
   }, [groupIdFromQuery]);
 
-  // Carga inicial de grupos
+  // fetch grupos 
+  
+
+  // Auto-seleccionar si solo hay 1 grupo (sin pisar selección existente)
   useEffect(() => {
-    (async () => {
-      try {
-        setGroupsLoading(true);
-        setGroupsError(null);
-        const token = localStorage.getItem("token") || "";
-        const data = await fetchGroups(token);
-        setGroups(data);
-      } catch (e) {
-        console.error(e);
-        setGroupsError("Ocurrió un error al cargar los grupos.");
-      } finally {
-        setGroupsLoading(false);
-      }
-    })();
-  }, []);
+    if (
+      !groupsLoading &&
+      groups.length === 1 &&
+      selectedGroupId === undefined
+    ) {
+      const onlyGroup = groups[0];
+      setSelectedGroupId(onlyGroup.id);
 
-  useEffect(() => {
-  if (!groupsLoading && groups.length === 1) {
-    const onlyGroup = groups[0];
+      // Sincroniza con la URL (?groupId=)
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("groupId", String(onlyGroup.id));
+      router.replace(`?${params.toString()}`);
+    }
+  }, [groupsLoading, groups, selectedGroupId, router, searchParams]);
 
-    // Actualiza el estado seleccionado
-    setSelectedGroupId(onlyGroup.id);
-
-    // Sincroniza con la URL (?groupId=)
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("groupId", String(onlyGroup.id));
-    router.replace(`?${params.toString()}`);
-  }
-}, [groupsLoading, groups, router, searchParams])
+  // Nombre del grupo seleccionado (para el subtítulo)
+  const selectedGroupName = useMemo(() => {
+    if (selectedGroupId === undefined) return undefined;
+    return (
+      groups.find((g) => g.id === selectedGroupId)?.name ??
+      `Grupo ${selectedGroupId}`
+    );
+  }, [selectedGroupId, groups]);
 
   // Refresca conversaciones (respetando el grupo seleccionado)
   const doRefresh = useCallback(
     async (gid?: number) => {
+      if (!token) return; // no llames sin token
       await refreshConversations(
+        token,
         gid !== undefined ? { groupId: gid } : undefined
       );
     },
-    [refreshConversations]
+    [token, refreshConversations]
   );
 
-  // Primera carga de conversaciones
+  // Primera carga / cambios de grupo (solo con token)
   useEffect(() => {
-    doRefresh(selectedGroupId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedGroupId]);
+    if (!token) return;
+    void doRefresh(selectedGroupId);
+  }, [token, selectedGroupId, doRefresh]);
 
   // Click en una conversación
   const handleConversationClick = (conversation: Conversation) => {
@@ -120,12 +115,14 @@ export default function Message({ onSelectChat }: HomeProps) {
 
   // Botón “Actualizar”
   const handleRefresh = () => {
-    doRefresh(selectedGroupId);
+    if (!token) return;
+    void doRefresh(selectedGroupId);
   };
 
   // Socket: refresca respetando el grupo actual
   useSocket(() => {
-    doRefresh(selectedGroupId);
+    if (!token) return;
+    void doRefresh(selectedGroupId);
   });
 
   // Cambio en el select: actualiza estado + URL
@@ -140,7 +137,6 @@ export default function Message({ onSelectChat }: HomeProps) {
     } else {
       params.set("groupId", String(gid));
     }
-    // Reemplaza la URL sin recargar
     router.replace(`?${params.toString()}`);
   };
 
@@ -169,10 +165,8 @@ export default function Message({ onSelectChat }: HomeProps) {
     );
   }
 
-  const subtitle = `${
-    conversations.length
-  } conversaciones activas${
-    selectedGroupId ? ` • Grupo ${selectedGroupId}` : ""
+  const subtitle = `${conversations?.length ?? 0} conversaciones activas${
+    selectedGroupName ? ` • ${selectedGroupName}` : ""
   }`;
 
   return (

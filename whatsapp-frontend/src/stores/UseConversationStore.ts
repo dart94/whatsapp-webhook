@@ -6,7 +6,7 @@ interface ConversationState {
   conversations: Conversation[];
   loading: boolean;
   error: string | null;
-  refreshConversations: (opts?: { groupId?: number }) => Promise<void>;
+  refreshConversations: (token: string, opts?: { groupId?: number }) => Promise<void>;
 }
 
 export const useConversationStore = create<ConversationState>((set) => ({
@@ -14,21 +14,18 @@ export const useConversationStore = create<ConversationState>((set) => ({
   loading: false,
   error: null,
 
-  refreshConversations: async (opts) => {
+  refreshConversations: async (token, opts) => {
     try {
+      if (!token) {
+        set({ error: "No hay token disponible", loading: false });
+        return;
+      }
       set({ loading: true, error: null });
-      const data = await fetchConversations(
-        // aquí puedes pasar el token desde tu contexto/auth hook
-        localStorage.getItem("token") || "",
-        opts
-      );
+      const data = await fetchConversations(token, opts); // ✅ token se pasa SIEMPRE
       set({ conversations: data, loading: false });
     } catch (e) {
       console.error(e);
-      set({
-        loading: false,
-        error: "Ocurrió un error al cargar conversaciones.",
-      });
+      set({ loading: false, error: "Ocurrió un error al cargar conversaciones." });
     }
   },
 }));

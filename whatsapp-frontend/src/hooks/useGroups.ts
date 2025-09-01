@@ -8,12 +8,12 @@ type UseGroupsReturn = {
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
-  addGroup: (name: string) => Promise<Group>;
+  addGroup: (name: string, token: string) => Promise<Group>;
   editGroup: (id: number, name: string) => Promise<Group>;
   removeGroup: (id: number) => Promise<void>;
 };
 
-export function useGroups(): UseGroupsReturn {
+export function useGroups(token: string | null): UseGroupsReturn {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,37 +21,46 @@ export function useGroups(): UseGroupsReturn {
   const fetchGroups = useCallback(async () => {
     setLoading(true);
     setError(null);
+
     try {
-      const arr = await getGroups();     // 👈 ya es Group[]
+      if (!token) {
+        setError("No hay token disponible");
+        setGroups([]);
+        return;
+      }
+      const arr = await getGroups(token);   // ✅ ahora pasamos token
       setGroups(arr);
     } catch (e: any) {
       setError(e?.message ?? "Error al cargar grupos");
-      setGroups([]);                     // 👈 estado definido aunque falle
+      setGroups([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => { fetchGroups(); }, [fetchGroups]);
 
   const refresh = useCallback(async () => { await fetchGroups(); }, [fetchGroups]);
 
-  const addGroup = useCallback(async (name: string) => {
-    const created = await createGroup(name);
-    setGroups(prev => [created, ...prev]);
+  const addGroup = useCallback(async (name: string, token: string) => {
+    if (!token) throw new Error("No hay token");
+    const created = await createGroup(name, token);
+    setGroups(prev => [...prev, created]);
     return created;
   }, []);
 
   const editGroup = useCallback(async (id: number, name: string) => {
+    if (!token) throw new Error("No hay token");
     const updated = await updateGroup(id, name);
     setGroups(prev => prev.map(g => (g.id === id ? updated : g)));
     return updated;
-  }, []);
+  }, [token]);
 
   const removeGroup = useCallback(async (id: number) => {
+    if (!token) throw new Error("No hay token");
     await deleteGroup(id);
     setGroups(prev => prev.filter(g => g.id !== id));
-  }, []);
+  }, [token]);
 
   return { groups, loading, error, refresh, addGroup, editGroup, removeGroup };
 }
