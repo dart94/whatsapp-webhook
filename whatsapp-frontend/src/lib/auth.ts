@@ -21,6 +21,8 @@ export async function login(
   password: string,
   rememberMe: boolean
 ): Promise<LoginResponse> {
+  console.log("API_BASE_URL en login:", API_BASE_URL);
+  console.log("URL completa:", `${API_BASE_URL}/login`);
   const response = await fetch(`${API_BASE_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -81,20 +83,19 @@ export async function validateToken(): Promise<any> {
   return data.data;
 }
 
-
 //Logout
 export async function logout() {
   try {
     // Solo limpiar tokens y redirigir
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
-    
+
     // Opcional: llamar API si necesitas invalidar tokens en el servidor
     // await fetch('/api/auth/logout', { method: 'POST' });
-    
+
     window.location.href = "/";
   } catch (error) {
-    console.error('Error en logout:', error);
+    console.error("Error en logout:", error);
     window.location.href = "/"; // Redirigir de todos modos
   }
 }

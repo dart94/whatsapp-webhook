@@ -14,7 +14,7 @@ export function useSocket(onNewMessage: (payload: any) => void) {
     // Solo crear una conexión si no existe
     if (!socketRef.current) {
       
-      const socket = io("whatsapp-webhook-production-e928.up.railway.app", {
+      const socket = io("https://whatsapp-webhook-production-6e49.up.railway.app", {
         transports: ["websocket", "polling"], // Fallback a polling
         timeout: 10000,
         forceNew: true,

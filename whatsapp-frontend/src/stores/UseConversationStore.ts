@@ -6,7 +6,7 @@ interface ConversationState {
   conversations: Conversation[];
   loading: boolean;
   error: string | null;
-  refreshConversations: (token: string, opts?: { groupId?: number }) => Promise<void>;
+  refreshConversations: (opts?: { groupId?: number }) => Promise<void>; // ✅ Sin token
 }
 
 export const useConversationStore = create<ConversationState>((set) => ({
@@ -14,14 +14,18 @@ export const useConversationStore = create<ConversationState>((set) => ({
   loading: false,
   error: null,
 
-  refreshConversations: async (token, opts) => {
+  refreshConversations: async (opts?: { groupId?: number }) => {
     try {
+      // Obtener token dentro del store
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      
       if (!token) {
         set({ error: "No hay token disponible", loading: false });
         return;
       }
+      
       set({ loading: true, error: null });
-      const data = await fetchConversations(token, opts); // ✅ token se pasa SIEMPRE
+      const data = await fetchConversations(token, opts);
       set({ conversations: data, loading: false });
     } catch (e) {
       console.error(e);

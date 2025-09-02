@@ -10,7 +10,7 @@ const swaggerDefinition = {
   },
   servers: [
     {
-      url: "whatsapp-webhook-production-e928.up.railway.app",
+      url: "https://whatsapp-webhook-production-6e49.up.railway.app/",
       description: "Production",
     },
   ],
