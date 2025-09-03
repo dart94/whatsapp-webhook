@@ -75,7 +75,7 @@ export const sendTemplate = async (req: Request, res: Response) => {
           data: {
             wa_id: msg.to,
             message_id,
-            direction: "outbound",            
+            direction: "OUT",
             type: "template",
             body_text: renderedBody,          
             context_message_id: null,

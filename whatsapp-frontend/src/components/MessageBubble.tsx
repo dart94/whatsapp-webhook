@@ -20,7 +20,7 @@ export const MessageBubble = memo(function MessageBubble({
   isLastInGroup = true
 }: MessageBubbleProps) {
   const isIncoming = message.direction === "IN";
-  const isOutgoing = message.direction === "OUT";
+  const isOutgoing = message.direction === "OUT" ;
   
   // Formatear timestamp de manera más eficiente
   const formattedTime = useMemo(() => {
