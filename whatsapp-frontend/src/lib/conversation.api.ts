@@ -61,26 +61,28 @@ export async function fetchMessagesByWaId(
 export async function replyToMessage(
   wa_id: string,
   message: string,
+  replyToMessageId?: string,
+  token?: string // Agregar token como parámetro
 ): Promise<WhatsappMessage> {
   const res = await fetch(`${API_BASE_URL}/message/reply`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      // ✅ Enviar token en el header Authorization
+      ...(token && { 'Authorization': `Bearer ${token}` }),
     },
     body: JSON.stringify({
       to: wa_id,
       message,
+      replyToMessageId, // ✅ Incluir replyToMessageId si existe
     }),
   });
-  
-
+ 
   const json = await res.json();
-
   if (!res.ok || !json.success) {
     console.error("❌ Error en replyToMessage:", json);
     throw new Error(json.error?.message || json.message || 'Unknown error');
   }
-
   return json.data;
 }
 
