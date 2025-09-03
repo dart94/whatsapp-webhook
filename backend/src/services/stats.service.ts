@@ -33,7 +33,7 @@ export async function getTemplateStatsService(input: TemplateStatsInput): Promis
   const whereBase: Prisma.WhatsappMessageWhereInput = {
     createdAt: { gte: start, lt: end },
     type: "template",
-    direction: "outbound",
+    direction: "OUT",
     ...(effectiveGroupId ? { groupIntegrationId: effectiveGroupId } : {}),
   };
 
@@ -150,8 +150,8 @@ const rows = await prisma.$queryRaw<Row[]>`
   SELECT
     DATE(createdAt) AS day,
     COUNT(*) AS total,
-    SUM(CASE WHEN type = 'template' AND direction = 'outbound' AND status IN ('sent','delivered','read') THEN 1 ELSE 0 END) AS success,
-    SUM(CASE WHEN type = 'template' AND direction = 'outbound' AND status = 'error' THEN 1 ELSE 0 END) AS failure
+    SUM(CASE WHEN type = 'template' AND direction = 'OUT' AND status IN ('sent','delivered','read') THEN 1 ELSE 0 END) AS success,
+    SUM(CASE WHEN type = 'template' AND direction = 'OUT' AND status = 'error' THEN 1 ELSE 0 END) AS failure
   FROM WhatsappMessage
   WHERE createdAt >= ${start} AND createdAt < ${end}
     ${effectiveGroupId ? Prisma.sql`AND groupIntegrationId = ${effectiveGroupId}` : Prisma.empty}
@@ -178,4 +178,54 @@ const byDay = rows.map((r) => ({
     byGroup: byGroupMerged.sort((a, b) => (b.total - a.total) || (b.success - a.success)),
     byDay,
   };
+}
+
+//Obtener todos
+export async function getAllTemplateMessagesService(limit = 50) {
+  try {
+    // Obtener últimos mensajes tipo template con info de usuario y grupo
+    const messages = await prisma.whatsappMessage.findMany({
+      where: {
+        type: "template",
+        direction: "OUT",
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: limit,
+      select: {
+        id: true,
+        body_text: true,
+        status: true,
+        createdAt: true,
+        sentByUserId: true,
+        sentByUser: { select: { id: true, name: true } },
+        groupIntegrationId: true,
+        groupIntegration: { select: { id: true, groupId: true, group: { select: { name: true } } } },
+      },
+    });
+
+    // Mapear a un formato más limpio
+    const formatted = messages.map(msg => ({
+      id: msg.id,
+      body: msg.body_text,
+      status: msg.status,
+      createdAt: msg.createdAt,
+      user: msg.sentByUser ? { id: msg.sentByUser.id, name: msg.sentByUser.name } : null,
+      group: msg.groupIntegration
+        ? {
+            id: msg.groupIntegration.id,
+            groupId: msg.groupIntegration.groupId,
+            name: msg.groupIntegration.group?.name ?? null,
+          }
+        : null,
+    }));
+
+    logInfo(`✅ Se obtuvieron ${formatted.length} mensajes tipo template`);
+
+    return formatted;
+  } catch (error: any) {
+    logInfo(`❌ Error en getAllTemplateMessagesService: ${error.message ?? error}`);
+    return [];
+  }
 }
