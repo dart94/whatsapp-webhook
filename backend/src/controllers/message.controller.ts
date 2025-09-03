@@ -110,12 +110,12 @@ export const sendTemplate = async (req: Request, res: Response) => {
 export const replyToMessage = async (req: Request, res: Response) => {
   const { to, message, phoneNumberId, accessTokenId, replyToMessageId, actorUserId } = req.body;
 
-  // if (!to || !message || !phoneNumberId || !accessTokenId) {
-  //   return res.status(400).json({
-  //     success: false,
-  //     message: "Missing required fields: to, message, phoneNumberId, accessTokenId",
-  //   });
-  // }
+  if (!to || !message) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing required fields: to, message",
+    });
+  }
 
   try {
     const result = await sendWhatsAppMessage({

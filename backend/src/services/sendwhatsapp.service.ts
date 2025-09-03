@@ -13,9 +13,7 @@ export async function sendWhatsAppMessage(payload: SendTextPayload) {
     actorUserId,
   } = payload;
 
-  if (!phoneNumberId || !accessTokenId) {
-    throw new Error("phoneNumberId or accessTokenId missing");
-  }
+
 
   const body: any = {
     messaging_product: "whatsapp",
