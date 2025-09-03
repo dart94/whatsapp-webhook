@@ -9,6 +9,7 @@ import user from './routes/user.routes';
 import authRoutes from './routes/auth.routes';
 import groupRoutes from './routes/group.routes';
 import groupIntegrationRoutes from './routes/groupIntegration.routes';
+import stats from './routes/stats.routes';
 import { PORT } from './config/constants';
 import cors from 'cors';
 import swaggerSpec from './config/swagger';
@@ -44,6 +45,7 @@ app.use('/users', user);
 app.use('/', authRoutes);
 app.use('/groups', groupRoutes);
 app.use('/groupIntegration', groupIntegrationRoutes);
+app.use('/stats', stats);
 
 
 // Health check endpoint

@@ -16,6 +16,7 @@ import {
   ShieldCheckIcon,
   UserIcon,
   LinkIcon,
+  ChartBarSquareIcon,
 } from "@heroicons/react/24/outline";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -195,6 +196,13 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
         label: "Sheets",
         Icon: DocumentCheckIcon,
         active: pathname === "/sheets",
+        adminOnly: false,
+      },
+      {
+        href: "/charts",
+        label: "Estadísticas",
+        Icon: ChartBarSquareIcon,
+        active: pathname === "/charts",
         adminOnly: false,
       },
     ],

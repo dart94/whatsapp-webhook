@@ -42,6 +42,9 @@ model WhatsappMessage {
   @@index([wa_id])
   @@index([message_id])
   @@index([createdAt])
+  @@index([status])
+  @@index([sentByUserId,createdAt])
+  @@index([groupIntegrationId,createdAt])
 }
 
 model SheetIntegration {
