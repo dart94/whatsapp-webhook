@@ -144,26 +144,27 @@ export async function getTemplateStatsService(input: TemplateStatsInput): Promis
   });
 
   // Serie por día — Postgres con date_trunc (más eficiente)
-  type Row = { day: Date; total: bigint; success: bigint; failure: bigint };
-  const rows = await prisma.$queryRaw<Row[]>`
-    SELECT
-      date_trunc('day', "createdAt") AS day,
-      COUNT(*) FILTER (WHERE "type" = 'template' AND "direction"='outbound') AS total,
-      COUNT(*) FILTER (WHERE "type" = 'template' AND "direction"='outbound' AND "status" IN ('sent','delivered','read')) AS success,
-      COUNT(*) FILTER (WHERE "type" = 'template' AND "direction"='outbound' AND "status" = 'error') AS failure
-    FROM "WhatsappMessage"
-    WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
-      ${effectiveGroupId ? Prisma.sql`AND "groupIntegrationId" = ${effectiveGroupId}` : Prisma.empty}
-    GROUP BY 1
-    ORDER BY 1 ASC
-  `;
+type Row = { day: string; total: bigint; success: bigint; failure: bigint };
 
-  const byDay = rows.map((r) => ({
-    date: r.day.toISOString().slice(0, 10), // YYYY-MM-DD
-    total: Number(r.total),
-    success: Number(r.success),
-    failure: Number(r.failure),
-  }));
+const rows = await prisma.$queryRaw<Row[]>`
+  SELECT
+    DATE(createdAt) AS day,
+    COUNT(*) AS total,
+    SUM(CASE WHEN type = 'template' AND direction = 'outbound' AND status IN ('sent','delivered','read') THEN 1 ELSE 0 END) AS success,
+    SUM(CASE WHEN type = 'template' AND direction = 'outbound' AND status = 'error' THEN 1 ELSE 0 END) AS failure
+  FROM WhatsappMessage
+  WHERE createdAt >= ${start} AND createdAt < ${end}
+    ${effectiveGroupId ? Prisma.sql`AND groupIntegrationId = ${effectiveGroupId}` : Prisma.empty}
+  GROUP BY DATE(createdAt)
+  ORDER BY DATE(createdAt) ASC
+`;
+
+const byDay = rows.map((r) => ({
+  date: r.day, // MySQL devuelve 'YYYY-MM-DD' directamente
+  total: Number(r.total),
+  success: Number(r.success),
+  failure: Number(r.failure),
+}));
 
   logInfo(
     `✅ Stats plantillas — total:${total} success:${success} failure:${failure} (group:${effectiveGroupId ?? "all"})`

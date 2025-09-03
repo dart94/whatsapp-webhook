@@ -1,5 +1,5 @@
-import { Router } from 'express';
-import { leerDatosDesdeSheet } from '../controllers/sheets.controller';
+import { Router } from "express";
+import { leerDatosDesdeSheet } from "../controllers/sheets.controller";
 
 const router = Router();
 
@@ -28,7 +28,7 @@ const router = Router();
  *         required: false
  *         schema:
  *           type: string
- *         description: Rango personalizado (ej: "A1:B10"). Si se omite, se obtienen los headers y todas las filas.
+ *           description: Rango personalizado (ej: "A1:B10"). Si se omite, se obtienen los headers y todas las filas.
  *     responses:
  *       200:
  *         description: Datos obtenidos exitosamente
@@ -56,6 +56,6 @@ const router = Router();
  *       500:
  *         description: Error al leer datos de Google Sheets
  */
-router.get('/sheets/read', leerDatosDesdeSheet);
+router.get("/sheets/read", leerDatosDesdeSheet);
 
 export default router;
