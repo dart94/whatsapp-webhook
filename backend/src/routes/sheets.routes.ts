@@ -28,7 +28,8 @@ const router = Router();
  *         required: false
  *         schema:
  *           type: string
- *           description: Rango personalizado (ej: "A1:B10"). Si se omite, se obtienen los headers y todas las filas.
+ *           description: "Rango personalizado (ej: \"A1:B10\"). Si se omite, se obtienen los headers y todas las filas."
+
  *     responses:
  *       200:
  *         description: Datos obtenidos exitosamente

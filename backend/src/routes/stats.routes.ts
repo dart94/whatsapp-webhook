@@ -5,6 +5,6 @@ import { checkAuth } from "../middlewares/checkAut";
 export const router = Router();
 
 router.get("/", checkAuth, getTemplateStatsController);
-router.get("/messages", checkAuth, getAllTemplateMessagesController);
+router.get("/template-messages", checkAuth, getAllTemplateMessagesController);
 
 export default router;
