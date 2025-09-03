@@ -21,6 +21,7 @@ model WhatsappMessage {
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
   read               Boolean    @default(false)
+  status             String?    // 'sent' | 'delivered' | 'read' | 'error'
 
   // NUEVO: telefonía explícita (útil para backfill/consultas)
   fromPhone          String?                   // emisor: tu número (outbound) o cliente (inbound)
