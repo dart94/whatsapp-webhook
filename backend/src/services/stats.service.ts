@@ -222,6 +222,7 @@ export async function getAllTemplateMessagesService(limit = 50) {
     }));
 
     logInfo(`✅ Se obtuvieron ${formatted.length} mensajes tipo template`);
+    logInfo(formatted.map(m => ` - [${m.status}] ${m.body} (user: ${m.user?.name ?? 'N/A'}, group: ${m.group?.name ?? 'N/A'})`).join('\n'));
 
     return formatted;
   } catch (error: any) {
