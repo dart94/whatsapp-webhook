@@ -14,17 +14,22 @@ export default function ChatInput({ waId }: ChatInputProps) {
   const [error, setError] = useState<string | null>(null);
   const { addMessageToChat, updateMessageInChat } = useChatStore();
 
-  
-
   const handleSend = useCallback(async () => {
     if (loading || !message.trim()) return;
-    
+   
     setError(null);
     setLoading(true);
-    
-    // 1. Crear mensaje optimista
-    const tempId = Date.now();
+   
+    // 1. Obtener token antes de crear mensaje optimista
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    if (!token) {
+      setError("No se encontró token. Inicia sesión primero.");
+      setLoading(false);
+      return;
+    }
 
+    // 2. Crear mensaje optimista
+    const tempId = Date.now();
     const optimisticMessage: WhatsappMessage = {
       id: tempId,
       message_id: `temp-${tempId}`,
@@ -38,42 +43,42 @@ export default function ChatInput({ waId }: ChatInputProps) {
       updatedAt: new Date().toISOString()
     };
 
-    // 2. Añadir al store inmediatamente
+    // 3. Añadir al store inmediatamente
     addMessageToChat(waId, optimisticMessage);
+    
+    // 4. Guardar mensaje para posible restauración
+    const messageToSend = message;
     setMessage('');
 
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-
-    if (!token) {
-      console.error("❌ No se encontró token. El usuario debe iniciar sesión.");
-      throw new Error("No se encontró token. Inicia sesión primero.");
-    }
-
     try {
-      // 3. Enviar al servidor
-      const sentMessage = await replyToMessage(waId, message, token);
-      
-      // 4. Actualizar con la respuesta real
+      // 5. Enviar al servidor - CORREGIDO: orden correcto de parámetros
+      const sentMessage = await replyToMessage(
+        waId,           // wa_id
+        messageToSend,  // message
+        undefined,      // replyToMessageId (opcional)
+        token          // token
+      );
+     
+      // 6. Actualizar con la respuesta real
       updateMessageInChat(waId, tempId, {
         ...sentMessage,
         status: 'delivered'
       });
-      
+     
     } catch (err) {
       console.error('Error al enviar:', err);
       setError('Error al enviar mensaje');
-      
-      // 5. Marcar como fallado
+     
+      // 7. Marcar como fallado
       updateMessageInChat(waId, tempId, {
         status: 'failed'
       });
-      
-      setMessage(message); // Restaurar mensaje
+     
+      setMessage(messageToSend); // Restaurar mensaje
     } finally {
       setLoading(false);
     }
   }, [loading, message, waId, addMessageToChat, updateMessageInChat]);
-
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -91,6 +96,7 @@ export default function ChatInput({ waId }: ChatInputProps) {
     e.preventDefault();
     handleSend();
   }, [handleSend]);
+
 
   return (
     <div className="bg-white border-t border-gray-200 p-2">
