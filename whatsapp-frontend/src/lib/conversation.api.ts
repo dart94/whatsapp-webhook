@@ -61,13 +61,11 @@ export async function fetchMessagesByWaId(
 export async function replyToMessage(
   wa_id: string,
   message: string,
-  token: string // token JWT del usuario
 ): Promise<WhatsappMessage> {
   const res = await fetch(`${API_BASE_URL}/message/reply`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`, // 🔹 pasamos el token
     },
     body: JSON.stringify({
       to: wa_id,

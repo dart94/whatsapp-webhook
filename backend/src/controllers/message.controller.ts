@@ -105,62 +105,26 @@ export const sendTemplate = async (req: Request, res: Response) => {
     });
   }
 };
+
 //Responder mensajes
 export const replyToMessage = async (req: Request, res: Response) => {
-  const { to, message, replyToMessageId } = req.body;
+  const { to, message, phoneNumberId, accessTokenId, replyToMessageId, actorUserId } = req.body;
 
-  if (!to || !message) {
-    return res.status(400).json({
-      success: false,
-      message: "Missing required fields: to, message",
-    });
-  }
+  // if (!to || !message || !phoneNumberId || !accessTokenId) {
+  //   return res.status(400).json({
+  //     success: false,
+  //     message: "Missing required fields: to, message, phoneNumberId, accessTokenId",
+  //   });
+  // }
 
   try {
-    // ✅ Token y usuario
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) {
-      return res.status(401).json({ success: false, message: "Token required" });
-    }
-    const decoded = await validateToken(token);
-    if (!decoded || typeof decoded !== "object") {
-      return res.status(401).json({ success: false, message: "Invalid token" });
-    }
-    const actorUserId = (decoded as any).id as number;
-
-    // ✅ Grupo del usuario
-    const user = await prisma.user.findUnique({
-      where: { id: actorUserId },
-      select: { groupId: true },
-    });
-    if (!user?.groupId) {
-      return res.status(400).json({
-        success: false,
-        message: "User has no associated group",
-      });
-    }
-
-    // ✅ Integración del grupo (incluye id para evitar lookup en el servicio)
-    const integration = await prisma.groupIntegration.findFirst({
-      where: { groupId: user.groupId },
-      select: { id: true, phoneNumberId: true, accessTokenId: true },
-    });
-    if (!integration?.phoneNumberId || !integration?.accessTokenId) {
-      return res.status(400).json({
-        success: false,
-        message: "Integration data (phoneNumberId, accessTokenId) missing",
-      });
-    }
-
-    // ✅ Enviar y persistir con relaciones (actor + integración)
     const result = await sendWhatsAppMessage({
       to,
       message,
-      replyToMessageId,
-      phoneNumberId: integration.phoneNumberId,
-      accessTokenId: integration.accessTokenId,
-      actorUserId,                           
-      groupIntegrationId: integration.id,    
+      phoneNumberId,
+      accessTokenId,
+      replyToMessageId: replyToMessageId || undefined,
+      actorUserId: actorUserId || undefined,
     });
 
     return res.status(200).json({
@@ -172,7 +136,6 @@ export const replyToMessage = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: "Error sending reply message.",
-      error: String(error),
     });
   }
 };
