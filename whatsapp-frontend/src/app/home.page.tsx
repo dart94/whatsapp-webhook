@@ -10,6 +10,8 @@ import { useSocket } from "../hooks/UseSocket";
 import { useConversationStore } from "../stores/UseConversationStore";
 import { getStoredToken } from "@/utils/auth";
 import { get } from "http";
+import Search from "@/components/search/search";
+import { ArrowPathIcon }from "@heroicons/react/24/outline";
 
 // 👇 ajusta si tienes un archivo centralizado de config
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
@@ -25,10 +27,7 @@ async function fetchGroups(token?: string): Promise<Group[]> {
   if (!token) {
     getStoredToken();
   }
-  console.log("🔍 Debuggeando fetchGroups:");
-  console.log("API_BASE_URL:", API_BASE_URL);
-  console.log("Token existe:", !!token);
-  console.log("URL completa:", `${API_BASE_URL}/groups`);
+
  try {
     const res = await fetch(`${API_BASE_URL}/groups`, {
       headers: {
@@ -38,8 +37,7 @@ async function fetchGroups(token?: string): Promise<Group[]> {
       cache: "no-store",
     });
 
-    console.log("Estado de respuesta:", res.status);
-    console.log("Respuesta ok:", res.ok);
+
     
     if (!res.ok) {
       // Obtener más detalles sobre el error
@@ -63,6 +61,10 @@ export default function Message({ onSelectChat }: HomeProps) {
 
   const { conversations, loading, error, refreshConversations } =
     useConversationStore();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredConversations, setFilteredConversations] = useState<
+    Conversation[]
+  >([]);
 
   const [groups, setGroups] = useState<Group[]>([]);
   const [groupsLoading, setGroupsLoading] = useState(false);
@@ -79,6 +81,23 @@ export default function Message({ onSelectChat }: HomeProps) {
   const [selectedGroupId, setSelectedGroupId] = useState<number | undefined>(
     groupIdFromQuery
   );
+
+  // Maneja búsqueda
+    useEffect(() => {
+    if (!searchTerm) {
+      setFilteredConversations(conversations);
+    } else {
+      const lower = searchTerm.toLowerCase();
+      setFilteredConversations(
+        conversations.filter(
+          (c) =>
+            c.wa_id.toLowerCase().includes(lower)  
+        )
+      );
+    }
+  }, [searchTerm, conversations]);
+
+
 
   // Sincroniza estado local con la URL (si cambia por navegación externa)
   useEffect(() => {
@@ -200,7 +219,7 @@ export default function Message({ onSelectChat }: HomeProps) {
     selectedGroupId ? ` • Grupo ${selectedGroupId}` : ""
   }`;
 
-  return (
+return (
     <main className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
         <PageHeader
@@ -208,6 +227,18 @@ export default function Message({ onSelectChat }: HomeProps) {
           subtitle={subtitle}
           actions={
             <div className="flex items-center gap-2">
+              {/* Buscador */}
+              <Search onSearch={setSearchTerm} />
+
+              {/* Botón Actualizar */}
+              <button
+                onClick={handleRefresh}
+                disabled={loading}
+                className="bg-purple-500 text-white p-2 rounded-full hover:bg-purple-600 disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              >
+                <ArrowPathIcon className="w-5 h-5" />
+              </button>
+
               {/* Selector de grupo */}
               <div className="relative">
                 <select
@@ -227,33 +258,23 @@ export default function Message({ onSelectChat }: HomeProps) {
                 </select>
               </div>
 
-              {/* Botón Actualizar */}
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                {loading ? "Cargando..." : "Actualizar"}
-              </button>
             </div>
           }
         />
 
-        {/* Error de grupos (no bloquea la vista de conversaciones) */}
-        {groupsError && (
-          <div className="mb-3 text-sm text-red-600">{groupsError}</div>
-        )}
-
+        {/* Lista filtrada */}
         <ConversationList
-          conversations={conversations}
+          conversations={filteredConversations}
           loading={loading}
           onConversationClick={handleConversationClick}
         />
 
         {/* Estado vacío */}
-        {!loading && conversations.length === 0 && (
+        {!loading && filteredConversations.length === 0 && (
           <div className="text-center text-gray-500 py-8">
-            {selectedGroupId
+            {searchTerm
+              ? "No hay resultados para tu búsqueda."
+              : selectedGroupId
               ? "No hay conversaciones para este grupo."
               : "No hay conversaciones aún."}
           </div>
