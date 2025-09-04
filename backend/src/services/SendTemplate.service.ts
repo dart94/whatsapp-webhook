@@ -65,26 +65,6 @@ export async function sendTemplateMessage(payload: SendTemplatePayload) {
 
     if (res.ok) {
       logInfo(`✅ Template message sent: ${JSON.stringify(data)}`);
-      // Guardar en la base de datos
-      await prisma.whatsappMessage.create({
-        data: {
-          wa_id: to,
-          message_id: data.message_id,
-          direction: "OUT",
-          type: "template",
-          body_text: body.template.name,
-          context_message_id: null,
-          timestamp: BigInt(Math.floor(Date.now() / 1000)),
-          raw_json: data,
-          read: false,
-
-          fromPhone: phoneNumberId,
-          toPhone: to,
-          sentByUserId: actorUserId,
-          groupIntegrationId,
-          status: "SENT", // Asumimos éxito si llegamos aquí
-        },
-      });
 
       
       const giId =
@@ -101,25 +81,6 @@ export async function sendTemplateMessage(payload: SendTemplatePayload) {
 
     } else {
       logError(`❌ Error sending template message: ${JSON.stringify(data)}`);
-      await prisma.whatsappMessage.create({
-        data: {
-          wa_id: to,
-          message_id: data.message_id,
-          direction: "OUT",
-          type: "template",
-          body_text: body.template.name,
-          context_message_id: null,
-          timestamp: BigInt(Math.floor(Date.now() / 1000)),
-          raw_json: data,
-          read: false,
-
-          fromPhone: phoneNumberId,
-          toPhone: to,
-          sentByUserId: actorUserId,
-          groupIntegrationId,
-          status: "FAILED",
-        },
-      });
     }
 
     return data;
