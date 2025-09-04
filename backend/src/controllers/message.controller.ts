@@ -8,11 +8,10 @@ import { log } from "console";
 import { renderTemplate } from "../utils/renderTemplate";
 import { getUnreadCountsPerConversation } from "../services/messagesby.service";
 
-// Enviar mensajes por plantilla
+// Enviar mensajes por plantilla (paralelo con Promise.allSettled)
 export const sendTemplate = async (req: Request, res: Response) => {
   const { messages, templateName, language, body } = req.body;
 
-  // Validación de parámetros
   if (!Array.isArray(messages) || messages.length === 0 || !templateName || !language || !body) {
     return res.status(400).json({
       success: false,
@@ -21,7 +20,6 @@ export const sendTemplate = async (req: Request, res: Response) => {
   }
 
   try {
-    // Validación de token
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) return res.status(401).json({ success: false, message: "Token required" });
 
@@ -31,7 +29,6 @@ export const sendTemplate = async (req: Request, res: Response) => {
     }
     const actorUserId = (decoded as any).id as number;
 
-    // Buscar usuario y grupo
     const user = await prisma.user.findUnique({
       where: { id: actorUserId },
       select: { groupId: true },
@@ -40,7 +37,6 @@ export const sendTemplate = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: "User has no associated group" });
     }
 
-    // Buscar integración del grupo
     const integration = await prisma.groupIntegration.findFirst({
       where: { groupId: user.groupId },
       select: { id: true, phoneNumberId: true, accessTokenId: true },
@@ -54,14 +50,40 @@ export const sendTemplate = async (req: Request, res: Response) => {
 
     const { id: groupIntegrationId, phoneNumberId, accessTokenId } = integration;
     const templateBody = body;
-    const results: any[] = [];
 
-    // Procesar mensajes (uno por uno para manejar errores individualmente)
-    for (const msg of messages as Array<{ to: string; parameters?: string[] }>) {
+    // Helper: decide si la respuesta indica éxito
+    const isResultSuccess = (result: any) => {
+      if (!result) return false;
+
+      // Si el wrapper trae `ok` (fetch/axios) y es booleano
+      if (typeof result.ok === "boolean") {
+        if (result.ok) return true;
+      }
+
+      // Chequear array messages
+      const msgs = result?.messages;
+      if (Array.isArray(msgs) && msgs.length > 0) {
+        const first = msgs[0];
+        // Si existe id => éxito
+        if (first?.id) return true;
+
+        // O si message_status es alguno aceptado por Meta
+        const status = (first?.message_status || first?.status || "").toString().toLowerCase();
+        const accepted = new Set(["accepted", "queued", "sent", "delivered", "scheduled"]);
+        if (status && accepted.has(status)) return true;
+      }
+
+      // Si hay un campo errors explícito => fallo
+      if (result?.errors) return false;
+
+      // Caso por defecto: fallo
+      return false;
+    };
+
+    // Mapear mensajes a promesas (envío + guardado BD)
+    const tasks = (messages as Array<{ to: string; parameters?: string[] }>).map(async (msg) => {
+      const renderedBody = renderTemplate(templateBody, msg.parameters || []);
       try {
-        const renderedBody = renderTemplate(templateBody, msg.parameters || []);
-
-        // Llamada a Meta
         const result = await sendTemplateMessage({
           to: msg.to,
           templateName,
@@ -73,10 +95,12 @@ export const sendTemplate = async (req: Request, res: Response) => {
           groupIntegrationId,
         });
 
-        // Definir message_id siempre, incluso si falla
-        const message_id = result?.messages?.[0]?.id || "NO_ID";
+        // Extraer id y status
+        const message_id = result?.messages?.[0]?.id ?? "NO_ID";
+        const success = isResultSuccess(result);
+        const status = success ? "SENT" : "FAILED";
 
-        // Guardar en BD
+        // Guardar en BD. Ajusta raw_json según tu schema: si es Json, guárdalo directamente; si es String, stringify.
         await prisma.whatsappMessage.create({
           data: {
             wa_id: msg.to,
@@ -86,32 +110,67 @@ export const sendTemplate = async (req: Request, res: Response) => {
             body_text: renderedBody,
             context_message_id: null,
             timestamp: BigInt(Math.floor(Date.now() / 1000)),
-            raw_json: result, // Si en tu schema es String: JSON.stringify(result)
+            raw_json: typeof result === "string" ? result : JSON.stringify(result),
             read: false,
             fromPhone: phoneNumberId,
             toPhone: msg.to,
             sentByUserId: actorUserId,
             groupIntegrationId,
-            status: result.ok ? "SENT" : "FAILED",
+            status,
           },
         });
 
-        results.push({ to: msg.to, meta: result });
-      } catch (msgError) {
-        results.push({ to: msg.to, error: String(msgError) });
-        logError(`❌ Error sending template to ${msg.to}: ${msgError}`);
-      }
-    }
+        return { to: msg.to, success, meta: result };
+      } catch (err) {
+        logError(`❌ Error sending template to ${msg.to}: ${err}`);
 
-    // Respuesta final con resumen
+        // Guardar intento fallido en BD también
+        try {
+          await prisma.whatsappMessage.create({
+            data: {
+              wa_id: msg.to,
+              message_id: "NO_ID",
+              direction: "OUT",
+              type: "template",
+              body_text: renderedBody,
+              context_message_id: null,
+              timestamp: BigInt(Math.floor(Date.now() / 1000)),
+              raw_json: JSON.stringify({
+                error: String(err),
+              }),
+              read: false,
+              fromPhone: phoneNumberId,
+              toPhone: msg.to,
+              sentByUserId: actorUserId,
+              groupIntegrationId,
+              status: "FAILED",
+            },
+          });
+        } catch (dbErr) {
+          logError(`❌ Error saving failed message for ${msg.to}: ${dbErr}`);
+        }
+
+        return { to: msg.to, success: false, error: String(err) };
+      }
+    });
+
+    // Ejecutar en paralelo y esperar resultados
+    const settled = await Promise.allSettled(tasks);
+    const results = settled.map(s => (s.status === "fulfilled" ? s.value : { error: String((s as any).reason) }));
+
+    const total = results.length;
+    const sent = results.filter(r => (r as any).success).length;
+    const failed = total - sent;
+
     return res.status(200).json({
       success: true,
-      total: results.length,
-      sent: results.filter(r => r.meta?.ok).length,
-      failed: results.filter(r => r.error || r.meta?.ok === false).length,
+      total,
+      sent,
+      failed,
       data: results,
     });
   } catch (error) {
+    logError(`❌ sendTemplate controller error: ${error}`);
     return res.status(500).json({
       success: false,
       message: "Error sending template message.",
