@@ -15,13 +15,17 @@ export const sendTemplate = async (req: Request, res: Response) => {
   if (!messages || !templateName || !language || !body) {
     return res.status(400).json({
       success: false,
-      message: "Missing required fields: messages, templateName, language, body",
+      message:
+        "Missing required fields: messages, templateName, language, body",
     });
   }
 
   try {
     const token = req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ success: false, message: "Token required" });
+    if (!token)
+      return res
+        .status(401)
+        .json({ success: false, message: "Token required" });
 
     const decoded = await validateToken(token);
     if (!decoded || typeof decoded !== "object") {
@@ -34,7 +38,9 @@ export const sendTemplate = async (req: Request, res: Response) => {
       select: { groupId: true },
     });
     if (!user?.groupId) {
-      return res.status(400).json({ success: false, message: "User has no associated group" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User has no associated group" });
     }
 
     const integration = await prisma.groupIntegration.findFirst({
@@ -48,11 +54,18 @@ export const sendTemplate = async (req: Request, res: Response) => {
       });
     }
 
-    const { id: groupIntegrationId, phoneNumberId, accessTokenId } = integration;
+    const {
+      id: groupIntegrationId,
+      phoneNumberId,
+      accessTokenId,
+    } = integration;
     const templateBody = body;
     const results: any[] = [];
 
-    for (const msg of messages as Array<{ to: string; parameters?: string[] }>) {
+    for (const msg of messages as Array<{
+      to: string;
+      parameters?: string[];
+    }>) {
       try {
         const renderedBody = renderTemplate(templateBody, msg.parameters || []);
 
@@ -64,35 +77,14 @@ export const sendTemplate = async (req: Request, res: Response) => {
           parameters: msg.parameters || [],
           phoneNumberId,
           accessTokenId,
-          actorUserId, 
+          actorUserId,
           groupIntegrationId,
-        });
-
-        const message_id = result?.messages?.[0]?.id || "NO_ID";
-
-        // Guardado en BD AQUÍ (si no lo hace el servicio)
-        await prisma.whatsappMessage.create({
-          data: {
-            wa_id: msg.to,
-            message_id,
-            direction: "OUT",
-            type: "template",
-            body_text: renderedBody,          
-            context_message_id: null,
-            timestamp: BigInt(Math.floor(Date.now() / 1000)),
-            raw_json: result,                  
-            read: false,
-
-            fromPhone: phoneNumberId,
-            toPhone: msg.to,
-            sentByUserId: actorUserId,
-            groupIntegrationId,
-          },
         });
 
         results.push({ to: msg.to, meta: result });
       } catch (msgError) {
         results.push({ to: msg.to, error: String(msgError) });
+        logError(`❌ Error sending template to ${msg.to}: ${msgError}`);
       }
     }
 
@@ -109,7 +101,7 @@ export const sendTemplate = async (req: Request, res: Response) => {
 //Responder mensajes
 export const replyToMessage = async (req: Request, res: Response) => {
   const { to, message, replyToMessageId } = req.body;
-  
+
   if (!to || !message) {
     return res.status(400).json({
       success: false,
@@ -121,18 +113,18 @@ export const replyToMessage = async (req: Request, res: Response) => {
     // ✅ Obtener token del header (igual que sendTemplate)
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Token required" 
+      return res.status(401).json({
+        success: false,
+        message: "Token required",
       });
     }
 
     // ✅ Validar token y obtener usuario
     const decoded = await validateToken(token);
     if (!decoded || typeof decoded !== "object") {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Invalid token" 
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token",
       });
     }
 
@@ -145,9 +137,9 @@ export const replyToMessage = async (req: Request, res: Response) => {
     });
 
     if (!user?.groupId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "User has no associated group" 
+      return res.status(400).json({
+        success: false,
+        message: "User has no associated group",
       });
     }
 
@@ -189,7 +181,6 @@ export const replyToMessage = async (req: Request, res: Response) => {
   }
 };
 
-
 //Obtener mensajes recientes
 export const getRecentMessages = async (req: Request, res: Response) => {
   try {
@@ -218,7 +209,6 @@ export const getRecentMessages = async (req: Request, res: Response) => {
   }
 };
 
-
 //Marcar mensaje como leído
 export const markMessagesAsRead = async (req: Request, res: Response) => {
   const waId = req.params.waId;
@@ -227,7 +217,7 @@ export const markMessagesAsRead = async (req: Request, res: Response) => {
     const result = await prisma.whatsappMessage.updateMany({
       where: {
         wa_id: waId,
-        direction: 'IN',
+        direction: "IN",
         read: false,
       },
       data: {
@@ -245,7 +235,7 @@ export const markMessagesAsRead = async (req: Request, res: Response) => {
     logError(`❌ Error marcando mensajes como leídos: ${error}`);
     return res.status(500).json({
       success: false,
-      message: 'Error al marcar mensajes como leídos',
+      message: "Error al marcar mensajes como leídos",
     });
   }
 };
@@ -258,7 +248,7 @@ export const getUnreadCounts = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error obteniendo conteo de no leídos',
+      message: "Error obteniendo conteo de no leídos",
     });
     console.log(error);
   }
