@@ -50,7 +50,7 @@ export const getAllTemplateMessagesController = async (req: Request, res: Respon
       status: status ? (status as string).toUpperCase() : undefined,
     };
 
-    const messages = await getAllTemplateMessagesService(options);
+    const messages = await getAllTemplateMessagesService();
 
     return res.status(200).json({
       success: true,

@@ -188,28 +188,13 @@ const byDay = rows.map((r) => ({
 }
 
 //Obtener todos
-export async function getAllTemplateMessagesService(options: GetTemplateMessagesOptions = {}) {
+export async function getAllTemplateMessagesService() {
   try {
-    const { startDate, endDate, status } = options;
-
-    const where: any = {
-      type: "template",
-      direction: "OUT",
-    };
-
-    if (startDate && endDate) {
-      where.createdAt = {
-        gte: startDate,
-        lte: endDate,
-      };
-    }
-
-    if (status) {
-      where.status = status; // Filtrar por estado (ej. SENT, FAILED, READ)
-    }
-
     const messages = await prisma.whatsappMessage.findMany({
-      where,
+      where: {
+        type: "template",
+        direction: "OUT",
+      },
       orderBy: {
         createdAt: "desc",
       },
@@ -232,17 +217,17 @@ export async function getAllTemplateMessagesService(options: GetTemplateMessages
     });
 
     const formatted = messages.map(msg => ({
-      id: msg.id,
-      body: msg.body_text,
-      status: msg.status,
-      createdAt: msg.createdAt,
+      id: msg.id.toString(),
+      body: msg.body_text ?? "",
+      status: msg.status ?? "sent",
+      createdAt: msg.createdAt.toISOString(), // 🔹 convertir Date a string
       user: msg.sentByUser
-        ? { id: msg.sentByUser.id, name: msg.sentByUser.name }
+        ? { id: msg.sentByUser.id.toString(), name: msg.sentByUser.name }
         : null,
       group: msg.groupIntegration
         ? {
-            id: msg.groupIntegration.id,
-            groupId: msg.groupIntegration.groupId,
+            id: msg.groupIntegration.id.toString(),
+            groupId: msg.groupIntegration.groupId.toString(),
             name: msg.groupIntegration.group?.name ?? null,
           }
         : null,
@@ -251,7 +236,7 @@ export async function getAllTemplateMessagesService(options: GetTemplateMessages
     logInfo(`✅ Se obtuvieron ${formatted.length} mensajes tipo template`);
     return formatted;
   } catch (error: any) {
-    logError(`❌ Error en getAllTemplateMessagesService: ${error.message ?? error}`);
+    logInfo(`❌ Error en getAllTemplateMessagesService: ${error.message ?? error}`);
     return [];
   }
 }
