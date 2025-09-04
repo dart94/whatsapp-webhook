@@ -41,10 +41,27 @@ export const getAllTemplateMessagesController = async (req: Request, res: Respon
       return res.status(401).json({ success: false, message: "No autorizado" });
     }
 
-    const messages = await getAllTemplateMessagesService(50); // últimos 50 mensajes
+    // Query params
+    const { startDate, endDate, status } = req.query;
 
-    return res.status(200).json({ success: true, data: messages });
+    const options = {
+      startDate: startDate ? new Date(startDate as string) : undefined,
+      endDate: endDate ? new Date(endDate as string) : undefined,
+      status: status ? (status as string).toUpperCase() : undefined,
+    };
+
+    const messages = await getAllTemplateMessagesService(options);
+
+    return res.status(200).json({
+      success: true,
+      count: messages.length,
+      data: messages,
+    });
   } catch (error: any) {
-    return res.status(500).json({ success: false, message: "Error al obtener mensajes template" });
+    return res.status(500).json({
+      success: false,
+      message: "Error al obtener mensajes template",
+      error: error.message ?? error,
+    });
   }
 };

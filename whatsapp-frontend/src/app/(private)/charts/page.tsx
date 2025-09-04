@@ -34,6 +34,7 @@ import type { Template } from "@/types/whatsapp";
 import type { TemplateStatsResult } from "@/types/stats";
 import useUsers from "@/hooks/useUsers";
 import { useGroups } from "@/hooks/useGroups";
+import { fetchAllTemplateMessages } from "@/lib/stats";
 
 interface TemplateMessage {
   id: string;
@@ -50,6 +51,7 @@ const data = (): TemplateMessage[] => {
   const statuses = ["delivered", "sent", "failed", "read"];
   const users = useUsers();
   const groups = useGroups(token);
+  
 
   return users.users.map((user) => {
     return {

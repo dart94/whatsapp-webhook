@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
-import { logInfo } from "../utils/logger";
+import { logInfo, logError} from "../utils/logger";
 
 export type TemplateStatsInput = {
   start: Date;
@@ -18,6 +18,13 @@ export type TemplateStatsResult = {
   byGroup: Array<{ groupIntegrationId: number | null; groupId: number | null; groupName: string | null; total: number; success: number; failure: number }>;
   byDay: Array<{ date: string; total: number; success: number; failure: number }>;
 };
+
+interface GetTemplateMessagesOptions {
+  limit?: number;
+  startDate?: Date;
+  endDate?: Date;
+  status?: string;
+}
 
 const SUCCESS_STATUSES = ["sent", "delivered", "read"] as const;
 const FAILURE_STATUS = "error" as const;
@@ -181,18 +188,31 @@ const byDay = rows.map((r) => ({
 }
 
 //Obtener todos
-export async function getAllTemplateMessagesService(limit = 50) {
+export async function getAllTemplateMessagesService(options: GetTemplateMessagesOptions = {}) {
   try {
-    // Obtener últimos mensajes tipo template con info de usuario y grupo
+    const { startDate, endDate, status } = options;
+
+    const where: any = {
+      type: "template",
+      direction: "OUT",
+    };
+
+    if (startDate && endDate) {
+      where.createdAt = {
+        gte: startDate,
+        lte: endDate,
+      };
+    }
+
+    if (status) {
+      where.status = status; // Filtrar por estado (ej. SENT, FAILED, READ)
+    }
+
     const messages = await prisma.whatsappMessage.findMany({
-      where: {
-        type: "template",
-        direction: "OUT",
-      },
+      where,
       orderBy: {
         createdAt: "desc",
       },
-      take: limit,
       select: {
         id: true,
         body_text: true,
@@ -201,17 +221,24 @@ export async function getAllTemplateMessagesService(limit = 50) {
         sentByUserId: true,
         sentByUser: { select: { id: true, name: true } },
         groupIntegrationId: true,
-        groupIntegration: { select: { id: true, groupId: true, group: { select: { name: true } } } },
+        groupIntegration: {
+          select: {
+            id: true,
+            groupId: true,
+            group: { select: { name: true } },
+          },
+        },
       },
     });
 
-    // Mapear a un formato más limpio
     const formatted = messages.map(msg => ({
       id: msg.id,
       body: msg.body_text,
       status: msg.status,
       createdAt: msg.createdAt,
-      user: msg.sentByUser ? { id: msg.sentByUser.id, name: msg.sentByUser.name } : null,
+      user: msg.sentByUser
+        ? { id: msg.sentByUser.id, name: msg.sentByUser.name }
+        : null,
       group: msg.groupIntegration
         ? {
             id: msg.groupIntegration.id,
@@ -222,11 +249,9 @@ export async function getAllTemplateMessagesService(limit = 50) {
     }));
 
     logInfo(`✅ Se obtuvieron ${formatted.length} mensajes tipo template`);
-   
-
     return formatted;
   } catch (error: any) {
-    logInfo(`❌ Error en getAllTemplateMessagesService: ${error.message ?? error}`);
+    logError(`❌ Error en getAllTemplateMessagesService: ${error.message ?? error}`);
     return [];
   }
 }
