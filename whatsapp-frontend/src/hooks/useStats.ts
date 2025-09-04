@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { TemplateStatsResult } from "../types/stats";
 import { fetchAllTemplateMessages } from "../lib/stats";
 
-export function useStats(token: string) {
+export function useStats(token: string | null) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<TemplateStatsResult | null>(null);
 
   useEffect(() => {
+    if (!token) return;
+
     (async () => {
       try {
         setLoading(true);

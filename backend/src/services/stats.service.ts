@@ -151,7 +151,7 @@ export async function getTemplateStatsService(input: TemplateStatsInput): Promis
   });
 
   // Serie por día — Postgres con date_trunc (más eficiente)
-type Row = { day: string; total: bigint; success: bigint; failure: bigint };
+type Row = { day: string; total: number; success: number; failure: number };
 
 const rows = await prisma.$queryRaw<Row[]>`
   SELECT
