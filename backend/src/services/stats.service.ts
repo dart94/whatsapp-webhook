@@ -220,7 +220,7 @@ export async function getAllTemplateMessagesService() {
       id: msg.id.toString(),
       body: msg.body_text ?? "",
       status: msg.status ?? "sent",
-      createdAt: msg.createdAt.toISOString(), // 🔹 convertir Date a string
+      createdAt: msg.createdAt.toISOString().split("T")[0], // 🔹 convertir Date a string
       user: msg.sentByUser
         ? { id: msg.sentByUser.id.toString(), name: msg.sentByUser.name }
         : null,

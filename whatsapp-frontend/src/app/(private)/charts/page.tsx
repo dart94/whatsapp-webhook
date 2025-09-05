@@ -144,12 +144,12 @@ useEffect(() => {
         color: getColorFor(s),
       }));
 
-    // Daily time series
-    const dailyData = filtered.reduce((acc, msg) => {
-      const date = new Date(msg.createdAt).toLocaleDateString();
-      acc[date] = (acc[date] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+      // Daily time series
+      const dailyData = filtered.reduce((acc, msg) => {
+        const date = new Date(msg.createdAt).toLocaleDateString();
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
 
     const timeSeriesData = Object.entries(dailyData)
       .map(([date, count]) => ({ date, messages: count }))
