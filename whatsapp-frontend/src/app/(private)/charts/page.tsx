@@ -144,16 +144,22 @@ useEffect(() => {
         color: getColorFor(s),
       }));
 
-      // Daily time series
-      const dailyData = filtered.reduce((acc, msg) => {
-        const date = new Date(msg.createdAt).toLocaleDateString();
-        acc[date] = (acc[date] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+const dailyData = filtered.reduce((acc, msg) => {
+  console.log('Original createdAt:', msg.createdAt);
+  
+  const date = msg.createdAt.split(' ')[0];
+  console.log('Fecha extraída:', date);
+  
+  acc[date] = (acc[date] || 0) + 1;
+  return acc;
+}, {} as Record<string, number>);
+
+console.log('Resultado final dailyData:', dailyData)
 
     const timeSeriesData = Object.entries(dailyData)
       .map(([date, count]) => ({ date, messages: count }))
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      .sort((a, b) => a.date.localeCompare(b.date));
+      console.log('Resultado final timeSeriesData:', timeSeriesData)
 
     // User activity (top users)
     const userActivity = filtered.reduce((acc, msg) => {

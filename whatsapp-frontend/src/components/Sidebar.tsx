@@ -424,37 +424,41 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
               {/* Avatar */}
 
               {/* Info del usuario */}
-<div className="flex flex-col text-right">
-  <div className="flex items-center justify-end gap-2">
-    <span className="font-medium">
-      {authSnap.name ?? "Usuario"}
-    </span>
+              <div className="flex flex-col text-right">
+                <div className="flex items-center justify-end gap-2">
+                  <span className="font-medium">
+                    {authSnap.name ?? "Usuario"}
+                  </span>
 
-    {authSnap.isAdmin ? (
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-yellow-300 font-semibold">Admin</span>
-        <Image
-          src="/king.png"
-          alt="Avatar"
-          width={40}
-          height={40}
-          className="rounded-full border border-purple-500/40 shadow-sm"
-        />
-      </div>
-    ) : (
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-400 font-medium">Usuario</span>
-        <Image
-          src="/profile.png"
-          alt="Avatar"
-          width={40}
-          height={40}
-          className="rounded-full border border-gray-400/30 shadow-sm"
-        />
-      </div>
-    )}
-  </div>
-</div>
+                  {authSnap.isAdmin ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-yellow-300 font-semibold">
+                        Admin
+                      </span>
+                      <Image
+                        src="/king.png"
+                        alt="Avatar"
+                        width={40}
+                        height={40}
+                        className="rounded-full border border-purple-500/40 shadow-sm"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 font-medium">
+                        Usuario
+                      </span>
+                      <Image
+                        src="/profile.png"
+                        alt="Avatar"
+                        width={40}
+                        height={40}
+                        className="rounded-full border border-gray-400/30 shadow-sm"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="text-xs text-gray-300/80">

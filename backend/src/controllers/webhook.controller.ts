@@ -33,6 +33,9 @@ export const handleWebhookEvent = (req: Request, res: Response) => {
     try {
       const body = req.body as WhatsAppWebhookBody;
 
+      logInfo("🚀 Webhook recibido:");
+      logInfo(JSON.stringify(body, null, 2));
+
       processWebhookEvent(body);
 
       // Buscamos el primer mensaje recibido
