@@ -29,16 +29,17 @@ export const verifyWebhook = (req: Request, res: Response) => {
 export const handleWebhookEvent = (req: Request, res: Response) => {
   res.sendStatus(200);
 
-  process.nextTick(() => {
+  process.nextTick(async () => {
     try {
       const body = req.body as WhatsAppWebhookBody;
 
       logInfo("🚀 Webhook recibido:");
       logInfo(JSON.stringify(body, null, 2));
 
-      processWebhookEvent(body);
+      // ⬇️ Espera a que se procese (incluye guardado en DB)
+      await processWebhookEvent(body);
 
-      // Buscamos el primer mensaje recibido
+      // Emitir socket con el primer mensaje (si existe)
       const entry = body.entry?.[0];
       const change = entry?.changes?.[0];
       const message = change?.value?.messages?.[0];
@@ -46,12 +47,9 @@ export const handleWebhookEvent = (req: Request, res: Response) => {
       if (message?.from) {
         emitEvent("new_message", {
           wa_id: message.from,
-          body_text: message.text?.body || '',
+          body_text: message.text?.body || "",
         });
-
-        logInfo(
-          `✅ Evento new_message emitido para wa_id ${message.from}`
-        );
+        logInfo(`✅ Evento new_message emitido para wa_id ${message.from}`);
       } else {
         logInfo("ℹ️ No se encontró ningún mensaje para emitir vía socket.");
       }
