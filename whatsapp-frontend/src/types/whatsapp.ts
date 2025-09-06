@@ -11,6 +11,7 @@ export interface WhatsappMessage {
   createdAt: string;
   updatedAt: string;
   status?: "sending" | "sent" | "delivered" | "read" | "failed";
+  campaignName?: string;
 }
 
 export interface Conversation{
@@ -35,9 +36,11 @@ export interface Template {
   footer: string;
   buttons: [];
   components: [];
+  campaignName: string;
 }
 
 export interface SendTemplatePayload {
+  
   templateName: string;
   body: string;
   language: string;

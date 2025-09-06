@@ -117,6 +117,8 @@ export const sendTemplate = async (req: Request, res: Response) => {
             sentByUserId: actorUserId,
             groupIntegrationId,
             status,
+            campaignName: campaignName,
+  
           },
         });
 
@@ -144,6 +146,8 @@ export const sendTemplate = async (req: Request, res: Response) => {
               sentByUserId: actorUserId,
               groupIntegrationId,
               status: "FAILED",
+              campaignName: campaignName
+ 
             },
           });
         } catch (dbErr) {

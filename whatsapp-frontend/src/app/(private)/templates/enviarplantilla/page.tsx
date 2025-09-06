@@ -62,6 +62,7 @@ export default function EnviarPlantillaPage() {
   const [variableMapping, setVariableMapping] = useState<string[]>([]);
   const [phoneColumn, setPhoneColumn] = useState<string>("");
   const [nameColumn, setNameColumn] = useState<string>("");
+  const [templateName, setTemplateName] = useState<string>("");
 
   const template = templates.find((t: Template) => t.id === templateId);
   const variableCount = template?.body?.match(/{{\d+}}/g)?.length || 0;
@@ -234,7 +235,9 @@ export default function EnviarPlantillaPage() {
           template.name,
           template.body,
           template.language,
-          parametersToUse
+          parametersToUse,
+          template.campaignName
+          
         );
         // Actualizar estado a enviado
         setRecipients((prev) =>
@@ -320,6 +323,28 @@ export default function EnviarPlantillaPage() {
             </div>
           </div>
         </div>
+
+        {/*Nombre de plantilla*/}
+         <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
+        <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Nombre de la Campaña
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre de la campaña
+              </label>
+              <input
+                type="text"
+                value={template.campaignName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Nombre de la plantilla"
+              />
+            </div>
+          </div>
+          </div>
 
         {/* Selección de Hoja */}
 
@@ -780,5 +805,7 @@ export default function EnviarPlantillaPage() {
         )}
       </div>
     </div>
+    </div>
+
   );
 }

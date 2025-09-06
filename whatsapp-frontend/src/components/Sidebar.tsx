@@ -17,6 +17,7 @@ import {
   UserIcon,
   LinkIcon,
   ChartBarSquareIcon,
+  PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -213,8 +214,8 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
     () => [
       {
         href: "/templates",
-        label: "Ver Plantillas",
-        Icon: EyeIcon,
+        label: "Enviar Plantillas",
+        Icon: PaperAirplaneIcon,
         active: pathname === "/templates",
         adminOnly: false,
       },

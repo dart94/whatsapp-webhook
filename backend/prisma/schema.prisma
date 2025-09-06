@@ -31,6 +31,9 @@ model WhatsappMessage {
   sentByUserId       Int?
   sentByUser         User?        @relation("MessageSentByUser", fields: [sentByUserId], references: [id])
 
+  //Nombre de plantilla
+  campaignName String? 
+
   groupIntegrationId Int?
   groupIntegration   GroupIntegration? @relation(fields: [groupIntegrationId], references: [id])
 
@@ -45,6 +48,7 @@ model WhatsappMessage {
   @@index([status])
   @@index([sentByUserId,createdAt])
   @@index([groupIntegrationId,createdAt])
+  @@index([campaignName])
 }
 
 model SheetIntegration {

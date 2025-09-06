@@ -12,7 +12,8 @@ export function useSendTemplate() {
       templateName: string,
       body: string,
       language: string,
-      parameters: any[]
+      parameters: any[],
+      campaignName?: string
     ) => {
       try {
         setLoading(true);
@@ -28,6 +29,8 @@ export function useSendTemplate() {
               parameters,
             },
           ],
+          ...(campaignName ? { campaignName } : {}),
+          
         };
         const data = await sendTemplateMessage(payload);
         setResult(data);
