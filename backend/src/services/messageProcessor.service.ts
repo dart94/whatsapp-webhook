@@ -44,6 +44,11 @@ export async function processIncomingMessage(message: WhatsAppMessage) {
       timestamp: Number(message.timestamp),
       raw_json: JSON.stringify(message),
       read: false,
+      fromPhone: message.from,
+      toPhone: message.from,
+      groupIntegrationId: null,
+      sentByUserId: null,
+      status: "SENT",
     }
   });
 
