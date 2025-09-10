@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { login as loginService } from "@/lib/auth";
 import { showToast } from "@/components/common/Toast";
-
+import Loader from "@/components/ui/Loader";
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -32,9 +32,13 @@ export default function LoginPage() {
       console.error("❌ Error inesperado en login:", error);
       showToast({ type: "error", message: "Error inesperado al iniciar sesión" });
     } finally {
-      setLoading(false); // 🔥 garantiza que el botón se reactive
+      setLoading(false); 
     }
   };
+
+  if (loading) {
+    return <Loader  message="Iniciando sesión..." showTips={true} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

@@ -62,7 +62,7 @@ export default function EnviarPlantillaPage() {
   const [variableMapping, setVariableMapping] = useState<string[]>([]);
   const [phoneColumn, setPhoneColumn] = useState<string>("");
   const [nameColumn, setNameColumn] = useState<string>("");
-  const [templateName, setTemplateName] = useState<string>("");
+  const [campaignName, setCampaignName] = useState<string>("");
 
   const template = templates.find((t: Template) => t.id === templateId);
   const variableCount = template?.body?.match(/{{\d+}}/g)?.length || 0;
@@ -208,6 +208,14 @@ export default function EnviarPlantillaPage() {
   // Función de envío masivo
   const handleBulkSend = async () => {
     if (!template || selectedRecipients.size === 0) return;
+    const campaignName = template.campaignName;
+
+    if (!campaignName) {
+      showToast({type: "error", message: "Campaña no puede estar vacía"});
+      return;
+    }
+
+    setCampaignName(campaignName);
 
     setBulkSendingMode(true);
     setSendingProgress({ current: 0, total: selectedRecipients.size });
@@ -236,8 +244,7 @@ export default function EnviarPlantillaPage() {
           template.body,
           template.language,
           parametersToUse,
-          template.campaignName
-          
+          campaignName
         );
         // Actualizar estado a enviado
         setRecipients((prev) =>
@@ -325,210 +332,104 @@ export default function EnviarPlantillaPage() {
         </div>
 
         {/*Nombre de plantilla*/}
-         <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
         <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Nombre de la Campaña
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nombre de la campaña
-              </label>
-              <input
-                type="text"
-                value={template.campaignName}
-                onChange={(e) => setTemplateName(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Nombre de la plantilla"
-              />
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Nombre de la Campaña
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre de la campaña
+                </label>
+                <input
+                  type="text"
+                  value={campaignName}
+                  onChange={(e) => setCampaignName(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Nombre de la campaña"
+                />
+              </div>
             </div>
-          </div>
-          </div>
+          
 
-        {/* Selección de Hoja */}
+          {/* Selección de Hoja */}
 
-        <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Seleccionar Datos de Origen
-          </h3>
+          <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Seleccionar Datos de Origen
+            </h3>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hoja de cálculo registrada
-              </label>
-              <select
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={selectedSheet?.id?.toString() || ""}
-                onChange={(e) => {
-                  const targetValue = e.target.value;
-                  console.log(
-                    "Valor seleccionado:",
-                    targetValue,
-                    "Tipo:",
-                    typeof targetValue
-                  );
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Hoja de cálculo registrada
+                </label>
+                <select
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={selectedSheet?.id?.toString() || ""}
+                  onChange={(e) => {
+                    const targetValue = e.target.value;
+                    console.log(
+                      "Valor seleccionado:",
+                      targetValue,
+                      "Tipo:",
+                      typeof targetValue
+                    );
 
-                  if (!targetValue) {
-                    setSelectedSheet(null);
+                    if (!targetValue) {
+                      setSelectedSheet(null);
+                      setRecipients([]);
+                      setSelectedRecipients(new Set());
+                      setVariableMapping([]);
+                      setPhoneColumn("");
+                      setNameColumn("");
+                      return;
+                    }
+
+                    // Buscar comparando tanto como string como número
+                    const found = sheets.find((s) => {
+                      // Comparación flexible que funciona con strings y números
+                      return (
+                        s.id == targetValue || s.id.toString() === targetValue
+                      );
+                    });
+
+                    console.log("Hoja encontrada:", found);
+
+                    setSelectedSheet(found || null);
                     setRecipients([]);
                     setSelectedRecipients(new Set());
                     setVariableMapping([]);
                     setPhoneColumn("");
                     setNameColumn("");
-                    return;
-                  }
-
-                  // Buscar comparando tanto como string como número
-                  const found = sheets.find((s) => {
-                    // Comparación flexible que funciona con strings y números
-                    return (
-                      s.id == targetValue || s.id.toString() === targetValue
-                    );
-                  });
-
-                  console.log("Hoja encontrada:", found);
-
-                  setSelectedSheet(found || null);
-                  setRecipients([]);
-                  setSelectedRecipients(new Set());
-                  setVariableMapping([]);
-                  setPhoneColumn("");
-                  setNameColumn("");
-                }}
-              >
-                <option value="">-- Selecciona una hoja --</option>
-                {sheets.map((sheet) => (
-                  <option key={sheet.id} value={sheet.id.toString()}>
-                    {sheet.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {selectedSheet && (
-              <div className="space-y-4">
-                <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                  <strong>Headers disponibles:</strong>{" "}
-                  {selectedSheet.headers.join(", ")}
-                </div>
-
-                {/* Configuración de columnas principales */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Columna de teléfono/WhatsApp
-                    </label>
-                    <select
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={phoneColumn}
-                      onChange={(e) => setPhoneColumn(e.target.value)}
-                    >
-                      <option value="">-- Selecciona columna --</option>
-                      {selectedSheet.headers.map((header) => (
-                        <option key={header} value={header}>
-                          {header}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Columna de nombre
-                    </label>
-                    <select
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={nameColumn}
-                      onChange={(e) => setNameColumn(e.target.value)}
-                    >
-                      <option value="">-- Selecciona columna --</option>
-                      {selectedSheet.headers.map((header) => (
-                        <option key={header} value={header}>
-                          {header}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Variables y Mapeo */}
-        {variableCount > 0 && selectedSheet && (
-          <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Mapeo de Variables del Mensaje
-              </h3>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={useGlobalVars}
-                  onChange={(e) => setUseGlobalVars(e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700">
-                  Usar valores fijos para todas las variables
-                </span>
-              </label>
-            </div>
-
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Vista previa del mensaje:
-              </div>
-              <div className="text-sm text-gray-900 whitespace-pre-wrap font-mono bg-white p-3 rounded border">
-                {template.body}
-              </div>
-            </div>
-
-            {useGlobalVars ? (
-              <div className="space-y-4">
-                <div className="text-sm text-gray-600 mb-4">
-                  Configura valores fijos que se usarán para todos los
-                  destinatarios:
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Array.from({ length: variableCount }).map((_, i) => (
-                    <div key={i}>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Variable {i + 1}
-                      </label>
-                      <input
-                        type="text"
-                        value={globalParameters[i] || ""}
-                        onChange={(e) =>
-                          handleGlobalParamChange(i, e.target.value)
-                        }
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder={`Valor fijo para {{${i + 1}}}`}
-                      />
-                    </div>
+                  }}
+                >
+                  <option value="">-- Selecciona una hoja --</option>
+                  {sheets.map((sheet) => (
+                    <option key={sheet.id} value={sheet.id.toString()}>
+                      {sheet.name}
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="text-sm text-gray-600 mb-4">
-                  Selecciona qué columna de la hoja corresponde a cada variable
-                  del mensaje:
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Array.from({ length: variableCount }).map((_, i) => (
-                    <div key={i}>
+
+              {selectedSheet && (
+                <div className="space-y-4">
+                  <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                    <strong>Headers disponibles:</strong>{" "}
+                    {selectedSheet.headers.join(", ")}
+                  </div>
+
+                  {/* Configuración de columnas principales */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto">
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Variable {i + 1}
+                        Columna de teléfono/WhatsApp
                       </label>
                       <select
-                        value={variableMapping[i] || ""}
-                        onChange={(e) =>
-                          updateVariableMapping(i, e.target.value)
-                        }
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={phoneColumn}
+                        onChange={(e) => setPhoneColumn(e.target.value)}
                       >
                         <option value="">-- Selecciona columna --</option>
                         {selectedSheet.headers.map((header) => (
@@ -537,275 +438,382 @@ export default function EnviarPlantillaPage() {
                           </option>
                         ))}
                       </select>
-                      {variableMapping[i] && (
-                        <div className="mt-2 text-xs text-gray-500">
-                          Tomará valores de la columna "{variableMapping[i]}"
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Columna de nombre
+                      </label>
+                      <select
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={nameColumn}
+                        onChange={(e) => setNameColumn(e.target.value)}
+                      >
+                        <option value="">-- Selecciona columna --</option>
+                        {selectedSheet.headers.map((header) => (
+                          <option key={header} value={header}>
+                            {header}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Variables y Mapeo */}
+          {variableCount > 0 && selectedSheet && (
+            <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Mapeo de Variables del Mensaje
+                </h3>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={useGlobalVars}
+                    onChange={(e) => setUseGlobalVars(e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Usar valores fijos para todas las variables
+                  </span>
+                </label>
+              </div>
+
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <div className="text-sm font-medium text-gray-700 mb-2">
+                  Vista previa del mensaje:
+                </div>
+                <div className="text-sm text-gray-900 whitespace-pre-wrap font-mono bg-white p-3 rounded border">
+                  {template.body}
+                </div>
+              </div>
+
+              {useGlobalVars ? (
+                <div className="space-y-4">
+                  <div className="text-sm text-gray-600 mb-4">
+                    Configura valores fijos que se usarán para todos los
+                    destinatarios:
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Array.from({ length: variableCount }).map((_, i) => (
+                      <div key={i}>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Variable {i + 1}
+                        </label>
+                        <input
+                          type="text"
+                          value={globalParameters[i] || ""}
+                          onChange={(e) =>
+                            handleGlobalParamChange(i, e.target.value)
+                          }
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder={`Valor fijo para {{${i + 1}}}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-sm text-gray-600 mb-4">
+                    Selecciona qué columna de la hoja corresponde a cada
+                    variable del mensaje:
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Array.from({ length: variableCount }).map((_, i) => (
+                      <div key={i}>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Variable {i + 1}
+                        </label>
+                        <select
+                          value={variableMapping[i] || ""}
+                          onChange={(e) =>
+                            updateVariableMapping(i, e.target.value)
+                          }
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">-- Selecciona columna --</option>
+                          {selectedSheet.headers.map((header) => (
+                            <option key={header} value={header}>
+                              {header}
+                            </option>
+                          ))}
+                        </select>
+                        {variableMapping[i] && (
+                          <div className="mt-2 text-xs text-gray-500">
+                            Tomará valores de la columna "{variableMapping[i]}"
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Lista de Destinatarios */}
+          {recipients.length > 0 && phoneColumn && (
+            <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Destinatarios ({recipients.length})
+                </h3>
+                <div className="flex items-center space-x-4">
+                  <div className="text-sm text-gray-600">
+                    Teléfonos desde:{" "}
+                    <span className="font-medium">{phoneColumn}</span>
+                    {nameColumn && (
+                      <>
+                        , nombres desde:{" "}
+                        <span className="font-medium">{nameColumn}</span>
+                      </>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800"
+                  >
+                    {showPreview ? (
+                      <EyeSlashIcon className="w-4 h-4" />
+                    ) : (
+                      <EyeIcon className="w-4 h-4" />
+                    )}
+                    <span>
+                      {showPreview ? "Ocultar" : "Mostrar"} vista previa
+                    </span>
+                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={selectAll}
+                      className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200"
+                    >
+                      Seleccionar válidos
+                    </button>
+                    <button
+                      onClick={deselectAll}
+                      className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-200"
+                    >
+                      Deseleccionar todo
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Estadísticas */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {selectedCount}
+                  </div>
+                  <div className="text-sm text-blue-700">Seleccionados</div>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">
+                    {sentCount}
+                  </div>
+                  <div className="text-sm text-green-700">Enviados</div>
+                </div>
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-red-600">
+                    {errorCount}
+                  </div>
+                  <div className="text-sm text-red-700">Errores</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-gray-600">
+                    {validRecipients.length}
+                  </div>
+                  <div className="text-sm text-gray-700">Válidos</div>
+                </div>
+              </div>
+
+              {/* Lista de destinatarios */}
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {recipients.map((recipient) => {
+                  const isSelected = selectedRecipients.has(recipient.id);
+                  const isValid = recipient.phone.trim().length >= 10;
+                  const parametersToUse = useGlobalVars
+                    ? globalParameters
+                    : recipient.variables;
+
+                  return (
+                    <div
+                      key={recipient.id}
+                      className={`border rounded-lg p-4 transition-all ${
+                        isSelected
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      } ${!isValid ? "opacity-50" : ""}`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleRecipient(recipient.id)}
+                            disabled={!isValid}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {recipient.name}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {recipient.phone}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          {recipient.status === "pending" && (
+                            <ClockIcon className="w-5 h-5 text-gray-400" />
+                          )}
+                          {recipient.status === "sending" && (
+                            <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                          )}
+                          {recipient.status === "sent" && (
+                            <CheckCircleIcon className="w-5 h-5 text-green-600" />
+                          )}
+                          {recipient.status === "error" && (
+                            <XCircleIcon className="w-5 h-5 text-red-600" />
+                          )}
+                        </div>
+                      </div>
+
+                      {!useGlobalVars && variableCount > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
+                          {Array.from({ length: variableCount }).map((_, i) => (
+                            <div key={i}>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                                Variable {i + 1}
+                              </label>
+                              <input
+                                type="text"
+                                value={recipient.variables[i] || ""}
+                                onChange={(e) =>
+                                  updateRecipientVariable(
+                                    recipient.id,
+                                    i,
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                placeholder={`Valor {{${i + 1}}}`}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {showPreview && (
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="text-xs font-medium text-gray-600 mb-2">
+                            Vista previa:
+                          </div>
+                          <div className="text-sm text-gray-900 whitespace-pre-wrap">
+                            {generatePreview(parametersToUse)}
+                          </div>
+                        </div>
+                      )}
+
+                      {recipient.status === "error" && recipient.error && (
+                        <div className="mt-3 p-3 bg-red-50 rounded-lg">
+                          <div className="text-xs font-medium text-red-600 mb-1">
+                            Error:
+                          </div>
+                          <div className="text-sm text-red-700">
+                            {recipient.error}
+                          </div>
                         </div>
                       )}
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* Lista de Destinatarios */}
-        {recipients.length > 0 && phoneColumn && (
-          <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Destinatarios ({recipients.length})
+          {/* Envío Masivo */}
+          {recipients.length > 0 && (
+            <div className="bg-white shadow-lg rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Envío Masivo
               </h3>
-              <div className="flex items-center space-x-4">
+
+              {bulkSendingMode && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      Progreso del envío
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      {sendingProgress.current} / {sendingProgress.total}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${
+                          (sendingProgress.current / sendingProgress.total) *
+                          100
+                        }%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  Teléfonos desde:{" "}
-                  <span className="font-medium">{phoneColumn}</span>
-                  {nameColumn && (
+                  {selectedCount > 0 ? (
                     <>
-                      , nombres desde:{" "}
-                      <span className="font-medium">{nameColumn}</span>
+                      Se enviará a {selectedCount} destinatario
+                      {selectedCount > 1 ? "s" : ""} seleccionado
+                      {selectedCount > 1 ? "s" : ""}.
+                    </>
+                  ) : (
+                    <>
+                      Selecciona destinatarios para habilitar el envío masivo.
                     </>
                   )}
                 </div>
+
                 <button
-                  onClick={() => setShowPreview(!showPreview)}
-                  className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800"
+                  onClick={handleBulkSend}
+                  disabled={selectedCount === 0 || bulkSendingMode}
+                  className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {showPreview ? (
-                    <EyeSlashIcon className="w-4 h-4" />
+                  {bulkSendingMode ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Enviando...</span>
+                    </>
                   ) : (
-                    <EyeIcon className="w-4 h-4" />
+                    <>
+                      <UserGroupIcon className="w-5 h-5" />
+                      <span>Enviar a Seleccionados</span>
+                    </>
                   )}
-                  <span>
-                    {showPreview ? "Ocultar" : "Mostrar"} vista previa
-                  </span>
                 </button>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={selectAll}
-                    className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200"
-                  >
-                    Seleccionar válidos
-                  </button>
-                  <button
-                    onClick={deselectAll}
-                    className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-200"
-                  >
-                    Deseleccionar todo
-                  </button>
-                </div>
               </div>
-            </div>
 
-            {/* Estadísticas */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">
-                  {selectedCount}
-                </div>
-                <div className="text-sm text-blue-700">Seleccionados</div>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
-                  {sentCount}
-                </div>
-                <div className="text-sm text-green-700">Enviados</div>
-              </div>
-              <div className="bg-red-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-red-600">
-                  {errorCount}
-                </div>
-                <div className="text-sm text-red-700">Errores</div>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-gray-600">
-                  {validRecipients.length}
-                </div>
-                <div className="text-sm text-gray-700">Válidos</div>
-              </div>
-            </div>
-
-            {/* Lista de destinatarios */}
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {recipients.map((recipient) => {
-                const isSelected = selectedRecipients.has(recipient.id);
-                const isValid = recipient.phone.trim().length >= 10;
-                const parametersToUse = useGlobalVars
-                  ? globalParameters
-                  : recipient.variables;
-
-                return (
-                  <div
-                    key={recipient.id}
-                    className={`border rounded-lg p-4 transition-all ${
-                      isSelected
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    } ${!isValid ? "opacity-50" : ""}`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleRecipient(recipient.id)}
-                          disabled={!isValid}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {recipient.name}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {recipient.phone}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        {recipient.status === "pending" && (
-                          <ClockIcon className="w-5 h-5 text-gray-400" />
-                        )}
-                        {recipient.status === "sending" && (
-                          <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                        )}
-                        {recipient.status === "sent" && (
-                          <CheckCircleIcon className="w-5 h-5 text-green-600" />
-                        )}
-                        {recipient.status === "error" && (
-                          <XCircleIcon className="w-5 h-5 text-red-600" />
-                        )}
-                      </div>
-                    </div>
-
-                    {!useGlobalVars && variableCount > 0 && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
-                        {Array.from({ length: variableCount }).map((_, i) => (
-                          <div key={i}>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              Variable {i + 1}
-                            </label>
-                            <input
-                              type="text"
-                              value={recipient.variables[i] || ""}
-                              onChange={(e) =>
-                                updateRecipientVariable(
-                                  recipient.id,
-                                  i,
-                                  e.target.value
-                                )
-                              }
-                              className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              placeholder={`Valor {{${i + 1}}}`}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {showPreview && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                        <div className="text-xs font-medium text-gray-600 mb-2">
-                          Vista previa:
-                        </div>
-                        <div className="text-sm text-gray-900 whitespace-pre-wrap">
-                          {generatePreview(parametersToUse)}
-                        </div>
-                      </div>
-                    )}
-
-                    {recipient.status === "error" && recipient.error && (
-                      <div className="mt-3 p-3 bg-red-50 rounded-lg">
-                        <div className="text-xs font-medium text-red-600 mb-1">
-                          Error:
-                        </div>
-                        <div className="text-sm text-red-700">
-                          {recipient.error}
-                        </div>
-                      </div>
-                    )}
+              {sendError && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="text-sm text-red-700">
+                    <strong>Error:</strong> {sendError}
                   </div>
-                );
-              })}
+                </div>
+              )}
             </div>
-          </div>
-        )}
-
-        {/* Envío Masivo */}
-        {recipients.length > 0 && (
-          <div className="bg-white shadow-lg rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Envío Masivo
-            </h3>
-
-            {bulkSendingMode && (
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">
-                    Progreso del envío
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {sendingProgress.current} / {sendingProgress.total}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{
-                      width: `${
-                        (sendingProgress.current / sendingProgress.total) * 100
-                      }%`,
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                {selectedCount > 0 ? (
-                  <>
-                    Se enviará a {selectedCount} destinatario
-                    {selectedCount > 1 ? "s" : ""} seleccionado
-                    {selectedCount > 1 ? "s" : ""}.
-                  </>
-                ) : (
-                  <>Selecciona destinatarios para habilitar el envío masivo.</>
-                )}
-              </div>
-
-              <button
-                onClick={handleBulkSend}
-                disabled={selectedCount === 0 || bulkSendingMode}
-                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {bulkSendingMode ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Enviando...</span>
-                  </>
-                ) : (
-                  <>
-                    <UserGroupIcon className="w-5 h-5" />
-                    <span>Enviar a Seleccionados</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {sendError && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="text-sm text-red-700">
-                  <strong>Error:</strong> {sendError}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
-    </div>
-
   );
 }
