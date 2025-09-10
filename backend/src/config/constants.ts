@@ -1,3 +1,6 @@
+export const NODE_ENV = process.env.NODE_ENV || "development";
+export const IS_PROD = NODE_ENV === "production";
+
 export const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'ODIN_MASTER_TOKEN';
 export const PORT = process.env.PORT || 3000;
 export const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID || 'PHONE_NUMBER_ID';

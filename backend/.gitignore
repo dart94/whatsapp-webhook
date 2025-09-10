@@ -1,6 +1,5 @@
 # ignorar el env
-.env
-
+.env*
 # ignorar el build
 build
 dist
