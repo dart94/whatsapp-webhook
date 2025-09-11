@@ -208,14 +208,12 @@ export default function EnviarPlantillaPage() {
   // Función de envío masivo
   const handleBulkSend = async () => {
     if (!template || selectedRecipients.size === 0) return;
-    const campaignName = template.campaignName;
 
-    if (!campaignName) {
-      showToast({type: "error", message: "Campaña no puede estar vacía"});
+    // Validar nombre de campaña: no vacío y no solo espacios
+    if (!campaignName.trim()) {
+      showToast({ type: "error", message: "Campaña no puede estar vacía" });
       return;
     }
-
-    setCampaignName(campaignName);
 
     setBulkSendingMode(true);
     setSendingProgress({ current: 0, total: selectedRecipients.size });
@@ -233,6 +231,7 @@ export default function EnviarPlantillaPage() {
           r.id === recipient.id ? { ...r, status: "sending" } : r
         )
       );
+
       try {
         const parametersToUse = useGlobalVars
           ? globalParameters
@@ -244,8 +243,9 @@ export default function EnviarPlantillaPage() {
           template.body,
           template.language,
           parametersToUse,
-          campaignName
+          campaignName.trim() // ✅ Trim para eliminar espacios
         );
+
         // Actualizar estado a enviado
         setRecipients((prev) =>
           prev.map((r) =>
@@ -333,24 +333,23 @@ export default function EnviarPlantillaPage() {
 
         {/*Nombre de plantilla*/}
         <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Nombre de la Campaña
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre de la campaña
-                </label>
-                <input
-                  type="text"
-                  value={campaignName}
-                  onChange={(e) => setCampaignName(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Nombre de la campaña"
-                />
-              </div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Nombre de la Campaña
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre de la campaña
+              </label>
+              <input
+                type="text"
+                value={campaignName}
+                onChange={(e) => setCampaignName(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Nombre de la campaña"
+              />
             </div>
-          
+          </div>
 
           {/* Selección de Hoja */}
 
