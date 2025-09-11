@@ -16,20 +16,30 @@ export const useConversationStore = create<ConversationState>((set) => ({
 
   refreshConversations: async (opts?: { groupId?: number }) => {
     try {
-      // Obtener token dentro del store
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-      
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+
       if (!token) {
         set({ error: "No hay token disponible", loading: false });
         return;
       }
-      
+
       set({ loading: true, error: null });
+
       const data = await fetchConversations(token, opts);
-      set({ conversations: data, loading: false });
+
+      // ✅ Eliminar duplicados por wa_id
+      const map = new Map<string, Conversation>();
+      data.forEach((c) => map.set(c.wa_id, c));
+      const uniqueData = Array.from(map.values());
+
+      set({ conversations: uniqueData, loading: false });
     } catch (e) {
       console.error(e);
-      set({ loading: false, error: "Ocurrió un error al cargar conversaciones." });
+      set({
+        loading: false,
+        error: "Ocurrió un error al cargar conversaciones.",
+      });
     }
   },
 }));

@@ -2,6 +2,7 @@
 import { Group } from "@/types/groups";
 import { apiFetch } from "@/services/appiFetch";
 import { API_BASE_URL } from "@/config/api";
+import { getStoredToken } from "@/utils/auth";
 
 type FetchOpts = {
   signal?: AbortSignal;
@@ -15,22 +16,38 @@ type GroupsResponse = {
   data: Group[];
 };
 
-export async function getGroups(token: string): Promise<Group[]> {
-  const res = await fetch(`${API_BASE_URL}/groups`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    cache: "no-store",
-  });
-
-  if (res.status === 401) {
-    throw new Error("No autorizado (token inválido o expirado)");
+// Carga de grupos (puedes mover esto a /lib/groups.api.ts si prefieres)
+export async function fetchGroups(token?: string): Promise<Group[]> {
+  if (!token) {
+    getStoredToken();
   }
-  if (!res.ok) throw new Error("No se pudieron cargar los grupos");
 
-  const json: GroupsResponse = await res.json();
-  return json.data ?? [];
+ try {
+    const res = await fetch(`${API_BASE_URL}/groups`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      cache: "no-store",
+    });
+
+
+    
+    if (!res.ok) {
+      // Obtener más detalles sobre el error
+      const errorText = await res.text();
+      console.error("Detalles del error de API:", errorText);
+      throw new Error(`Error de API: ${res.status} - ${errorText}`);
+    }
+    
+    const json = await res.json();
+    console.log("Respuesta de API:", json);
+    
+    return json.data ?? [];
+  } catch (error) {
+    console.error("Error en fetchGroups:", error);
+    throw error;
+  }
 }
 
 

@@ -7,7 +7,10 @@ import { ChatHeader } from "@/components/ChatHeader";
 import { MessageList } from "@/components/MessageList";
 import TextBox from "@/components/ChatInput";
 import { useSocket } from "@/hooks/UseSocket";
-import { markMessagesAsRead, fetchMessagesByWaId } from "@/lib/conversation.api";
+import {
+  markMessagesAsRead,
+  fetchMessagesByWaId,
+} from "@/lib/conversation.api";
 import { useChatStore } from "@/stores/useChatStore";
 import { useConversationStore } from "@/stores/UseConversationStore";
 import { getStoredToken } from "@/utils/auth";
@@ -45,96 +48,70 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
 
   // 🚀 SOLUCIÓN: Un solo useEffect que maneja token Y carga de mensajes
   useEffect(() => {
-  console.log("🔍 [ChatPage] useEffect principal ejecutándose...");
-  console.log("🔍 [ChatPage] waId:", waId);
-  console.log("🔍 [ChatPage] groupId:", groupId);
-  
-  const initializePage = async () => {
-    try {
-      console.log("🔍 [ChatPage] Obteniendo token...");
-      const storedToken = getStoredToken();
-      console.log("🔍 [ChatPage] Token encontrado:", storedToken ? "✅ SÍ" : "❌ NO");
-      
-      if (!storedToken) {
-        setError("No se encontró token de autenticación");
+    const initializePage = async () => {
+      try {
+        const storedToken = getStoredToken();
+        if (!storedToken) {
+          setError("No se encontró token de autenticación");
+          setIsLoading(false);
+          return;
+        }
+
+        // Actualizar token en el estado
+        setToken(storedToken);
+        setIsLoading(true);
+        setError(null);
+
+        try {
+          const messagesFromDb = await fetchMessagesByWaId(
+            storedToken,
+            waId,
+            groupId !== undefined ? { groupId } : undefined
+          );
+          setMessages(waId, messagesFromDb);
+        } catch (fetchError) {
+          console.error(
+            "❌ [ChatPage] Error en fetchMessagesByWaId:",
+            fetchError
+          );
+          throw fetchError;
+        }
+
+        try {
+          await markMessagesAsRead(
+            storedToken,
+            waId,
+            groupId !== undefined ? { groupId } : undefined
+          );
+        } catch (markError) {}
+
+        try {
+          console.log("🔄 [ChatPage] Refrescando conversaciones...");
+          await doRefresh(groupId);
+          console.log("🔄 [ChatPage] doRefresh completado");
+        } catch (refreshError) {
+          console.error(
+            "⚠️ [ChatPage] Error en doRefresh (continuando):",
+            refreshError
+          );
+          // No lanzar error aquí, es menos crítico
+        }
+
+        console.log("✅ [ChatPage] Carga completada exitosamente");
+      } catch (err) {
+        console.error("❌ [ChatPage] Error al cargar mensajes:", err);
+
+        setError(
+          err instanceof Error ? err.message : "Error al cargar mensajes"
+        );
+      } finally {
+        console.log("🏁 [ChatPage] Finalizando carga (setIsLoading(false))");
         setIsLoading(false);
-        return;
       }
+    };
 
-      // Actualizar token en el estado
-      setToken(storedToken);
-      
-      console.log("🚀 [ChatPage] Iniciando carga de mensajes...");
-      setIsLoading(true);
-      setError(null);
-      
-      // 🔍 DEBUGGING: Verificar que las funciones existan
-      console.log("🔍 [ChatPage] fetchMessagesByWaId existe:", typeof fetchMessagesByWaId);
-      console.log("🔍 [ChatPage] markMessagesAsRead existe:", typeof markMessagesAsRead);
-      console.log("🔍 [ChatPage] doRefresh existe:", typeof doRefresh);
-      
-      try {
-        console.log("📡 [ChatPage] Llamando fetchMessagesByWaId...");
-        console.log("📡 [ChatPage] Parámetros:", { 
-          token: storedToken.substring(0, 20) + "...", 
-          waId, 
-          groupId 
-        });
-        
-        const messagesFromDb = await fetchMessagesByWaId(
-          storedToken,
-          waId,
-          groupId !== undefined ? { groupId } : undefined
-        );
-        
-        console.log("📨 [ChatPage] fetchMessagesByWaId completado");
-        console.log("📨 [ChatPage] Tipo de respuesta:", typeof messagesFromDb);
-        console.log("📨 [ChatPage] Es array:", Array.isArray(messagesFromDb));
-        console.log("📨 [ChatPage] Mensajes obtenidos:", messagesFromDb?.length || 0);
-        
-        setMessages(waId, messagesFromDb);
-        console.log("📨 [ChatPage] setMessages completado");
-        
-      } catch (fetchError) {
-        console.error("❌ [ChatPage] Error en fetchMessagesByWaId:", fetchError);
-        throw fetchError;
-      }
-      
-      try {
-        console.log("📖 [ChatPage] Marcando mensajes como leídos...");
-        await markMessagesAsRead(
-          storedToken,
-          waId,
-          groupId !== undefined ? { groupId } : undefined
-        );
-        console.log("📖 [ChatPage] markMessagesAsRead completado");
-      } catch (markError) {
-        console.error("⚠️ [ChatPage] Error en markMessagesAsRead (continuando):", markError);
-        // No lanzar error aquí, es menos crítico
-      }
-      
-      try {
-        console.log("🔄 [ChatPage] Refrescando conversaciones...");
-        await doRefresh(groupId);
-        console.log("🔄 [ChatPage] doRefresh completado");
-      } catch (refreshError) {
-        console.error("⚠️ [ChatPage] Error en doRefresh (continuando):", refreshError);
-        // No lanzar error aquí, es menos crítico
-      }
-      
-      console.log("✅ [ChatPage] Carga completada exitosamente");
-    } catch (err) {
-      console.error("❌ [ChatPage] Error al cargar mensajes:", err);
-
-      setError(err instanceof Error ? err.message : "Error al cargar mensajes");
-    } finally {
-      console.log("🏁 [ChatPage] Finalizando carga (setIsLoading(false))");
-      setIsLoading(false);
-    }
-  };
-
-  initializePage();
-}, [waId, groupId, setMessages, doRefresh]);
+    initializePage();
+  }, [waId, groupId, setMessages, doRefresh]);
 
   // Socket: si llega mensaje del mismo waId activo, refrescamos lista de conversaciones
   const handleSocketMessage = useCallback(
@@ -161,8 +138,8 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
     return (
       <div className="p-4 text-red-500">
         <p>Error: {error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
+        <button
+          onClick={() => window.location.reload()}
           className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
         >
           Recargar página
@@ -177,9 +154,8 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
       <div className="p-4">
         <p>Cargando mensajes...</p>
         <p className="text-sm text-gray-500">
-          Token: {token ? "✅" : "❌"} | 
-          WaId: {waId} | 
-          GroupId: {groupId || "ninguno"}
+          Token: {token ? "✅" : "❌"} | WaId: {waId} | GroupId:{" "}
+          {groupId || "ninguno"}
         </p>
       </div>
     );
@@ -189,7 +165,11 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
     <div className="h-full grid grid-rows-[auto,1fr,auto]">
       {/* Header fijo (fuera del scroll) */}
       <div className="bg-white border-b">
-        <ChatHeader waId={waId} messageCount={currentMessages.length} onBack={onBack} />
+        <ChatHeader
+          waId={waId}
+          messageCount={currentMessages.length}
+          onBack={onBack}
+        />
       </div>
 
       <div className="min-h-0">

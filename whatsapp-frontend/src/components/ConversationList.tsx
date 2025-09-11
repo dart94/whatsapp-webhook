@@ -1,7 +1,8 @@
+"use client";
 
-// Lista de conversaciones
 import { Conversation } from "../types/whatsapp";
 import { ConversationCard } from "./ConversationCard";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -14,18 +15,28 @@ export function ConversationList({
   loading = false,
   onConversationClick,
 }: ConversationListProps) {
-if (loading) {
-  return (
-    <div className="space-y-4 p-4">
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="h-12 rounded-lg bg-gray-200 animate-pulse"
-        ></div>
-      ))}
-    </div>
-  );
-}
+  if (loading) {
+    return (
+      <div className="space-y-4 p-4">
+        {/* Loader animado superior */}
+        <div className="flex justify-center items-center mb-6">
+          <div className="flex space-x-2">
+            <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce"></div>
+            <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.2s]"></div>
+            <div className="w-3 h-3 bg-purple-300 rounded-full animate-bounce [animation-delay:-0.4s]"></div>
+          </div>
+        </div>
+
+        {/* Skeletons de carga */}
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="h-12 rounded-lg bg-gray-200 animate-pulse"
+          ></div>
+        ))}
+      </div>
+    );
+  }
 
   if (conversations.length === 0) {
     return (
@@ -45,15 +56,24 @@ if (loading) {
 
   return (
     <div className="space-y-3">
-      {conversations.map((conversation) => (
-        <ConversationCard
-          key={conversation.wa_id}
-          conversation={conversation}
-          onClick={() => {
-            onConversationClick?.(conversation);
-          }}
-        />
-      ))}
+      <AnimatePresence>
+        {conversations.map((conversation) => (
+          <motion.div
+            key={conversation.wa_id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <ConversationCard
+              conversation={conversation}
+              onClick={() => {
+                onConversationClick?.(conversation);
+              }}
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

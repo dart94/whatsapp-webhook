@@ -9,12 +9,9 @@ import { Conversation } from "../types/whatsapp";
 import { useSocket } from "../hooks/UseSocket";
 import { useConversationStore } from "../stores/UseConversationStore";
 import { getStoredToken } from "@/utils/auth";
-import { get } from "http";
+import { fetchGroups } from "@/lib/group";
 import Search from "@/components/search/search";
-import { ArrowPathIcon }from "@heroicons/react/24/outline";
-
-// 👇 ajusta si tienes un archivo centralizado de config
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 type HomeProps = {
   onSelectChat: (waId: string) => void;
@@ -22,39 +19,6 @@ type HomeProps = {
 
 type Group = { id: number; name: string };
 
-// Carga de grupos (puedes mover esto a /lib/groups.api.ts si prefieres)
-async function fetchGroups(token?: string): Promise<Group[]> {
-  if (!token) {
-    getStoredToken();
-  }
-
- try {
-    const res = await fetch(`${API_BASE_URL}/groups`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      cache: "no-store",
-    });
-
-
-    
-    if (!res.ok) {
-      // Obtener más detalles sobre el error
-      const errorText = await res.text();
-      console.error("Detalles del error de API:", errorText);
-      throw new Error(`Error de API: ${res.status} - ${errorText}`);
-    }
-    
-    const json = await res.json();
-    console.log("Respuesta de API:", json);
-    
-    return json.data ?? [];
-  } catch (error) {
-    console.error("Error en fetchGroups:", error);
-    throw error;
-  }
-}
 export default function Message({ onSelectChat }: HomeProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -83,21 +47,16 @@ export default function Message({ onSelectChat }: HomeProps) {
   );
 
   // Maneja búsqueda
-    useEffect(() => {
+  useEffect(() => {
     if (!searchTerm) {
       setFilteredConversations(conversations);
     } else {
       const lower = searchTerm.toLowerCase();
       setFilteredConversations(
-        conversations.filter(
-          (c) =>
-            c.wa_id.toLowerCase().includes(lower)  
-        )
+        conversations.filter((c) => c.wa_id.toLowerCase().includes(lower))
       );
     }
   }, [searchTerm, conversations]);
-
-
 
   // Sincroniza estado local con la URL (si cambia por navegación externa)
   useEffect(() => {
@@ -111,7 +70,7 @@ export default function Message({ onSelectChat }: HomeProps) {
         setGroupsLoading(true);
         setGroupsError(null);
 
-        const token =  getStoredToken();
+        const token = getStoredToken();
 
         const data = await fetchGroups(token ?? "");
         setGroups(data);
@@ -161,9 +120,9 @@ export default function Message({ onSelectChat }: HomeProps) {
 
   // Click en una conversación
   const handleConversationClick = (conversation: Conversation) => {
+    // Solo abre la conversación, NO refresca la lista
     onSelectChat(conversation.wa_id);
   };
-
   // Botón “Actualizar”
   const handleRefresh = () => {
     doRefresh(selectedGroupId);
@@ -189,6 +148,15 @@ export default function Message({ onSelectChat }: HomeProps) {
     // Reemplaza la URL sin recargar
     router.replace(`?${params.toString()}`);
   };
+
+  // Elimina duplicados por wa_id antes de pasar a la lista
+  const uniqueConversations = useMemo(() => {
+    const map = new Map<string, Conversation>();
+    filteredConversations.forEach((c) => {
+      map.set(c.wa_id, c);
+    });
+    return Array.from(map.values());
+  }, [filteredConversations]);
 
   // Render de error global de conversaciones
   if (error) {
@@ -219,7 +187,7 @@ export default function Message({ onSelectChat }: HomeProps) {
     selectedGroupId ? ` • Grupo ${selectedGroupId}` : ""
   }`;
 
-return (
+  return (
     <main className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
         <PageHeader
@@ -257,14 +225,13 @@ return (
                   ))}
                 </select>
               </div>
-
             </div>
           }
         />
 
         {/* Lista filtrada */}
         <ConversationList
-          conversations={filteredConversations}
+          conversations={uniqueConversations}
           loading={loading}
           onConversationClick={handleConversationClick}
         />
