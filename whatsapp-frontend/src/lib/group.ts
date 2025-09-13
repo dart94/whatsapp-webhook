@@ -50,6 +50,34 @@ export async function fetchGroups(token?: string): Promise<Group[]> {
   }
 }
 
+//GetGroups
+export async function getGroups(token: string): Promise<Group[]> {
+  if (!token) {
+    getStoredToken();
+  }
+  try {
+    const res = await fetch(`${API_BASE_URL}/groups`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      // Obtener más detalles sobre el error
+      const errorText = await res.text();
+      console.error("Detalles del error de API:", errorText);
+      throw new Error(`Error de API: ${res.status} - ${errorText}`);
+    }
+    const json = await res.json();
+    console.log("Respuesta de API:", json);
+    return json.data ?? [];
+  } catch (error) {
+    console.error("Error en fetchGroups:", error);
+    throw error;
+  }
+}
+
 
 
 /** Obtener grupo por id */

@@ -21,8 +21,6 @@ export async function login(
   password: string,
   rememberMe: boolean
 ): Promise<LoginResponse> {
-  console.log("API_BASE_URL en login:", API_BASE_URL);
-  console.log("URL completa:", `${API_BASE_URL}/login`);
   const response = await fetch(`${API_BASE_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -86,26 +86,13 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
         } catch (markError) {}
 
         try {
-          console.log("🔄 [ChatPage] Refrescando conversaciones...");
           await doRefresh(groupId);
-          console.log("🔄 [ChatPage] doRefresh completado");
-        } catch (refreshError) {
-          console.error(
-            "⚠️ [ChatPage] Error en doRefresh (continuando):",
-            refreshError
-          );
-          // No lanzar error aquí, es menos crítico
-        }
-
-        console.log("✅ [ChatPage] Carga completada exitosamente");
+        } catch (refreshError) {}
       } catch (err) {
-        console.error("❌ [ChatPage] Error al cargar mensajes:", err);
-
         setError(
           err instanceof Error ? err.message : "Error al cargar mensajes"
         );
       } finally {
-        console.log("🏁 [ChatPage] Finalizando carga (setIsLoading(false))");
         setIsLoading(false);
       }
     };
@@ -128,13 +115,8 @@ export default function ChatPage({ waId, onBack }: ChatPageProps) {
 
   const currentMessages = messagesByWaId[waId] || [];
 
-  console.log("🎨 [ChatPage] Renderizando...");
-  console.log("🎨 [ChatPage] isLoading:", isLoading);
-  console.log("🎨 [ChatPage] error:", error);
-  console.log("🎨 [ChatPage] currentMessages:", currentMessages?.length || 0);
 
   if (error) {
-    console.log("🔴 [ChatPage] Mostrando error");
     return (
       <div className="p-4 text-red-500">
         <p>Error: {error}</p>

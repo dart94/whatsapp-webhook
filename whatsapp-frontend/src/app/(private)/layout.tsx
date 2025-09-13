@@ -49,7 +49,7 @@ return (
 
 
 
-        <main className="flex-1 min-h-0 relative overflow-y-auto">
+        <main className="flex-1 min-h-0 relative overflow-y-auto focus:outline-none">
           <div className="absolute inset-0">
             {children}
           </div>

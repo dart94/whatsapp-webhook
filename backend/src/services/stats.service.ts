@@ -213,6 +213,7 @@ export async function getAllTemplateMessagesService() {
             group: { select: { name: true } },
           },
         },
+        campaignName: true,
       },
     });
 
@@ -231,9 +232,12 @@ export async function getAllTemplateMessagesService() {
             name: msg.groupIntegration.group?.name ?? null,
           }
         : null,
+        campaignName: msg.campaignName ?? null,
     }));
 
     logInfo(`✅ Se obtuvieron ${formatted.length} mensajes tipo template`);
+    //Lof de campaignName
+    console.log("Formateado:", formatted);
     return formatted;
   } catch (error: any) {
     logInfo(`❌ Error en getAllTemplateMessagesService: ${error.message ?? error}`);
