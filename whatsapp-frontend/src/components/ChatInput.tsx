@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { useChatStore } from "../stores/useChatStore";
 import { WhatsappMessage } from "../types/whatsapp";
 import { replyToMessage } from "../lib/conversation.api";
+import { showToast } from "./common/Toast";
 
 type ChatInputProps = {
   waId: string;
@@ -67,7 +68,7 @@ export default function ChatInput({ waId }: ChatInputProps) {
      
     } catch (err) {
       console.error('Error al enviar:', err);
-      setError('Error al enviar mensaje');
+      showToast({ type: 'error', message: 'Error al enviar el mensaje' });
      
       // 7. Marcar como fallado
       updateMessageInChat(waId, tempId, {

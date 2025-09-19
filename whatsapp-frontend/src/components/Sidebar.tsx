@@ -290,7 +290,13 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-purple-700/60 shrink-0">
-          <h1 className="text-xl font-bold truncate">WhatsApp Web</h1>
+          <Image
+            src="/AI.png"
+            alt="Logo"
+            width={200}
+            height={80}
+            className="rounded-full border border-purple-500/40 shadow-sm"
+          />
           {isMobile && (
             <button
               onClick={onToggle}

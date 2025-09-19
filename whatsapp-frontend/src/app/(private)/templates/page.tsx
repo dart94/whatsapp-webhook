@@ -18,7 +18,7 @@ export default function TemplatesPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">Plantillas</h1>
+      <h2 className="text-xl font-semibold text-gray-700 mb-6">Listado</h2>
 
       {error ? (
         <div className="max-w-4xl mx-auto mt-10 text-red-500 text-center">
