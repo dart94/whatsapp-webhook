@@ -15,6 +15,7 @@ import { StatCard } from "@/components/card/card";
 import TimeRangeFilter from "@/components/charts/TimeRangeFilter";
 import StatusRangeFilter from "@/components/charts/StatusRangeFilter";
 import { CampaignFilter } from "@/components/charts/CampaignNameFilter";
+import { GroupNameFilter } from "@/components/charts/GroupNameFilter";
 
 interface TemplateMessage {
   id: string;
@@ -42,6 +43,7 @@ const WhatsAppStatsDashboard: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [selectedCampaign, setSelectedCampaign] = useState("all");
+  const [selectedGroup, setSelectedGroup] = useState("all");
 
   // 1) Diccionario centralizado
   const STATUS_LABELS: Record<string, string> = {
@@ -105,6 +107,15 @@ const WhatsAppStatsDashboard: React.FC = () => {
       if (selectedCampaign !== "all" && selectedCampaign !== campaignName) {
         return false;
       }
+
+      // Grupo
+      const group = msg.group?.name ?? "Sin grupo";
+
+      if (selectedGroup !== "all" && selectedGroup !== group) {
+        return false;
+      }
+
+
 
       const msgDate = new Date(msg.createdAt);
       const now = new Date();
@@ -290,6 +301,7 @@ const WhatsAppStatsDashboard: React.FC = () => {
                 selectedCampaign={selectedCampaign}
                 setSelectedCampaign={setSelectedCampaign}
               />
+              {/*Selector de  GroupName*/}
             </div>
           </div>
 

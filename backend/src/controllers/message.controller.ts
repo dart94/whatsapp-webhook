@@ -263,10 +263,13 @@ export const replyToMessage = async (req: Request, res: Response) => {
       actorUserId,
     });
 
+
     return res.status(200).json({
       success: true,
       data: result,
+      logInfo: `✅ Respuesta enviada a ${message.from}: "${result.messages[0].body}"`
     });
+    
   } catch (error) {
     logError(`❌ Error in replyToMessage controller: ${error}`);
     return res.status(500).json({

@@ -11,10 +11,11 @@ import { useFormValidation } from "@/hooks/useFormValidation";
 
 
 export function GroupEdit({ isOpen, onClose, group, onUpdated }: GroupEditProps) {
-  const { editGroup, loading, error } = useGroups();
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const { editGroup, loading, error } = useGroups(token);
   const { logout } = useAuth();
   const { touched, setTouched, errorsMap, hasErrors } = useFormValidation(group, );
-  const { groups } = useGroups();
+  const { groups } = useGroups(token);
 
   const [groupData, setGroupData] = useState<Group>({
     id: group.id,

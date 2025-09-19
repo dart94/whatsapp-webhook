@@ -35,7 +35,8 @@ export function GroupIntEdit({
     groupId: false,
     Waba_id: false,
   });
-  const { groups } = useGroups();
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const { groups } = useGroups(token);
 
   // Accesibilidad: manejar foco inicial y escape
   const overlayRef = useRef<HTMLDivElement | null>(null);

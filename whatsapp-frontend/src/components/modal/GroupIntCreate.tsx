@@ -34,7 +34,8 @@ export function GroupIntCreate({
     groupId: false,
     Waba_id: false,
   });
-  const { groups } = useGroups();
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const { groups } = useGroups(token);
 
   // Accesibilidad: manejar foco inicial y escape
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -81,10 +82,7 @@ export function GroupIntCreate({
     try {
       const result = await showSweetAlert({
         title: "¿Crear esta integración?",
-        text: `${groupIntegration.phoneNumberId || "(Sin número de teléfono)"}
-        ${groupIntegration.accessTokenId || "(Sin token de acceso)"}
-        ${groupIntegration.groupId || "(Sin grupo)"}
-        ${groupIntegration.Waba_id || "(Sin Waba_id)"}`,
+        text: `${groupIntegration.Waba_id || "(Sin Waba_id)"}`,
         icon: "warning",
         confirmButtonText: "Sí, crear",
         cancelButtonText: "Cancelar",

@@ -18,7 +18,8 @@ export function UserEdit({ isOpen, onClose, user, onUpdated }: UserEditProps) {
     user,
     { requirePassword: false }
   );
-  const { groups } = useGroups();
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const { groups } = useGroups(token);
 
   const [userData, setUserData] = useState<User>({
     id: user.id,

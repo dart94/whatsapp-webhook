@@ -24,7 +24,8 @@ export function UserCreate({ isOpen, onClose, onCreated }: UserCreateProps) {
   });
   const { touched, setTouched, errorsMap, hasErrors } =
   useFormValidation(user, { requirePassword: true });
-  const { groups } = useGroups();
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const { groups } = useGroups(token);
 
 
   // Accesibilidad: manejar foco inicial y escape
